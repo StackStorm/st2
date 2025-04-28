@@ -19,3 +19,16 @@ st2_logging_conf_file(
     name="logging_syslog",
     source="syslog.conf",
 )
+
+st2_logging_conf_for_nfpm(
+    dependencies=[
+        ":logging",
+        ":logging_gunicorn",
+        ":logging_syslog",
+    ],
+    files=[
+        ("logging.conf", "/etc/st2/logging.api.conf"),
+        ("logging.gunicorn.conf", "/etc/st2/logging.api.gunicorn.conf"),
+        ("syslog.conf", "/etc/st2/syslog.api.conf"),
+    ],
+)
