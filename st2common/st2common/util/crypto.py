@@ -285,7 +285,7 @@ def cryptography_symmetric_encrypt(encrypt_key, plaintext):
     result = msg_bytes + sig_bytes
 
     # Convert resulting byte string to hex notation ASCII string
-    result = binascii.hexlify(result).upper()
+    result = binascii.hexlify(result).upper().decode()
 
     return result
 
