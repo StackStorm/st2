@@ -66,7 +66,7 @@ class ParamsUtilsTest(DbTestCase):
         name = "a1"
         value = {"test": "http://someurl?value={{a"}
         param_utils._process(G, name, value)
-        self.assertEquals(G.nodes.get(name, {}).get("value"), value)
+        self.assertEqual(G.nodes.get(name, {}).get("value"), value)
 
     def test_process_jinja_template(self):
 
@@ -76,7 +76,7 @@ class ParamsUtilsTest(DbTestCase):
         name = "a1"
         value = "http://someurl?value={{a}}"
         param_utils._process(G, name, value)
-        self.assertEquals(G.nodes.get(name, {}).get("template"), value)
+        self.assertEqual(G.nodes.get(name, {}).get("template"), value)
 
     def test_get_finalized_params(self):
         params = {
@@ -243,7 +243,7 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {"r1": 1, "r2": 1})
         self.assertEqual(r_action_params, {"a1": True, "a2": True, "a3": "noob"})
 
-    def test_get_finalized_params_with_cast_overriden(self):
+    def test_get_finalized_params_with_cast_overridden(self):
         params = {
             "r1": "{{r2}}",
             "r2": 1,
@@ -674,7 +674,7 @@ class ParamsUtilsTest(DbTestCase):
         return liveaction_db
 
     def test_get_value_from_datastore_through_render_live_params(self):
-        # Register datastore value to be refered by this test-case
+        # Register datastore value to be referred by this test-case
         register_kwargs = [
             {"name": "test_key", "value": "foo"},
             {"name": "user1:test_key", "value": "bar", "scope": FULL_USER_SCOPE},
