@@ -68,4 +68,4 @@ class TestStream(unittest.TestCase):
         )
         events = EVENTS.append("")
         for index, val in enumerate(app_iter):
-            self.assertEquals(val, events[index])
+            self.assertEqual(val, events[index])
