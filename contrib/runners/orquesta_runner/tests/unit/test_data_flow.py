@@ -18,7 +18,6 @@
 from __future__ import absolute_import
 
 import mock
-import six
 
 from orquesta import statuses as wf_statuses
 
@@ -215,7 +214,7 @@ class OrquestaRunnerTest(st2tests.ExecutionDbTestCase):
         self.assertEqual(ac_ex_db.status, ac_const.LIVEACTION_STATUS_SUCCEEDED)
 
         # Check workflow output.
-        expected_value = wf_input["a1"] if six.PY3 else wf_input["a1"].decode("utf-8")
+        expected_value = wf_input["a1"]
 
         expected_output = {
             "a6": expected_value,

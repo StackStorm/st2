@@ -17,11 +17,10 @@ from __future__ import absolute_import
 import random
 import eventlet
 
-from kombu import Exchange
-from kombu import Queue
-from unittest2 import TestCase
+from unittest import TestCase
 
 from st2common.transport.consumers import ActionsQueueConsumer
+from st2common.transport.kombu import Exchange, Queue
 from st2common.transport.publishers import PoolPublisher
 from st2common.transport import utils as transport_utils
 from st2common.models.db.liveaction import LiveActionDB
@@ -35,7 +34,7 @@ class ActionsQueueConsumerTestCase(TestCase):
 
     def test_stop_consumption_on_shutdown(self):
         exchange = Exchange("st2.execution.test", type="topic")
-        queue_name = "test-" + str(random.randint(1, 10000))
+        queue_name = f"st2.test-{random.randint(1, 10000)}"
         queue = Queue(
             name=queue_name, exchange=exchange, routing_key="#", auto_delete=True
         )

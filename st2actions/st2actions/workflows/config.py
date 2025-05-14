@@ -23,6 +23,7 @@ from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
 
 def parse_args(args=None):
+    common_config.use_st2_env_vars(cfg.CONF)
     cfg.CONF(
         args=args,
         version=sys_constants.VERSION_STRING,

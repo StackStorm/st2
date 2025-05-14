@@ -34,6 +34,9 @@ from st2tests.fixtures.packs.dummy_pack_1.fixture import (
     PACK_NAME as DUMMY_PACK_1,
     PACK_PATH as DUMMY_PACK_1_PATH,
 )
+from st2tests.fixtures.packs.dummy_pack_2.fixture import (
+    PACK_NAME as DUMMY_PACK_2,
+)
 from st2tests.fixtures.packs.dummy_pack_10.fixture import (
     PACK_DIR_NAME as DUMMY_PACK_10,
     PACK_PATH as DUMMY_PACK_10_PATH,
@@ -589,7 +592,7 @@ class PacksControllerTestCase(
         resp = self.app.post_json(
             "/v1/packs/register",
             {
-                "packs": ["dummy_pack_2"],
+                "packs": [DUMMY_PACK_2],
                 "fail_on_failure": False,
                 "types": ["policies"],
             },
@@ -679,7 +682,10 @@ class PacksControllerTestCase(
         self.assertEqual(resp.status_int, 400)
         self.assertIn(expected_msg, resp.json["faultstring"])
 
-        expected_msg = "'stringa' is not valid under any of the given schemas"
+        # with jsonschema 2.6.0, the anyOf validator errors with:
+        #   "'stringa' is not valid under any of the given schemas"
+        # with jsonschema 3.2.0, the underlying enum (anyOf->enum) gets reported instead:
+        expected_msg = "'stringa' is not one of ['array', 'boolean', 'integer', 'null', 'number', 'object', 'string']"
         self.assertEqual(resp.status_int, 400)
         self.assertIn(expected_msg, resp.json["faultstring"])
 

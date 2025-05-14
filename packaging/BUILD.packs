@@ -1,0 +1,25 @@
+# These are packs that should be installed with the default ST2 install.
+_DEFAULT_PACKS = (
+    "chatops",
+    "core",
+    "default",
+    "linux",
+    "packs",
+)
+
+# These are packs that should NOT be installed with the default ST2 install.
+_EXTRA_PACKS = (
+    "debug",
+    "examples",
+    "hello_st2",
+)
+
+# :archive_for_npfm targets created by st2_pack_archive() macro (see pants-plugins/macros.py)
+target(
+    name="default_packs",
+    dependencies=[f"//contrib/{pack}:archive_for_nfpm" for pack in _DEFAULT_PACKS],
+)
+target(
+    name="extra_packs",
+    dependencies=[f"//contrib/{pack}:archive_for_nfpm" for pack in _EXTRA_PACKS],
+)

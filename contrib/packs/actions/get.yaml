@@ -9,3 +9,8 @@ parameters:
     type: "string"
     description: "Name of pack to lookup"
     required: true
+  branch:
+    type: "string"
+    description: "The primary branch of this pack repo"
+    required: false
+    default: "master"

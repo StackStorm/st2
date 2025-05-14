@@ -205,7 +205,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
             # Not aborting as this is convenience.
             return
         except StackStormDBObjectConflictError as e:
-            LOG.warn(
+            LOG.warning(
                 'Trigger creation of "%s" failed with uniqueness conflict. Exception: %s',
                 trigger,
                 six.text_type(e),
@@ -221,7 +221,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
         )
         trigger_db = TriggerService.get_trigger_db_by_ref(triggertype_ref.ref)
         if not trigger_db:
-            LOG.warn(
+            LOG.warning(
                 "No shadow trigger found for %s. Will skip delete.", triggertype_db
             )
             return

@@ -1,1 +1,1 @@
-shell_sources()
+shell_sources(skip_shfmt=True)

@@ -8,4 +8,5 @@ files(
 
 shell_sources(
     dependencies=[":assets"],
+    skip_shfmt=True,
 )

@@ -12,9 +12,9 @@ jobs:
   # See: https://keepachangelog.com/en/1.0.0/
   changelog-checker:
     name: Add CHANGELOG.rst
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Changelog check
         # https://github.com/marketplace/actions/changelog-checker
         uses: Zomzog/changelog-checker@v1.2.0

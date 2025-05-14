@@ -22,11 +22,6 @@ from oslo_config import cfg
 
 import st2tests
 
-# XXX: actionsensor import depends on config being setup.
-import st2tests.config as tests_config
-
-tests_config.parse_args()
-
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
 from st2common.constants import action as ac_const

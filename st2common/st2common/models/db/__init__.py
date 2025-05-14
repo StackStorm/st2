@@ -48,7 +48,6 @@ if "nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"):
 import copy
 import importlib
 import traceback
-import ssl as ssl_lib
 
 import six
 from oslo_config import cfg
@@ -127,13 +126,15 @@ def _db_connect(
     db_port,
     username=None,
     password=None,
-    ssl=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
-    ssl_cert_reqs=None,
-    ssl_ca_certs=None,
+    tls=False,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
+    tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
+    ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
 
     if "://" in db_host:
@@ -161,14 +162,16 @@ def _db_connect(
         % (db_name, host_string, str(username_string))
     )
 
-    ssl_kwargs = _get_ssl_kwargs(
-        ssl=ssl,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
-        ssl_cert_reqs=ssl_cert_reqs,
-        ssl_ca_certs=ssl_ca_certs,
+    tls_kwargs = _get_tls_kwargs(
+        tls=tls,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        tls_allow_invalid_certificates=tls_allow_invalid_certificates,
+        tls_ca_file=tls_ca_file,
+        tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
+        ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
+        ssl_match_hostname=ssl_match_hostname,  # deprecated
     )
 
     compressor_kwargs = {}
@@ -185,7 +188,16 @@ def _db_connect(
     # 30 seconds, which means it will block up to 30 seconds and fail if there are any SSL related
     # or other errors
     connection_timeout = cfg.CONF.database.connection_timeout
+
+    # TODO: Add uuid_representation option in st2.conf + a migration guide/script.
+    # This preserves the uuid handling from pymongo 3.x, but it is not portable:
+    # https://pymongo.readthedocs.io/en/stable/examples/uuid.html#handling-uuid-data-example
+    uuid_representation = "pythonLegacy"
+
     connection = mongoengine.connection.connect(
+        # kwargs are defined by mongoengine and pymongo.MongoClient:
+        # https://docs.mongoengine.org/apireference.html#mongoengine.connect
+        # https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html#pymongo.mongo_client.MongoClient
         db_name,
         host=db_host,
         port=db_port,
@@ -194,7 +206,8 @@ def _db_connect(
         password=password,
         connectTimeoutMS=connection_timeout,
         serverSelectionTimeoutMS=connection_timeout,
-        **ssl_kwargs,
+        uuidRepresentation=uuid_representation,
+        **tls_kwargs,
         **compressor_kwargs,
     )
 
@@ -231,13 +244,15 @@ def db_setup(
     username=None,
     password=None,
     ensure_indexes=True,
-    ssl=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
-    ssl_cert_reqs=None,
-    ssl_ca_certs=None,
+    tls=False,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
+    tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
+    ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
 
     connection = _db_connect(
@@ -246,13 +261,15 @@ def db_setup(
         db_port,
         username=username,
         password=password,
-        ssl=ssl,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
-        ssl_cert_reqs=ssl_cert_reqs,
-        ssl_ca_certs=ssl_ca_certs,
+        tls=tls,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        tls_allow_invalid_certificates=tls_allow_invalid_certificates,
+        tls_ca_file=tls_ca_file,
+        tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
+        ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
+        ssl_match_hostname=ssl_match_hostname,  # deprecated
     )
 
     # Create all the indexes upfront to prevent race-conditions caused by
@@ -397,13 +414,15 @@ def db_cleanup(
     db_port,
     username=None,
     password=None,
-    ssl=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
-    ssl_cert_reqs=None,
-    ssl_ca_certs=None,
+    tls=False,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
+    tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
+    ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
 
     connection = _db_connect(
@@ -412,13 +431,15 @@ def db_cleanup(
         db_port,
         username=username,
         password=password,
-        ssl=ssl,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
-        ssl_cert_reqs=ssl_cert_reqs,
-        ssl_ca_certs=ssl_ca_certs,
+        tls=tls,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        tls_allow_invalid_certificates=tls_allow_invalid_certificates,
+        tls_ca_file=tls_ca_file,
+        tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
+        ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
+        ssl_match_hostname=ssl_match_hostname,  # deprecated
     )
 
     LOG.info(
@@ -433,46 +454,54 @@ def db_cleanup(
     return connection
 
 
-def _get_ssl_kwargs(
-    ssl=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
-    ssl_cert_reqs=None,
-    ssl_ca_certs=None,
+def _get_tls_kwargs(
+    tls=False,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
+    tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
+    ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
     # NOTE: In pymongo 3.9.0 some of the ssl related arguments have been renamed -
     # https://api.mongodb.com/python/current/changelog.html#changes-in-version-3-9-0
-    # Old names still work, but we should eventually update to new argument names.
-    ssl_kwargs = {
-        "ssl": ssl,
+    # Old names stopped working in pymongo 4, so we migrated to the new names in st2 3.9.0.
+    # https://pymongo.readthedocs.io/en/stable/migrate-to-pymongo4.html#renamed-uri-options
+    tls_kwargs = {
+        "tls": tls,
     }
-    if ssl_keyfile:
-        ssl_kwargs["ssl"] = True
-        ssl_kwargs["ssl_keyfile"] = ssl_keyfile
-    if ssl_certfile:
-        ssl_kwargs["ssl"] = True
-        ssl_kwargs["ssl_certfile"] = ssl_certfile
-    if ssl_cert_reqs:
-        if ssl_cert_reqs == "none":
-            ssl_cert_reqs = ssl_lib.CERT_NONE
-        elif ssl_cert_reqs == "optional":
-            ssl_cert_reqs = ssl_lib.CERT_OPTIONAL
-        elif ssl_cert_reqs == "required":
-            ssl_cert_reqs = ssl_lib.CERT_REQUIRED
-        ssl_kwargs["ssl_cert_reqs"] = ssl_cert_reqs
-    if ssl_ca_certs:
-        ssl_kwargs["ssl"] = True
-        ssl_kwargs["ssl_ca_certs"] = ssl_ca_certs
+    # pymongo 4 ignores ssl_keyfile and ssl_certfile, so we do not need to pass them on.
+    if tls_certificate_key_file:
+        tls_kwargs["tls"] = True
+        tls_kwargs["tlsCertificateKeyFile"] = tls_certificate_key_file
+        if tls_certificate_key_file_password:
+            tls_kwargs[
+                "tlsCertificateKeyFilePassword"
+            ] = tls_certificate_key_file_password
+    if tls_allow_invalid_certificates is not None:
+        tls_kwargs["tlsAllowInvalidCertificates"] = tls_allow_invalid_certificates
+    elif ssl_cert_reqs:  # fall back to old option
+        # possible values: none, optional, required
+        # ssl lib docs say 'optional' is the same as 'required' for clients:
+        # https://docs.python.org/3/library/ssl.html#ssl.CERT_OPTIONAL
+        tls_kwargs["tlsAllowInvalidCertificates"] = ssl_cert_reqs == "none"
+    if tls_ca_file:
+        tls_kwargs["tls"] = True
+        tls_kwargs["tlsCAFile"] = tls_ca_file
     if authentication_mechanism:
-        ssl_kwargs["ssl"] = True
-        ssl_kwargs["authentication_mechanism"] = authentication_mechanism
-    if ssl_kwargs.get("ssl", False):
-        # pass in ssl_match_hostname only if ssl is True. The right default value
-        # for ssl_match_hostname in almost all cases is True.
-        ssl_kwargs["ssl_match_hostname"] = ssl_match_hostname
-    return ssl_kwargs
+        tls_kwargs["tls"] = True
+        tls_kwargs["authentication_mechanism"] = authentication_mechanism
+    if tls_kwargs.get("tls", False):
+        # pass in tlsAllowInvalidHostname only if tls is True. The right default value
+        # for tlsAllowInvalidHostname in almost all cases is False.
+        tls_kwargs["tlsAllowInvalidHostnames"] = (
+            tls_allow_invalid_hostnames
+            if tls_allow_invalid_hostnames is not None
+            else not ssl_match_hostname
+        )
+    return tls_kwargs
 
 
 class MongoDBAccess(object):

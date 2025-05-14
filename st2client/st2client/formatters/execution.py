@@ -28,7 +28,7 @@ except ImportError:
     # official StackStorm packages.
     # Only time it may not be available is if the user is doing custom install from source or
     # similar.
-    logging.getLogger(__name__).warn(
+    logging.getLogger(__name__).warning(
         "libYAML C bindings are not available. This means YAML "
         "parsing and serialization will be significantly slower. You are "
         "strongly recommended to install libyaml (libyaml-dev package "

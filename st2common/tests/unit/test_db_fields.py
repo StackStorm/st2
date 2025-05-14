@@ -21,7 +21,7 @@ import calendar
 
 import mock
 from oslo_config import cfg
-import unittest2
+import unittest
 import orjson
 
 # pytest: make sure monkey_patching happens before importing mongoengine
@@ -76,6 +76,7 @@ class ModelWithJSONDictFieldDB(stormbase.StormFoundationDB):
 ModelJsonDictFieldAccess = MongoDBAccess(ModelWithJSONDictFieldDB)
 
 
+<<<<<<< HEAD
 class JSONDictFieldTestCase(unittest2.TestCase):
     def setUp(self):
         # NOTE: It's important we re-establish a connection on each setUp
@@ -85,6 +86,9 @@ class JSONDictFieldTestCase(unittest2.TestCase):
         # NOTE: It's important we disconnect here otherwise tests will fail
         cfg.CONF.reset()
 
+=======
+class JSONDictFieldTestCase(unittest.TestCase):
+>>>>>>> upstream/master
     def test_set_to_mongo(self):
         field = JSONDictField(use_header=False)
         result = field.to_mongo({"test": {1, 2}})
@@ -168,6 +172,72 @@ class JSONDictFieldTestCase(unittest2.TestCase):
         self.assertEqual(result, {"c": "d"})
 
 
+<<<<<<< HEAD
+=======
+class JSONDictFieldTestCaseWithHeader(unittest.TestCase):
+    def test_to_mongo_no_compression(self):
+        field = JSONDictField(use_header=True)
+
+        result = field.to_mongo(MOCK_DATA_DICT)
+        self.assertTrue(isinstance(result, bytes))
+
+        split = result.split(b":", 2)
+        self.assertEqual(split[0], JSONDictFieldCompressionAlgorithmEnum.NONE.value)
+        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
+        self.assertEqual(orjson.loads(split[2]), MOCK_DATA_DICT)
+
+        parsed_value = field.parse_field_value(result)
+        self.assertEqual(parsed_value, MOCK_DATA_DICT)
+
+    def test_to_mongo_zstandard_compression(self):
+        field = JSONDictField(use_header=True, compression_algorithm="zstandard")
+
+        result = field.to_mongo(MOCK_DATA_DICT)
+        self.assertTrue(isinstance(result, bytes))
+
+        split = result.split(b":", 2)
+        self.assertEqual(
+            split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
+        )
+        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
+        self.assertEqual(
+            orjson.loads(zstandard.ZstdDecompressor().decompress(split[2])),
+            MOCK_DATA_DICT,
+        )
+
+        parsed_value = field.parse_field_value(result)
+        self.assertEqual(parsed_value, MOCK_DATA_DICT)
+
+    def test_to_python_no_compression(self):
+        field = JSONDictField(use_header=True)
+
+        serialized_data = field.to_mongo(MOCK_DATA_DICT)
+
+        self.assertTrue(isinstance(serialized_data, bytes))
+        split = serialized_data.split(b":", 2)
+        self.assertEqual(split[0], JSONDictFieldCompressionAlgorithmEnum.NONE.value)
+        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
+
+        desserialized_data = field.to_python(serialized_data)
+        self.assertEqual(desserialized_data, MOCK_DATA_DICT)
+
+    def test_to_python_zstandard_compression(self):
+        field = JSONDictField(use_header=True, compression_algorithm="zstandard")
+
+        serialized_data = field.to_mongo(MOCK_DATA_DICT)
+        self.assertTrue(isinstance(serialized_data, bytes))
+
+        split = serialized_data.split(b":", 2)
+        self.assertEqual(
+            split[0], JSONDictFieldCompressionAlgorithmEnum.ZSTANDARD.value
+        )
+        self.assertEqual(split[1], JSONDictFieldSerializationFormatEnum.ORJSON.value)
+
+        desserialized_data = field.to_python(serialized_data)
+        self.assertEqual(desserialized_data, MOCK_DATA_DICT)
+
+
+>>>>>>> upstream/master
 class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
     def test_to_mongo(self):
         field = JSONDictEscapedFieldCompatibilityField(use_header=False)
@@ -479,7 +549,7 @@ class JSONDictEscapedFieldCompatibilityFieldTestCase(DbTestCase):
         self.assertEqual(retrieved_model_db.result, expected_result)
 
 
-class ComplexDateTimeFieldTestCase(unittest2.TestCase):
+class ComplexDateTimeFieldTestCase(unittest.TestCase):
     def test_what_comes_in_goes_out(self):
         field = ComplexDateTimeField()
 

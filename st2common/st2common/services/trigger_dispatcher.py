@@ -94,7 +94,7 @@ class TriggerDispatcherService(object):
                 throw_on_inexistent_trigger=True,
             )
         except (ValidationError, ValueError, Exception) as e:
-            self._logger.warn(
+            self._logger.warning(
                 'Failed to validate payload (%s) for trigger "%s": %s'
                 % (str(payload), trigger, six.text_type(e))
             )
@@ -111,7 +111,7 @@ class TriggerDispatcherService(object):
                 if throw_on_validation_error:
                     raise ValueError(msg)
 
-                self._logger.warn(msg)
+                self._logger.warning(msg)
                 return None
 
         self._logger.debug("Dispatching trigger %s with payload %s.", trigger, payload)

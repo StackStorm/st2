@@ -35,9 +35,9 @@ from st2common.models.db.rule import RuleDB
 from st2common.models.db.execution import ActionExecutionDB
 import st2tests.config as tests_config
 
-CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
-RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
-CONFIG_FILE_PATH = os.path.join(RESOURCES_DIR, "logging.conf")
+from tests.resources.fixture import FIXTURE_PATH
+
+CONFIG_FILE_PATH = os.path.join(FIXTURE_PATH, "logging.conf")
 
 MOCK_MASKED_ATTRIBUTES_BLACKLIST = [
     "blacklisted_1",
@@ -271,7 +271,7 @@ class ConsoleLogFormatterTestCase(unittest.TestCase):
 
         message = formatter.format(record=record)
         self.assertIn("test message 1", message)
-        self.assertRegexpMatches(message, expected_msg_part)
+        self.assertRegex(message, expected_msg_part)
 
     @mock.patch(
         "st2common.logging.formatters.MASKED_ATTRIBUTES_BLACKLIST",

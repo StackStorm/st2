@@ -39,9 +39,9 @@ def _is_redis_running(coord_url: str) -> bool:
 if __name__ == "__main__":
     args = dict((k, v) for k, v in enumerate(sys.argv))
 
-    # unit tests do not use redis, they use use an in-memory coordinator: "zake://"
-    # integration tests use this url with a conf file derived from conf/st2.dev.conf
-    coord_url = args.get(1, "redis://127.0.0.1:6379")
+    # unit and integration tests require a coordinator, and mostly use this redis url.
+    # In some cases, unit tests can also use an in-memory coordinator: "zake://"
+    coord_url = args.get(1, "redis://127.0.0.1:6379?namespace=_st2_test")
 
     is_running = _is_redis_running(coord_url)
     exit_code = 0 if is_running else 1

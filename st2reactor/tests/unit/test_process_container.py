@@ -18,7 +18,7 @@ import os
 import time
 
 from mock import MagicMock, Mock, patch
-import unittest2
+import unittest
 
 from st2reactor.container.process_container import ProcessSensorContainer
 from st2common.util import concurrency
@@ -26,8 +26,6 @@ from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
 
 import st2tests.config as tests_config
-
-tests_config.parse_args()
 
 MOCK_PACK_DB = PackDB(
     ref="wolfpack",
@@ -37,7 +35,12 @@ MOCK_PACK_DB = PackDB(
 )
 
 
-class ProcessContainerTests(unittest2.TestCase):
+class ProcessContainerTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     def test_no_sensors_dont_quit(self):
         process_container = ProcessSensorContainer(None, poll_interval=0.1)
         process_container_thread = concurrency.spawn(process_container.run)

@@ -1,11 +1,7 @@
 # Remember to list implicit packages here, otherwise version won't be fixated!
 mock
-unittest2
-nose
+pytest
 psutil
 webtest
-nose-timer
-nose-parallel
-rednose
 RandomWords
 pyrabbit

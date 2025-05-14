@@ -30,7 +30,12 @@ class DigActionTestCase(BaseActionTestCase):
 
         # Use the defaults from dig.yaml
         result = action.run(
-            rand=False, count=0, nameserver=None, hostname="", queryopts="short"
+            rand=False,
+            count=0,
+            nameserver=None,
+            hostname="",
+            queryopts="short",
+            querytype="",
         )
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 0)
@@ -40,7 +45,12 @@ class DigActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
 
         results = action.run(
-            rand=False, count=0, nameserver=None, hostname="google.com", queryopts=""
+            rand=False,
+            count=0,
+            nameserver=None,
+            hostname="google.com",
+            queryopts="",
+            querytype="",
         )
         self.assertIsInstance(results, list)
 

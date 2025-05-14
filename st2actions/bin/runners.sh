@@ -1,42 +1,43 @@
 #!/bin/sh
 
-LSB_RELEASE=$(which lsb_release)
-SYSTEMDCTL=/bin/systemctl
-UPSTARTCTL=/sbin/initctl
-SPAWNSVC=st2actionrunner
-WORKERSVC=st2actionrunner-worker
+# Default number of workers
+WORKERS="${WORKERS:-10}"
 
-# Set default number of workers
-if [ -z "$WORKERS" ]; then
-  WORKERS=$(/usr/bin/nproc 2>/dev/null)
-  WORKERS="${WORKERS:-4}"
-fi
+# Choose init system to perform actions with a service.
+choose_sysinit() {
+  local service="$1" svinit="unknown"
+  if [ -d /run/systemd/system ]; then
+    svinit=systemd
+  else
+    >&2 echo "Supported init systems: ONLY systemd"
+    exit 99
+  fi
+  echo $svinit
+}
 
-# 1. Choose init type
-if [ -z "$sv" -a -x $SYSTEMDCTL ]; then
-  sv=systemd
-  svbin=$SYSTEMDCTL
-elif [ -z "$sv" ] && ( /sbin/start 2>&1 | grep -q "missing job name" ); then
-  sv=upstart
-  svbin=$UPSTARTCTL
-else
-  >&2 echo "Unknown platform, we support ONLY upstart and systemd!"
+# Perform service action over the given number of workers.
+spawn_workers() {
+  local action=$1 init= seq=
+  seq=$(bash -c "printf '%g\\n' {1..$WORKERS}")
+
+  # Choose init system and exit if it's not supported.
+  init=$(choose_sysinit st2actionrunner)
+  [ $? -gt 0 ] && exit $?
+
+  case $init in
+    systemd)
+      echo "$seq" | xargs -I{} /bin/systemctl $action \
+          st2actionrunner@{}
+      ;;
+  esac
+  # return 1 in case if xargs failed any invoked commands.
+  retval=$?; [ $retval -ge 123 ] && return 1 || return $retval
+}
+
+# Perform service action on all actionrunners
+if [ -z "$1" ]; then
+  echo >&2 "Usage: $0 action"
   exit 99
 fi
 
-# 2. Spwan workers
-action="$1"; shift;
-rs=0
-i=1
-while [ $i -le $WORKERS ]; do
-  if [ $sv = systemd ]; then
-    $svbin $action $SPAWNSVC@$i
-  elif [ $sv = upstart ]; then
-    $svbin $action $WORKERSVC WORKERID=$i
-  fi
-  cmdrs=$?
-  [ $cmdrs -gt 0 ] && rs=$cmdrs
-  i=`expr $i + 1`
-done
-
-exit $rs
+spawn_workers $1

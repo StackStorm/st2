@@ -19,8 +19,9 @@ import os
 import shutil
 
 import mock
+import pytest
 import six
-import unittest2
+import unittest
 
 from st2client.config_parser import CLIConfigParser
 from st2client.config_parser import CONFIG_DEFAULT_VALUES
@@ -31,7 +32,7 @@ CONFIG_FILE_PATH_PARTIAL = os.path.join(BASE_DIR, "../fixtures/st2rc.partial.ini
 CONFIG_FILE_PATH_UNICODE = os.path.join(BASE_DIR, "../fixtures/test_unicode.ini")
 
 
-class CLIConfigParserTestCase(unittest2.TestCase):
+class CLIConfigParserTestCase(unittest.TestCase):
     def test_constructor(self):
         parser = CLIConfigParser(
             config_file_path="doesnotexist", validate_config_exists=False
@@ -102,7 +103,7 @@ class CLIConfigParserTestCase(unittest2.TestCase):
             self.assertEqual(config["credentials"]["password"], "\u5bc6\u7801\u0025")
 
 
-class CLIConfigPermissionsTestCase(unittest2.TestCase):
+class CLIConfigPermissionsTestCase(unittest.TestCase):
     def setUp(self):
         self.TEMP_FILE_PATH = os.path.join("st2config", ".st2", "config")
         self.TEMP_CONFIG_DIR = os.path.dirname(self.TEMP_FILE_PATH)
@@ -147,7 +148,7 @@ class CLIConfigPermissionsTestCase(unittest2.TestCase):
 
         result = parser.parse()  # noqa F841
 
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))
@@ -173,7 +174,7 @@ class CLIConfigPermissionsTestCase(unittest2.TestCase):
 
         result = parser.parse()  # noqa F841
 
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))
@@ -191,7 +192,7 @@ class CLIConfigPermissionsTestCase(unittest2.TestCase):
 
         result = parser.parse()  # noqa F841
 
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))
@@ -200,6 +201,7 @@ class CLIConfigPermissionsTestCase(unittest2.TestCase):
         self.assertTrue(os.path.exists(self.TEMP_CONFIG_DIR))
         self.assertEqual(os.stat(self.TEMP_CONFIG_DIR).st_mode & 0o7777, 0o2770)
 
+    @pytest.mark.skipif(os.getuid() == 0, reason="Test must be run as non-root user.")
     def test_warn_on_bad_config_permissions(self):
         # Setup the config directory
         os.chmod(self.TEMP_CONFIG_DIR, 0o0755)
@@ -225,16 +227,16 @@ class CLIConfigPermissionsTestCase(unittest2.TestCase):
             parser.LOG.info.call_args_list[0][0][0],
         )
 
-        self.assertEqual(parser.LOG.warn.call_count, 2)
+        self.assertEqual(parser.LOG.warning.call_count, 2)
         self.assertEqual(
             "The StackStorm configuration directory permissions are insecure "
             "(too permissive): others have access.",
-            parser.LOG.warn.call_args_list[0][0][0],
+            parser.LOG.warning.call_args_list[0][0][0],
         )
 
         self.assertEqual(
             "The StackStorm configuration file permissions are insecure: others have access.",
-            parser.LOG.warn.call_args_list[1][0][0],
+            parser.LOG.warning.call_args_list[1][0][0],
         )
 
         # Make sure we left the file alone
@@ -265,7 +267,7 @@ class CLIConfigPermissionsTestCase(unittest2.TestCase):
         result = parser.parse()  # noqa F841
 
         self.assertEqual(parser.LOG.info.call_count, 0)
-        self.assertEqual(parser.LOG.warn.call_count, 0)
+        self.assertEqual(parser.LOG.warning.call_count, 0)
 
         # Make sure we left the file alone
         self.assertTrue(os.path.exists(self.TEMP_FILE_PATH))

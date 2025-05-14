@@ -47,7 +47,7 @@ def get_queue_name(queue_name_base, queue_name_suffix, add_random_uuid_to_suffix
         # might cause issues in RabbitMQ.
         u_hex = uuid.uuid4().hex
         uuid_suffix = uuid.uuid4().hex[len(u_hex) - 10 :]
-        queue_suffix = "%s-%s" % (queue_name_suffix, uuid_suffix)
+        queue_suffix = f"{queue_name_suffix}-{uuid_suffix}"
 
-    queue_name = "%s.%s" % (queue_name_base, queue_suffix)
+    queue_name = f"{queue_name_base}.{queue_suffix}"
     return queue_name

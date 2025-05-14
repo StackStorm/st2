@@ -28,6 +28,7 @@ from st2auth import backends as auth_backends
 
 
 def parse_args(args=None):
+    st2cfg.use_st2_env_vars(cfg.CONF)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,
@@ -86,7 +87,7 @@ def _register_app_opts(ignore_errors=False):
             "backend",
             default=DEFAULT_BACKEND,
             help="Authentication backend to use in a standalone mode. Available "
-            "backends: %s." % (", ".join(available_backends)),
+            "backends: %s." % (", ".join(sorted(available_backends))),
         ),
         cfg.StrOpt(
             "backend_kwargs",

@@ -19,6 +19,9 @@ import mock
 
 from oslo_config import cfg
 
+# This import must be early for import-time side-effects.
+from st2tests.base import DbTestCase
+
 from st2common.constants import action as action_constants
 from st2common.runners.base import get_runner
 from st2common.exceptions.actionrunner import (
@@ -35,10 +38,6 @@ from st2common.services import executions
 from st2common.util import date as date_utils
 from st2common.transport.publishers import PoolPublisher
 
-from st2tests.base import DbTestCase
-import st2tests.config as tests_config
-
-tests_config.parse_args()
 from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixturesloader import FixturesLoader
 
@@ -132,7 +131,7 @@ class RunnerContainerTest(DbTestCase):
         runner.runner_type.enabled = False
 
         expected_msg = 'Runner "test-runner-1" has been disabled by the administrator'
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     def test_created_temporary_auth_token_is_correctly_scoped_to_user_who_ran_the_action(
         self,
@@ -297,7 +296,10 @@ class RunnerContainerTest(DbTestCase):
         self.assertTrue(result.get("action_params").get("actionstr") == "bar")
 
         # Assert that context is written correctly.
-        context = {"user": "stanley", "third_party_system": {"ref_id": "1234"}}
+        context = {
+            "user": cfg.CONF.system_user.user,
+            "third_party_system": {"ref_id": "1234"},
+        }
 
         self.assertDictEqual(liveaction_db.context, context)
 

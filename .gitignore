@@ -1,6 +1,7 @@
 *.py[cod]
 *.sqlite
 *.log
+*.orig
 .stamp*
 
 # C extensions
@@ -70,3 +71,5 @@ benchmark_histograms/
 [._]sw[a-px]
 [._]*.sw[a-p]x
 [._]sw[a-p]x
+
+**/build/lib/**

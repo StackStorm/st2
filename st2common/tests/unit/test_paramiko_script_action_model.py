@@ -14,14 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.models.system.paramiko_script_action import ParamikoRemoteScriptAction
 
 __all__ = ["ParamikoRemoteScriptActionTestCase"]
 
 
-class ParamikoRemoteScriptActionTestCase(unittest2.TestCase):
+class ParamikoRemoteScriptActionTestCase(unittest.TestCase):
     def test_get_command_string_no_env_vars(self):
         script_action = ParamikoRemoteScriptActionTestCase._get_test_script_action()
         ex = "cd /tmp && /tmp/remote_script.sh song='b s' 'taylor swift'"

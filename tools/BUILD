@@ -1,3 +1,19 @@
+__dependents_rules__(
+    (
+        # graphviz and pika
+        (
+            {"path": "/", "name": "graphviz"},
+            {"path": "/", "name": "pika"},
+        ),
+        # can used by tools in this directory
+        "/**",
+        # and nothing else
+        "!*",
+    ),
+    # everything else is not restricted
+    ("*", "*"),
+)
+
 python_requirement(
     name="graphviz",
     requirements=["graphviz"],
@@ -32,6 +48,7 @@ shell_sources(
         "st2-setup-*",
     ],
     skip_shellcheck=True,
+    skip_shfmt=True,
     dependencies=[
         "conf:st2_dev_conf",
     ],

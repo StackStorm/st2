@@ -20,6 +20,7 @@ import sys
 import signal
 import datetime
 
+import st2tests.config
 from st2common.util import concurrency
 from st2common.constants import action as action_constants
 from st2common.util import date as date_utils
@@ -274,12 +275,17 @@ class GarbageCollectorServiceTestCase(IntegrationTestCase, CleanDbTestCase):
 
     def _start_garbage_collector(self):
         subprocess = concurrency.get_subprocess_module()
+        env = os.environ.copy()
+        env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.mq_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
         process = subprocess.Popen(
             CMD_INQUIRY,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=False,
             preexec_fn=os.setsid,
+            env=env,
         )
         self.add_process(process=process)
         return process

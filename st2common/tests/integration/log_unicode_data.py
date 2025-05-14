@@ -20,6 +20,12 @@ This file is used to test edge case with logging unicode data.
 
 from __future__ import absolute_import
 
+# Ignore CryptographyDeprecationWarning warnings which appear on Python 3.6
+# TODO: Remove after dropping python3.6
+import warnings
+
+warnings.filterwarnings("ignore", message="Python 3.6 is no longer supported")
+
 import os
 import sys
 

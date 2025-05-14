@@ -20,6 +20,7 @@ import datetime
 import bson
 import six
 import mongoengine as me
+from mongoengine.pymongo_support import LEGACY_JSON_OPTIONS
 from oslo_config import cfg
 
 from st2common.util import mongoescape
@@ -105,7 +106,8 @@ class StormFoundationDB(me.Document, DictSerializableClassMixin):
             if isinstance(v, JSON_UNFRIENDLY_TYPES):
                 v = str(v)
             elif isinstance(v, me.EmbeddedDocument):
-                v = json_decode(v.to_json())
+                # TODO: Allow overriding json_options.uuid_representation via cfg
+                v = json_decode(v.to_json(json_options=LEGACY_JSON_OPTIONS))
 
             serializable_dict[k] = v
 

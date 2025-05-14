@@ -17,8 +17,12 @@ from __future__ import absolute_import
 import json
 import hashlib
 from collections import OrderedDict
+import sys
 
-import unittest2
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
+
+import unittest
 
 from st2common.models.db.pack import PackDB
 from st2common.models.db.sensor import SensorTypeDB
@@ -33,7 +37,7 @@ from st2common.models.db.auth import ApiKeyDB
 __all__ = ["DBModelUIDFieldTestCase"]
 
 
-class DBModelUIDFieldTestCase(unittest2.TestCase):
+class DBModelUIDFieldTestCase(unittest.TestCase):
     def test_get_uid(self):
         pack_db = PackDB(ref="ma_pack")
         self.assertEqual(pack_db.get_uid(), "pack:ma_pack")
@@ -61,7 +65,9 @@ class DBModelUIDFieldTestCase(unittest2.TestCase):
         # Verify that same set of parameters always results in the same hash
         parameters = {"a": 1, "b": "unicode", "c": [1, 2, 3], "d": {"g": 1, "h": 2}}
         paramers_hash = json.dumps(parameters, sort_keys=True)
-        paramers_hash = hashlib.md5(paramers_hash.encode()).hexdigest()
+        paramers_hash = hashlib.md5(
+            paramers_hash.encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         parameters = {"a": 1, "b": "unicode", "c": [1, 2, 3], "d": {"g": 1, "h": 2}}
         trigger_db = TriggerDB(name="tname", pack="tpack", parameters=parameters)

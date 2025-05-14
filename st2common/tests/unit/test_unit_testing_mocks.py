@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2tests.base import BaseSensorTestCase
 from st2tests.mocks.sensor import MockSensorWrapper
@@ -34,7 +34,7 @@ class MockSensorClass(object):
 
 
 class BaseMockResourceServiceTestCase(object):
-    class TestCase(unittest2.TestCase):
+    class TestCase(unittest.TestCase):
         def test_get_user_info(self):
             result = self.mock_service.get_user_info()
             self.assertEqual(result["username"], "admin")
@@ -79,7 +79,7 @@ class BaseSensorTestCaseTestCase(BaseSensorTestCase):
         sensor_service = self.sensor_service
 
         expected_msg = 'Trigger "nope" hasn\'t been dispatched'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AssertionError, expected_msg, self.assertTriggerDispatched, trigger="nope"
         )
 
@@ -89,7 +89,7 @@ class BaseSensorTestCaseTestCase(BaseSensorTestCase):
         result = self.assertTriggerDispatched(trigger="test1", payload={"a": "b"})
         self.assertTrue(result)
         expected_msg = 'Trigger "test1" hasn\'t been dispatched'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AssertionError,
             expected_msg,
             self.assertTriggerDispatched,

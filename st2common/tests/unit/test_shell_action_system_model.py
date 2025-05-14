@@ -21,7 +21,7 @@ import os
 import copy
 from collections import OrderedDict
 
-import unittest2
+import unittest
 
 from st2common.models.system.action import ShellCommandAction
 from st2common.models.system.action import ShellScriptAction
@@ -38,7 +38,7 @@ LOGGED_USER_USERNAME = pwd.getpwuid(os.getuid())[0]
 __all__ = ["ShellCommandActionTestCase", "ShellScriptActionTestCase"]
 
 
-class ShellCommandActionTestCase(unittest2.TestCase):
+class ShellCommandActionTestCase(unittest.TestCase):
     def setUp(self):
         self._base_kwargs = {
             "name": "test action",
@@ -97,7 +97,7 @@ class ShellCommandActionTestCase(unittest2.TestCase):
         self.assertEqual(command, expected_command)
 
 
-class ShellScriptActionTestCase(unittest2.TestCase):
+class ShellScriptActionTestCase(unittest.TestCase):
     def setUp(self):
         self._base_kwargs = {
             "name": "test action",

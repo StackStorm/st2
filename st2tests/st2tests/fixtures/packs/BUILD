@@ -11,12 +11,14 @@ pack_metadata_in_git_submodule(
         "test_content_version/icon.png",
         "test_content_version/requirements.txt",
     ],
+    # NOTE: If you need the git metadata, make sure to depend on //:capture_git_modules
 )
 
 st2_shell_sources_and_resources(
     name="test_content_version_shell",
     # do not check across git submodule boundary
     skip_shellcheck=True,
+    skip_shfmt=True,
     sources=[
         "test_content_version/**/*.sh",
     ],

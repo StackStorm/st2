@@ -1,0 +1,34 @@
+---
+name: Install Python and Cache Deps
+description:
+  Light wrapper around the actions/setup-python and actions/cache actions
+  to maintain the input vars in only one place for all workflows.
+
+inputs:
+  python-version:
+    description: Which version of python to install.
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: 'Set up Python (${{ inputs.python-version }})'
+      uses: actions/setup-python@v5
+      with:
+        python-version: '${{ inputs.python-version }}'
+
+    - name: Cache Python Dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pip
+          virtualenv
+          ~/virtualenv
+        # TODO: maybe make the virtualenv a partial cache to exclude st2*?
+        # !virtualenv/lib/python*/site-packages/st2*
+        # !virtualenv/bin/st2*
+        key: ${{ runner.os }}-v5-python-${{ inputs.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt', 'lockfiles/*.lock') }}
+        # Don't use alternative key as if requirements.txt has altered we
+        # don't want to retrieve previous cache
+        #restore-keys: |
+        #  ${{ runner.os }}-v5-python-${{ inputs.python }}-

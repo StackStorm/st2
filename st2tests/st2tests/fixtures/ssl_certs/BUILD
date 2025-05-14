@@ -14,3 +14,8 @@ resources(
 python_sources(
     dependencies=[":assets"],
 )
+
+shell_sources(
+    name="util",
+    skip_shfmt=True,
+)

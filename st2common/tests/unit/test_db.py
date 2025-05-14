@@ -21,7 +21,6 @@ from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
 
-import ssl
 import time
 
 import jsonschema
@@ -38,7 +37,7 @@ from st2common.transport.publishers import PoolPublisher
 from st2common.util import schema as util_schema
 from st2common.util import reference
 from st2common.models.db import db_setup
-from st2common.models.db import _get_ssl_kwargs
+from st2common.models.db import _get_tls_kwargs
 from st2common.util import date as date_utils
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.trigger import TriggerTypeDB, TriggerDB, TriggerInstanceDB
@@ -48,8 +47,12 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
+<<<<<<< HEAD
 from unittest2 import TestCase
 import unittest2
+=======
+from unittest import TestCase
+>>>>>>> upstream/master
 from st2tests.base import ALL_MODELS
 
 
@@ -111,7 +114,17 @@ class DbConnectionTestCase(DbTestCase):
         disconnect()
         cfg.CONF.reset()
 
+<<<<<<< HEAD
     @unittest2.skip("hostname is different in our testing")
+=======
+    @classmethod
+    def tearDownClass(cls):
+        # since tearDown discconnects, dropping the database in tearDownClass
+        # fails without establishing a new connection.
+        cls._establish_connection_and_re_create_db()
+        super().tearDownClass()
+
+>>>>>>> upstream/master
     def test_check_connect(self):
         """
         Tests connectivity to the db server. Requires the db server to be
@@ -229,84 +242,129 @@ class DbConnectionTestCase(DbTestCase):
         self.assertTrue("compressors=['zlib']" in str(connection))
         self.assertTrue("zlibcompressionlevel=9" in str(connection))
 
-    def test_get_ssl_kwargs(self):
+    def test_get_tls_kwargs(self):
         # 1. No SSL kwargs provided
-        ssl_kwargs = _get_ssl_kwargs()
-        self.assertEqual(ssl_kwargs, {"ssl": False})
+        tls_kwargs = _get_tls_kwargs()
+        self.assertEqual(tls_kwargs, {"tls": False})
 
-        # 2. ssl kwarg provided
-        ssl_kwargs = _get_ssl_kwargs(ssl=True)
-        self.assertEqual(ssl_kwargs, {"ssl": True, "ssl_match_hostname": True})
+        # 2. tls kwarg provided
+        tls_kwargs = _get_tls_kwargs(tls=True)
+        self.assertEqual(tls_kwargs, {"tls": True, "tlsAllowInvalidHostnames": False})
 
-        # 2. authentication_mechanism kwarg provided
-        ssl_kwargs = _get_ssl_kwargs(authentication_mechanism="MONGODB-X509")
+        # 3. authentication_mechanism kwarg provided
+        tls_kwargs = _get_tls_kwargs(authentication_mechanism="MONGODB-X509")
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
-                "ssl": True,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsAllowInvalidHostnames": False,
                 "authentication_mechanism": "MONGODB-X509",
             },
         )
 
-        # 3. ssl_keyfile provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_keyfile="/tmp/keyfile")
+        # 4a. tls_certificate_key_file provided
+        tls_kwargs = _get_tls_kwargs(tls_certificate_key_file="/tmp/keyfile")
         self.assertEqual(
-            ssl_kwargs,
-            {"ssl": True, "ssl_keyfile": "/tmp/keyfile", "ssl_match_hostname": True},
-        )
-
-        # 4. ssl_certfile provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_certfile="/tmp/certfile")
-        self.assertEqual(
-            ssl_kwargs,
-            {"ssl": True, "ssl_certfile": "/tmp/certfile", "ssl_match_hostname": True},
-        )
-
-        # 5. ssl_ca_certs provided
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs="/tmp/ca_certs")
-        self.assertEqual(
-            ssl_kwargs,
-            {"ssl": True, "ssl_ca_certs": "/tmp/ca_certs", "ssl_match_hostname": True},
-        )
-
-        # 6. ssl_ca_certs and ssl_cert_reqs combinations
-        ssl_kwargs = _get_ssl_kwargs(ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="none")
-        self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
-                "ssl": True,
-                "ssl_ca_certs": "/tmp/ca_certs",
-                "ssl_cert_reqs": ssl.CERT_NONE,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsCertificateKeyFile": "/tmp/keyfile",
+                "tlsAllowInvalidHostnames": False,
             },
         )
 
-        ssl_kwargs = _get_ssl_kwargs(
-            ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="optional"
+        # 4b. tls_certificate_key_file_password provided with tls_certificate_key_file
+        tls_kwargs = _get_tls_kwargs(
+            tls_certificate_key_file="/tmp/keyfile",
+            tls_certificate_key_file_password="pass",
         )
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
-                "ssl": True,
-                "ssl_ca_certs": "/tmp/ca_certs",
-                "ssl_cert_reqs": ssl.CERT_OPTIONAL,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsCertificateKeyFile": "/tmp/keyfile",
+                "tlsCertificateKeyFilePassword": "pass",
+                "tlsAllowInvalidHostnames": False,
             },
         )
 
-        ssl_kwargs = _get_ssl_kwargs(
-            ssl_ca_certs="/tmp/ca_certs", ssl_cert_reqs="required"
-        )
+        # 4c. tls_certificate_key_file_password provided without tls_certificate_key_file
+        tls_kwargs = _get_tls_kwargs(tls_certificate_key_file_password="pass")
+        self.assertEqual(tls_kwargs, {"tls": False})
+
+        # 5. tls_ca_file provided
+        tls_kwargs = _get_tls_kwargs(tls_ca_file="/tmp/ca_certs")
         self.assertEqual(
-            ssl_kwargs,
+            tls_kwargs,
             {
-                "ssl": True,
-                "ssl_ca_certs": "/tmp/ca_certs",
-                "ssl_cert_reqs": ssl.CERT_REQUIRED,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidHostnames": False,
             },
         )
+
+        # 6. tls_ca_file and ssl_cert_reqs combinations
+        tls_kwargs = _get_tls_kwargs(tls_ca_file="/tmp/ca_certs", ssl_cert_reqs="none")
+        self.assertEqual(
+            tls_kwargs,
+            {
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidCertificates": True,
+                "tlsAllowInvalidHostnames": False,
+            },
+        )
+
+        tls_kwargs = _get_tls_kwargs(
+            tls_ca_file="/tmp/ca_certs", ssl_cert_reqs="optional"
+        )
+        self.assertEqual(
+            tls_kwargs,
+            {
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidCertificates": False,
+                "tlsAllowInvalidHostnames": False,
+            },
+        )
+
+        tls_kwargs = _get_tls_kwargs(
+            tls_ca_file="/tmp/ca_certs", ssl_cert_reqs="required"
+        )
+        self.assertEqual(
+            tls_kwargs,
+            {
+                "tls": True,
+                "tlsCAFile": "/tmp/ca_certs",
+                "tlsAllowInvalidCertificates": False,
+                "tlsAllowInvalidHostnames": False,
+            },
+        )
+
+        # 7. tls_allow_invalid_certificates provided (does not implicitly enable tls)
+        for allow_invalid in (True, False):
+            tls_kwargs = _get_tls_kwargs(tls_allow_invalid_certificates=allow_invalid)
+            self.assertEqual(
+                tls_kwargs,
+                {
+                    "tls": False,
+                    "tlsAllowInvalidCertificates": allow_invalid,
+                },
+            )
+
+            # make sure ssl_cert_reqs is ignored if tls_allow_invalid_certificates is set
+            for ssl_cert_reqs in ("none", "optional", "required"):
+                tls_kwargs = _get_tls_kwargs(
+                    ssl_cert_reqs=ssl_cert_reqs,
+                    tls_allow_invalid_certificates=allow_invalid,
+                )
+                self.assertEqual(
+                    tls_kwargs,
+                    {
+                        "tls": False,
+                        "tlsAllowInvalidCertificates": allow_invalid,
+                    },
+                )
 
     @mock.patch("st2common.models.db.mongoengine")
     def test_db_setup(self, mock_mongoengine):
@@ -333,10 +391,11 @@ class DbConnectionTestCase(DbTestCase):
                 "password": "password",
                 "tz_aware": True,
                 "authentication_mechanism": "MONGODB-X509",
-                "ssl": True,
-                "ssl_match_hostname": True,
+                "tls": True,
+                "tlsAllowInvalidHostnames": False,
                 "connectTimeoutMS": 3000,
                 "serverSelectionTimeoutMS": 3000,
+                "uuidRepresentation": "pythonLegacy",
             },
         )
 
@@ -495,7 +554,7 @@ class DbConnectionTestCase(DbTestCase):
         password = "pass_st2"
 
         expected_msg = "Failed to connect"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ConnectionFailure,
             expected_msg,
             db_setup,
@@ -539,7 +598,7 @@ class DbConnectionTestCase(DbTestCase):
             db_name=db_name,
             db_host=db_host,
             db_port=db_port,
-            ssl=True,
+            tls=True,
             ensure_indexes=False,
         )
         end = time.time()
@@ -558,7 +617,7 @@ class DbConnectionTestCase(DbTestCase):
             db_name=db_name,
             db_host=db_host,
             db_port=db_port,
-            ssl=True,
+            tls=True,
             ensure_indexes=False,
         )
         end = time.time()
@@ -574,11 +633,13 @@ class DbCleanupTestCase(DbTestCase):
         """
         Tests dropping the database. Requires the db server to be running.
         """
-        self.assertIn(cfg.CONF.database.db_name, self.db_connection.database_names())
+        self.assertIn(
+            cfg.CONF.database.db_name, self.db_connection.list_database_names()
+        )
 
         connection = db_cleanup()
 
-        self.assertNotIn(cfg.CONF.database.db_name, connection.database_names())
+        self.assertNotIn(cfg.CONF.database.db_name, connection.list_database_names())
 
 
 @mock.patch.object(PoolPublisher, "publish", mock.MagicMock())

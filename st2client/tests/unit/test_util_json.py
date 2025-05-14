@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import json
 import logging
 import mock
-import unittest2
+import unittest
 
 from st2client.utils import jsutil
 
@@ -38,7 +38,7 @@ DOC_IP_ADDRESS = {
 }
 
 
-class TestGetValue(unittest2.TestCase):
+class TestGetValue(unittest.TestCase):
     def test_dot_notation(self):
         self.assertEqual(jsutil.get_value(DOC, "a01"), 1)
         self.assertEqual(jsutil.get_value(DOC, "c01.c11"), 3)
@@ -108,7 +108,7 @@ class TestGetValue(unittest2.TestCase):
         mock__get_value_complex.assert_called_with(DOC, "c01..c11")
 
 
-class TestGetKeyValuePairs(unittest2.TestCase):
+class TestGetKeyValuePairs(unittest.TestCase):
     def test_select_kvps(self):
         self.assertEqual(jsutil.get_kvps(DOC, ["a01"]), {"a01": 1})
         self.assertEqual(jsutil.get_kvps(DOC, ["c01.c11"]), {"c01": {"c11": 3}})

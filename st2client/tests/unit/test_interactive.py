@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import logging
 import mock
 import re
-import unittest2
+import unittest
 
 import prompt_toolkit
 from prompt_toolkit.document import Document
@@ -30,7 +30,7 @@ import six
 LOG = logging.getLogger(__name__)
 
 
-class TestInteractive(unittest2.TestCase):
+class TestInteractive(unittest.TestCase):
     def assertPromptMessage(self, prompt_mock, message, msg=None):
         self.assertEqual(prompt_mock.call_args[0], (message,), msg)
 

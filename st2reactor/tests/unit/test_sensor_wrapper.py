@@ -20,7 +20,7 @@ from st2common.util.monkey_patch import monkey_patch
 monkey_patch()
 
 import os
-import unittest2
+import unittest
 
 import six
 import mock
@@ -33,13 +33,12 @@ from st2common.models.db.trigger import TriggerDB
 from st2reactor.container.sensor_wrapper import SensorWrapper
 from st2reactor.sensor.base import Sensor, PollingSensor
 
-CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-RESOURCES_DIR = os.path.abspath(os.path.join(CURRENT_DIR, "../resources"))
+from tests.resources.fixture import FIXTURE_PATH as RESOURCES_DIR
 
 __all__ = ["SensorWrapperTestCase"]
 
 
-class SensorWrapperTestCase(unittest2.TestCase):
+class SensorWrapperTestCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super(SensorWrapperTestCase, cls).setUpClass()
@@ -152,7 +151,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
         expected_msg = (
             "Failed to load sensor class from file.*? No such file or directory"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             IOError,
             expected_msg,
             SensorWrapper,
@@ -171,7 +170,7 @@ class SensorWrapperTestCase(unittest2.TestCase):
         expected_msg = (
             "Failed to load sensor class from file.*? 'typobar' is not defined"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             NameError,
             expected_msg,
             SensorWrapper,

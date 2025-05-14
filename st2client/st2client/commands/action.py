@@ -945,6 +945,9 @@ class ActionRunCommandMixin(object):
 
         result = {}
 
+        if args.inherit_env:
+            result["env"] = self._get_inherited_env_vars()
+
         if not args.parameters:
             return result
 
@@ -1007,9 +1010,6 @@ class ActionRunCommandMixin(object):
                 result["file_name"] = result["_file_name"]
 
             del result["_file_name"]
-
-        if args.inherit_env:
-            result["env"] = self._get_inherited_env_vars()
 
         return result
 

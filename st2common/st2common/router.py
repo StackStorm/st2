@@ -328,7 +328,12 @@ class Router(object):
 
         At the time of writing, the only property being utilized by middleware was `x-log-result`.
         """
-        LOG.debug("Received call with WebOb: %s", req)
+        LOG.debug("Received call with WebOb: %s %s", req.method, req.url)
+        # if a more detailed log is required:
+        # loggable_req = req.copy()
+        # loggable_req.headers.pop('Authorization', None)
+        # loggable_req.headers.pop('X-Request-Id', None)
+        # LOG.debug("Received call with WebOb: %s", loggable_req)
         endpoint, path_vars = self.match(req)
         LOG.debug("Parsed endpoint: %s", endpoint)
         LOG.debug("Parsed path_vars: %s", path_vars)

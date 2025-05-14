@@ -18,10 +18,8 @@ import copy
 
 import mock
 
-# XXX: actionsensor import depends on config being setup.
-import st2tests.config as tests_config
-
-tests_config.parse_args()
+# This import must be early for import-time side-effects.
+from st2tests import ExecutionDbTestCase
 
 import st2common.bootstrap.runnersregistrar as runners_registrar
 from st2common.constants import action as action_constants
@@ -46,7 +44,6 @@ from st2reactor.rules.enforcer import RuleEnforcer
 from local_runner.local_shell_command_runner import LocalShellCommandRunner
 
 from st2tests.fixtures.packs import executions as fixture
-from st2tests import ExecutionDbTestCase
 from st2tests.mocks.liveaction import MockLiveActionPublisher
 
 

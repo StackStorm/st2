@@ -51,6 +51,7 @@ At this point, we have the schema, so then we:
 Now, we return because Pylint can finally understand our API model objects without
 importing them.
 """
+# pylint: disable=E1120,E1125
 
 import astroid
 
@@ -147,11 +148,24 @@ def transform(cls: nodes.ClassDef):
                 if (
                     isinstance(target, nodes.Subscript)
                     and target.value.value.name == "schema"
-                    and target.value.slice.value.value == "properties"
                 ):
-                    property_name_node = target.slice.value
+                    if (
+                        isinstance(target.value.slice.value, nodes.Const)
+                        and target.value.slice.value.value == "properties"
+                    ):
+                        # python <3.9
+                        property_name_node = target.slice.value
+                    elif (
+                        isinstance(target.value.slice, nodes.Const)
+                        and target.value.slice.value == "properties"
+                    ):
+                        # python 3.9+
+                        property_name_node = target.slice
+                    else:
+                        # not schema["properties"]
+                        continue
                 else:
-                    # not schema["properties"]
+                    # not schema[...]
                     continue
             except AttributeError:
                 continue
@@ -197,7 +211,12 @@ def transform(cls: nodes.ClassDef):
         #   schema = {"properties": {"action": REQUIRED_ATTR_SCHEMAS["action"]}}
         if isinstance(property_data_node, nodes.Subscript):
             var_name = property_data_node.value.name
-            subscript = property_data_node.slice.value.value
+            if isinstance(property_data_node.slice.value, nodes.Const):  # python <3.9
+                subscript = property_data_node.slice.value.value
+            elif isinstance(property_data_node.slice, nodes.Const):  # python 3.9+
+                subscript = property_data_node.slice.value
+            else:
+                continue
 
             # lookup var by name (assume its at module level)
             var_node = next(cls.root().igetattr(var_name))
@@ -257,9 +276,21 @@ def transform(cls: nodes.ClassDef):
         # Now, we can construct the AST node that we'll add to the API model class.
 
         if property_type == "object":
-            node = nodes.Dict()
+            node = nodes.Dict(
+                property_data_node.lineno,
+                property_data_node.col_offset,
+                parent=property_data_node,
+                end_lineno=property_data_node.end_lineno,
+                end_col_offset=property_data_node.end_col_offset,
+            )
         elif property_type == "array":
-            node = nodes.List()
+            node = nodes.List(
+                property_data_node.lineno,
+                property_data_node.col_offset,
+                parent=property_data_node,
+                end_lineno=property_data_node.end_lineno,
+                end_col_offset=property_data_node.end_col_offset,
+            )
         elif property_type == "integer":
             node = scoped_nodes.builtin_lookup("int")[1][0]
         elif property_type == "number":
@@ -272,12 +303,34 @@ def transform(cls: nodes.ClassDef):
             node = scoped_nodes.builtin_lookup("None")[1][0]
         else:
             # Unknown type
-            node = astroid.ClassDef(property_name, None)
+            node = astroid.ClassDef(
+                property_name,
+                property_data_node.lineno,
+                property_data_node.col_offset,
+                parent=property_data_node,
+                end_lineno=property_data_node.end_lineno,
+                end_col_offset=property_data_node.end_col_offset,
+            )
 
         # Create a "property = node" assign node
-        assign_node = nodes.Assign(parent=cls)
-        assign_name_node = nodes.AssignName(property_name, parent=assign_node)
-        assign_node.postinit(targets=[assign_name_node], value=node)
+        assign_node = nodes.Assign(
+            property_name_node.lineno,
+            property_name_node.col_offset,
+            parent=cls,
+            end_lineno=property_data_node.end_lineno,
+            end_col_offset=property_data_node.end_col_offset,
+        )
+        assign_name_node = nodes.AssignName(
+            property_name,
+            property_name_node.lineno,
+            property_name_node.col_offset,
+            parent=assign_node,
+            end_lineno=property_name_node.end_lineno,
+            end_col_offset=property_name_node.end_col_offset,
+        )
+        assign_node.postinit(
+            targets=[assign_name_node], value=node, type_annotation=None
+        )
 
         # Finally, add the property node as an attribute on the class.
         cls.locals[property_name] = [assign_name_node]

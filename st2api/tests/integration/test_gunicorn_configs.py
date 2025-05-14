@@ -17,11 +17,12 @@ import os
 import random
 
 from six.moves import http_client
-import unittest2
 import requests
 import eventlet
 from eventlet.green import subprocess
+import pytest
 
+import st2tests.config
 from st2common.models.utils import profiling
 from st2common.util.shell import kill_process
 from st2tests.base import IntegrationTestCase
@@ -32,7 +33,7 @@ ST2_CONFIG_PATH = os.path.join(BASE_DIR, "../../../conf/st2.tests.conf")
 
 
 class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
-    @unittest2.skipIf(profiling.is_enabled(), "Profiling is enabled")
+    @pytest.mark.skipif(profiling.is_enabled(), reason="Profiling is enabled")
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
         cmd = (
@@ -41,6 +42,9 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
+        env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.mq_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
@@ -51,7 +55,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         finally:
             kill_process(process)
 
-    @unittest2.skipIf(profiling.is_enabled(), "Profiling is enabled")
+    @pytest.mark.skipif(profiling.is_enabled(), reason="Profiling is enabled")
     def test_st2auth(self):
         port = random.randint(10000, 30000)
         cmd = (
@@ -60,6 +64,9 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
+        env.update(st2tests.config.db_opts_as_env_vars())
+        env.update(st2tests.config.mq_opts_as_env_vars())
+        env.update(st2tests.config.coord_opts_as_env_vars())
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)

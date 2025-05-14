@@ -23,6 +23,10 @@ from st2api.controllers.v1.sensors import SensorTypeController
 from st2tests.api import FunctionalTest
 from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
 
+from st2tests.fixtures.packs.dummy_pack_1.fixture import (
+    PACK_NAME as DUMMY_PACK_1,
+)
+
 http_client = six.moves.http_client
 
 __all__ = ["SensorTypeControllerTestCase"]
@@ -75,7 +79,7 @@ class SensorTypeControllerTestCase(
         resp = self.app.get("/v1/sensortypes?name=SampleSensor2")
         self.assertEqual(len(resp.json), 1)
         self.assertEqual(resp.json[0]["name"], "SampleSensor2")
-        self.assertEqual(resp.json[0]["ref"], "dummy_pack_1.SampleSensor2")
+        self.assertEqual(resp.json[0]["ref"], f"{DUMMY_PACK_1}.SampleSensor2")
 
         resp = self.app.get("/v1/sensortypes?name=SampleSensor3")
         self.assertEqual(len(resp.json), 1)
@@ -85,7 +89,7 @@ class SensorTypeControllerTestCase(
         resp = self.app.get("/v1/sensortypes?pack=foobar")
         self.assertEqual(len(resp.json), 0)
 
-        resp = self.app.get("/v1/sensortypes?pack=dummy_pack_1")
+        resp = self.app.get(f"/v1/sensortypes?pack={DUMMY_PACK_1}")
         self.assertEqual(len(resp.json), 3)
 
         # ?enabled filter
@@ -99,20 +103,20 @@ class SensorTypeControllerTestCase(
         self.assertEqual(resp.json[1]["enabled"], True)
 
         # ?trigger filter
-        resp = self.app.get("/v1/sensortypes?trigger=dummy_pack_1.event3")
+        resp = self.app.get(f"/v1/sensortypes?trigger={DUMMY_PACK_1}.event3")
         self.assertEqual(len(resp.json), 1)
-        self.assertEqual(resp.json[0]["trigger_types"], ["dummy_pack_1.event3"])
+        self.assertEqual(resp.json[0]["trigger_types"], [f"{DUMMY_PACK_1}.event3"])
 
-        resp = self.app.get("/v1/sensortypes?trigger=dummy_pack_1.event")
+        resp = self.app.get(f"/v1/sensortypes?trigger={DUMMY_PACK_1}.event")
         self.assertEqual(len(resp.json), 2)
-        self.assertEqual(resp.json[0]["trigger_types"], ["dummy_pack_1.event"])
-        self.assertEqual(resp.json[1]["trigger_types"], ["dummy_pack_1.event"])
+        self.assertEqual(resp.json[0]["trigger_types"], [f"{DUMMY_PACK_1}.event"])
+        self.assertEqual(resp.json[1]["trigger_types"], [f"{DUMMY_PACK_1}.event"])
 
     def test_get_one_success(self):
-        resp = self.app.get("/v1/sensortypes/dummy_pack_1.SampleSensor")
+        resp = self.app.get(f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(resp.json["name"], "SampleSensor")
-        self.assertEqual(resp.json["ref"], "dummy_pack_1.SampleSensor")
+        self.assertEqual(resp.json["ref"], f"{DUMMY_PACK_1}.SampleSensor")
 
     def test_get_one_doesnt_exist(self):
         resp = self.app.get("/v1/sensortypes/1", expect_errors=True)
@@ -120,7 +124,7 @@ class SensorTypeControllerTestCase(
 
     def test_disable_and_enable_sensor(self):
         # Verify initial state
-        resp = self.app.get("/v1/sensortypes/dummy_pack_1.SampleSensor")
+        resp = self.app.get(f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertTrue(resp.json["enabled"])
 
@@ -129,24 +133,28 @@ class SensorTypeControllerTestCase(
         # Disable sensor
         data = copy.deepcopy(sensor_data)
         data["enabled"] = False
-        put_resp = self.app.put_json("/v1/sensortypes/dummy_pack_1.SampleSensor", data)
+        put_resp = self.app.put_json(
+            f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor", data
+        )
         self.assertEqual(put_resp.status_int, http_client.OK)
-        self.assertEqual(put_resp.json["ref"], "dummy_pack_1.SampleSensor")
+        self.assertEqual(put_resp.json["ref"], f"{DUMMY_PACK_1}.SampleSensor")
         self.assertFalse(put_resp.json["enabled"])
 
         # Verify sensor has been disabled
-        resp = self.app.get("/v1/sensortypes/dummy_pack_1.SampleSensor")
+        resp = self.app.get(f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertFalse(resp.json["enabled"])
 
         # Enable sensor
         data = copy.deepcopy(sensor_data)
         data["enabled"] = True
-        put_resp = self.app.put_json("/v1/sensortypes/dummy_pack_1.SampleSensor", data)
+        put_resp = self.app.put_json(
+            f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor", data
+        )
         self.assertEqual(put_resp.status_int, http_client.OK)
         self.assertTrue(put_resp.json["enabled"])
 
         # Verify sensor has been enabled
-        resp = self.app.get("/v1/sensortypes/dummy_pack_1.SampleSensor")
+        resp = self.app.get(f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor")
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertTrue(resp.json["enabled"])
