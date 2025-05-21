@@ -67,7 +67,6 @@ simplejson
 six==1.17.0
 sseclient-py==1.8.0
 st2-auth-backend-flat-file
-st2-auth-backend-pam
 st2-auth-ldap
 st2-rbac-backend
 stevedore==5.3.0

@@ -13,15 +13,9 @@ gitpython==3.1.44
 jinja2==3.1.6
 kombu==5.5.2
 lockfile==0.12.2
-<<<<<<< HEAD
 logshipper
-oslo.config>=1.12.1,<1.13
-oslo.utils<5.0,>=4.0.0
-=======
-logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
 oslo.config==9.6.0
 oslo.utils==7.3.0
->>>>>>> upstream/master
 pyinotify==0.9.6 ; platform_system=="Linux"
 pyparsing==3.1.4
 python-dateutil==2.9.0.post0

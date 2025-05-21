@@ -32,7 +32,7 @@ psutil==7.0.0
 webtest==3.0.1
 # Bump to latest to meet sphinx requirements.
 rstcheck==6.2.1
-tox==4.14.2
+tox
 pyrabbit
 prance==23.6.21.0
 # pip-tools provides pip-compile: to check for version conflicts
