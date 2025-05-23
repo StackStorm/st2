@@ -47,13 +47,9 @@ from st2common.persistence.rule import Rule
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
 from st2tests import DbTestCase
 
-<<<<<<< HEAD
-from unittest2 import TestCase
-import unittest2
-=======
 from unittest import TestCase
->>>>>>> upstream/master
 from st2tests.base import ALL_MODELS
+import pytest
 
 
 __all__ = [
@@ -114,9 +110,6 @@ class DbConnectionTestCase(DbTestCase):
         disconnect()
         cfg.CONF.reset()
 
-<<<<<<< HEAD
-    @unittest2.skip("hostname is different in our testing")
-=======
     @classmethod
     def tearDownClass(cls):
         # since tearDown discconnects, dropping the database in tearDownClass
@@ -124,7 +117,6 @@ class DbConnectionTestCase(DbTestCase):
         cls._establish_connection_and_re_create_db()
         super().tearDownClass()
 
->>>>>>> upstream/master
     def test_check_connect(self):
         """
         Tests connectivity to the db server. Requires the db server to be
@@ -138,7 +130,7 @@ class DbConnectionTestCase(DbTestCase):
         )
         self.assertIn(expected_str, str(client), "Not connected to desired host.")
 
-    @unittest2.skip("hostname is different in our testing")
+    @pytest.mark.skip(reason="hostname is different in our testing")
     def test_network_level_compression(self):
         disconnect()
 

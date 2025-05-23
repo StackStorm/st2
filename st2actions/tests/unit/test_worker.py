@@ -22,7 +22,6 @@ import os
 from oslo_config import cfg
 from tooz.drivers.redis import RedisDriver
 import tempfile
-from tooz.drivers.redis import RedisDriver
 
 # This import must be early for import-time side-effects.
 from st2tests.base import DbTestCase

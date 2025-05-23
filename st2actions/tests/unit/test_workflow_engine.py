@@ -522,13 +522,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         eventlet.spawn(workflow_engine.start, True)
         eventlet.spawn_after(1, workflow_engine.shutdown)
 
-<<<<<<< HEAD
         RedisDriver.get_members = mock.MagicMock(
             return_value=coordination_service.NoOpAsyncResult("member-1")
         )
-
-=======
->>>>>>> upstream/master
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
 
         # Startup routine acquires the lock first and shutdown routine sees a new member present in registry.
