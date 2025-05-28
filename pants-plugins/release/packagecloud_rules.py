@@ -117,7 +117,7 @@ async def packagecloud_get_next_release(
     # /api/v1/repos/:user_id/:repo/packages/:type/:distro/:version/:package/:arch.json
     index_url = f"/api/v1/repos/{org}/{repo}/packages/{pkg_type}/{distro}/{distro_version}/{pkg_name}/{arch}.json"
 
-    with aiohttp.ClientSession(auth=http_auth) as client:
+    async with aiohttp.ClientSession(auth=http_auth) as client:
         package_index: list[dict[str, Any]] = await get(client, index_url)
         if not package_index:
             return PackageCloudNextRelease()
@@ -140,16 +140,16 @@ async def packagecloud_get_next_release(
 
 async def get(client: aiohttp.ClientSession, url_path: str) -> list[dict[str, Any]]:
     """Get packagecloud URL, handling any results paging."""
-    with client.get(
+    async with client.get(
         f"https://packagecloud.io{url_path}", raise_for_status=True
     ) as response:
-        ret: list[dict[str, Any]] = response.json()
+        ret: list[dict[str, Any]] = await response.json()
         next_url = response.links.get("next", {}).get("url")
     while next_url:
-        with client.get(
+        async with client.get(
             f"https://packagecloud.io{next_url}", raise_for_status=True
         ) as response:
-            ret.extend(response.json())
+            ret.extend(await response.json())
             next_url = response.links.get("next", {}).get("url")
     return ret
 
