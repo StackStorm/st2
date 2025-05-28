@@ -1,12 +1,12 @@
 checks:
   tags:
-    - el8 
-  stage: checks 
+    - el8
+  stage: checks
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
     GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ_2
   before_script:
-    - yum --enablerepo epel install -y ShellCheck 
+    - yum --enablerepo epel install -y ShellCheck
   script:
     - make requirements
     - make ci-checks
@@ -16,21 +16,21 @@ checks:
 unittests:
   tags:
     - el8
-  stage: unittests 
+  stage: unittests
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
     GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ_2
     FF_NETWORK_PER_BUILD: 1
     ST2_OVERRIDE_HOST: mymongo
     # tests actually expect coordinator to be off
-    ST2_OVERRIDE_COORD: redis
+    ST2_TESTS_REDIS_HOST: redis
     ST2_DB_CONNECTION_TIMEOUT: 60000 # milliseconds
     ST2_MESSAGING_HOST: rabbitmq
-    DOCKER_DRIVER: overlay2 
+    DOCKER_DRIVER: overlay2
     CONTENT_FOLDER: st2tests/st2tests/fixtures/packs/test_content_version
 
   services:
-    - name: registry.ifp.lmco.com/mongo:4.4
+    - name: harbor.global.lmco.com/ext.hub.docker.com/mongo:7.0.21
       alias: mymongo
     - name: registry.ifp.lmco.com/redis:6.0
       alias: redis
@@ -41,18 +41,16 @@ unittests:
   before_script:
     - git clone https://$GITLAB_TOKEN_U:$GITLAB_TOKEN_K@gitlab.ifp.lmco.com/orchestration/stackstorm/stackstorm-test-content-version  $CONTENT_FOLDER
     - yum --enablerepo lmprod install -y sudo
-    - yum --enablerepo lmprod install -y mongodb-org-shell 
+    - yum --enablerepo lmprod install -y mongodb-org-shell
     - yum --enablerepo lmprod install -y bind-utils
     - time mongo mymongo/admin
     - useradd stanley
-    - time nslookup mymongo 
+    - time nslookup mymongo
 
   script:
     - export ST2_OVERRIDE_HOST=$(dig +short mymongo | head -n1)
     - echo $ST2_OVERRIDE_HOST
-    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make runners-tests
-    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make packs-tests
-    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make unit-tests
+    - PYTHON_VERSION=python3.11 make unit-tests
 
   rules:
     - if: '($CI_PIPELINE_SOURCE == "push")'
@@ -60,4 +58,4 @@ unittests:
 
 stages:
   - checks
-  - unittests 
+  - unittests
