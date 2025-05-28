@@ -73,15 +73,16 @@ nfpm_deb_package(
     priority="optional",
     # package relationships
     predepends=[
-        "dpkg (>= 1.16.16)",
-        # "${pre:Depends}",
-        "python3 (>= 3.8)",
-        # "${misc:Pre-Depends}",
+        # dpkg 1.18 is good enough feature-wise (trigger --await)
+        "dpkg (>= 1.19.7)",  # 1.19.7 = ubuntu focal; 1.19.8 = debian buster
+        # deb/scripts/pre-install.sh deps:
         "adduser",
     ],
     depends=[
+        # was in depends
         "sudo",
-        "adduser",
+        # no need to specify what is already in pre-depends (only pre-install script uses adduser)
+        #"adduser",
         "libssl-dev",
         "libffi-dev",
         "git",
@@ -90,6 +91,7 @@ nfpm_deb_package(
         "openssh-client",
         "bash",
         "netbase",
+
         # "${Depends}",
         "python3-distutils",
         "python3-dev",
@@ -102,6 +104,38 @@ nfpm_deb_package(
         # "libstdc++6 (>= 5.2)",
         # "zlib1g (>= 1:1.2.0)",
         # "${misc:Depends}",
+
+        # for virtualenv(s)
+        "python3 (>= 3.8)", # Moved from pre-depends as we no longer use dh-virtualenv.
+        "python3-distutils",
+        "python3-dev",
+        "libssl-dev",
+        "libffi-dev",
+        # for auth
+        "libpam0g",  # st2-auth-backend-pam
+        # "libldap-dev", # is this needed?
+        # for packs; actions; utils
+        "bash",
+        "git",
+        "sudo",
+        "netbase",
+        "openssh-server",
+        "openssh-client",
+        # "dnsutils",  # for linux.dig action
+        # deb/scripts/{post-install.sh,pre-remove.sh} deps:
+        # cat
+        # tar (makeself deps?)
+        # systemd
+
+        # we install these on github
+        "libldap2-dev", # this is in the auto detected shlibs:Depends
+        "libsasl2-dev",
+        "libssl-dev",  # listed above
+        "libyaml-dev",
+        # "ldap-utils", # probably not
+
+        # pants --py311 export --resolve=st2
+        #
     ],
     conflicts=[
         "st2common",
