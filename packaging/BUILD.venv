@@ -55,6 +55,10 @@ pex_binary(
         "//contrib/runners/python_runner",
         "//contrib/runners/remote_runner",
         "//contrib/runners/winrm_runner",
+        # TODO: Make a separate pex for each auth backend to avoid the python-ldap dep in the core pex.
+        #       Pex only includes pre-built wheels, not sdists, so the st2-auth-ldap pex will need to be
+        #       built for every distro+version, but the core st2 pex will be the same across distros.
+        #       Then, the core pex needs a way to determine which additional pexes to add to the venv.
         "//:auth_backends",
         "//:rbac_backends",
     ],
