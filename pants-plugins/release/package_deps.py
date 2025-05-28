@@ -82,7 +82,7 @@ async def search_deb_packages(
     # TODO: This needs to retry a few times as the API can be flaky
     async with client.get(search_url, params=query_params) as response:
 
-        #response.status
+        # response.status
 
         # sadly the "API" returns html and does not support other formats.
         html_doc = await response.text()
@@ -90,7 +90,9 @@ async def search_deb_packages(
     return html_doc
 
 
-async def deb_packages_from_html_response(html_doc: str) -> AsyncGenerator[tuple[str, tuple[str, ...]]]:
+async def deb_packages_from_html_response(
+    html_doc: str,
+) -> AsyncGenerator[tuple[str, tuple[str, ...]]]:
     """Extract deb packages from an HTML search response.
 
     This uses beautifulsoup to parse the search API's HTML responses with
@@ -139,9 +141,7 @@ async def deb_packages_from_html_response(html_doc: str) -> AsyncGenerator[tuple
             continue
         file_cell, pkgs_cell = cells[:2]
         file_text = file_cell.get_text(strip=True)
-        packages = list(
-            pkg_a.get_text(strip=True) for pkg_a in pkgs_cell.find_all("a")
-        )
+        packages = [pkg_a.get_text(strip=True) for pkg_a in pkgs_cell.find_all("a")]
         # files2packages[file_text] = packages
         for package in packages:
             packages2files[package].append(file_text)
