@@ -5,6 +5,7 @@ checks:
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
     GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ_2
+    PYTHON_VERSION: python3.11
   before_script:
     - yum --enablerepo epel install -y ShellCheck
   script:
@@ -28,6 +29,7 @@ unittests:
     ST2_MESSAGING_HOST: rabbitmq
     DOCKER_DRIVER: overlay2
     CONTENT_FOLDER: st2tests/st2tests/fixtures/packs/test_content_version
+    PYTHON_VERSION: python3.11
 
   services:
     - name: harbor.global.lmco.com/ext.hub.docker.com/mongo:7.0.21
@@ -50,7 +52,7 @@ unittests:
   script:
     - export ST2_OVERRIDE_HOST=$(dig +short mymongo | head -n1)
     - echo $ST2_OVERRIDE_HOST
-    - PYTHON_VERSION=python3.11 make unit-tests
+    - make unit-tests
 
   rules:
     - if: '($CI_PIPELINE_SOURCE == "push")'
