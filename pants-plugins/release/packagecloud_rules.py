@@ -23,54 +23,7 @@ from pants.engine.env_vars import EnvironmentVars, EnvironmentVarsRequest
 from pants.engine.internals.selectors import Get
 from pants.engine.rules import _uncacheable_rule, collect_rules
 
-ARCH_NAMES = {  # {nfpm_arch: {pkg_type: packagecloud_arch}}
-    # The key comes from the 'arch' field of nfpm_*_package targets (GOARCH or GOARCH+GOARM).
-    #   https://www.pantsbuild.org/stable/reference/targets/nfpm_deb_package#arch
-    #   https://www.pantsbuild.org/stable/reference/targets/nfpm_rpm_package#arch
-    "amd64": {
-        "deb": "amd64",
-        "rpm": "x86_64",
-    }
-}
-
-# This includes distros we do not support.
-DISTROS_BY_PKG_TYPE = {  # {pkg_type: {distro: {distro_id: distro_version}}}
-    "deb": {
-        "debian": {  # no releases in packagecloud (so far)
-            "buster": "10",
-            "bullseye": "11",
-            "bookworm": "12",
-            "trixie": "13",
-            "forky": "14",
-        },
-        "ubuntu": {  # Only LTS releases
-            "trusty": "14.04",  # the oldest with releases in packagecloud
-            "xenial": "16.04",
-            "bionic": "18.04",
-            "focal": "20.04",
-            "jammy": "22.04",
-            "noble": "24.04",
-        },
-    },
-    "rpm": {
-        "el": {  # EL = Enterprise Linux (RHEL, Rocky, Alma, ...)
-            # 6 is the oldest with releases in packagecloud
-            f"el{v}": f"{v}"
-            for v in (6, 7, 8, 9)
-        },
-    },
-}
-
-DISTRO_INFO = {
-    distro_id: {
-        "distro": distro,
-        "version": distro_version,
-        "pkg_type": pkg_type,
-    }
-    for pkg_type, distros in DISTROS_BY_PKG_TYPE.items()
-    for distro, distro_ids in distros.items()
-    for distro_id, distro_version in distro_ids.items()
-}
+from .constants import ARCH_NAMES, DISTRO_INFO
 
 
 @dataclass(frozen=True)

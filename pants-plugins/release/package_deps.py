@@ -20,12 +20,7 @@ from typing import AsyncGenerator
 import aiohttp
 from bs4 import BeautifulSoup
 
-from .packagecloud_rules import ARCH_NAMES, DISTRO_INFO
-
-DISTRO_PACKAGE_SEARCH_URL = {
-    "debian": "https://packages.debian.org/search",
-    "ubuntu": "https://packages.ubuntu.com/search",
-}
+from .constants import ARCH_NAMES, DISTRO_INFO, DISTRO_PACKAGE_SEARCH_URL
 
 
 async def translate_sonames_to_deb_packages(
