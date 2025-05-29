@@ -9,6 +9,7 @@ checks:
   before_script:
     - yum --enablerepo epel install -y ShellCheck
     - yum --enablerepo rocky8_app_stream install -y python3.11-devel
+    - yum --enablerepo rocky8_base_os install -y openldap-devel
   script:
     - make requirements
     - make ci-checks
@@ -43,10 +44,9 @@ unittests:
 
   before_script:
     - git clone https://$GITLAB_TOKEN_U:$GITLAB_TOKEN_K@gitlab.ifp.lmco.com/orchestration/stackstorm/stackstorm-test-content-version  $CONTENT_FOLDER
-    - yum --enablerepo lmprod install -y sudo
-    - yum --enablerepo lmprod install -y mongodb-org-shell
-    - yum --enablerepo lmprod install -y bind-utils
+    - yum --enablerepo lmprod install -y sudo mongodb-org-shell bind-utils
     - yum --enablerepo rocky8_app_stream install -y python3.11-devel
+    - yum --enablerepo rocky8_base_os install -y openldap-devel
     - time mongo mymongo/admin
     - useradd stanley
     - time nslookup mymongo
