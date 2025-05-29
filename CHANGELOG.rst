@@ -4,6 +4,8 @@ Changelog
 in development
 --------------
 
+* Detect Docker environment in `st2ctl` and guide users to use proper Docker commands instead of VM-style commands (#4988) - @Emu55
+
 Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 This release adds support for Python 3.10 and 3.11, so StackStorm supports python 3.8 - 3.11.
 
