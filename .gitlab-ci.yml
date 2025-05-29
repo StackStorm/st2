@@ -8,6 +8,7 @@ checks:
     PYTHON_VERSION: python3.11
   before_script:
     - yum --enablerepo epel install -y ShellCheck
+    - yum --enablerepo rocky8_app_stream install -y python3.11-devel
   script:
     - make requirements
     - make ci-checks
@@ -45,6 +46,7 @@ unittests:
     - yum --enablerepo lmprod install -y sudo
     - yum --enablerepo lmprod install -y mongodb-org-shell
     - yum --enablerepo lmprod install -y bind-utils
+    - yum --enablerepo rocky8_app_stream install -y python3.11-devel
     - time mongo mymongo/admin
     - useradd stanley
     - time nslookup mymongo
