@@ -34,7 +34,7 @@ unittests:
     PYTHON_VERSION: python3.11
 
   services:
-    - name: harbor.global.lmco.com/ext.hub.docker.com/mongo:7.0.21
+    - name: harbor.global.lmco.com/ext.hub.docker.com/library/mongo:7.0.21
       alias: mymongo
     - name: registry.ifp.lmco.com/redis:6.0
       alias: redis
