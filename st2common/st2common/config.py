@@ -421,6 +421,8 @@ def register_opts(ignore_errors=False):
         ),
     ]
 
+    messaging_opts.remove
+
     do_register_opts(messaging_opts, "messaging", ignore_errors)
 
     syslog_opts = [

@@ -58,7 +58,7 @@ ST2TESTS_REDIS_HOST := 127.0.0.1
 ST2TESTS_REDIS_PORT := 6379
 
 # mongodb host
-ST2_MONGO := mymongo
+ST2_MONGO ?= mymongo
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
