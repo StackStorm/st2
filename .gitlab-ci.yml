@@ -47,7 +47,7 @@ unittests:
     - yum --enablerepo lmprod install -y sudo mongodb-mongosh bind-utils
     - yum --enablerepo rocky8_app_stream install -y python3.11-devel
     - yum --enablerepo rocky8_base_os install -y openldap-devel
-    - time mongo mymongo/admin
+    - time mongosh mymongo/admin
     - useradd stanley
     - time nslookup mymongo
 
