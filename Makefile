@@ -57,6 +57,9 @@ REQUIREMENTS := test-requirements.txt requirements.txt
 ST2TESTS_REDIS_HOST := 127.0.0.1
 ST2TESTS_REDIS_PORT := 6379
 
+# mongodb host
+ST2_MONGO := mymongo
+
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
 PIP_VERSION ?= 25.0.1
@@ -820,7 +823,7 @@ unit-tests: requirements .unit-tests
 	@echo "==================== tests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@mongosh st2-test --eval "db.dropDatabase();"
+	@mongosh $(ST2_MONGO)/st2-test --eval "db.dropDatabase();"
 	@failed=0; \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
@@ -1151,7 +1154,7 @@ ci: ci-checks ci-unit ci-integration ci-packs-tests
 # NOTE: pylint is moved to ci-compile so we more evenly spread the load across
 # various different jobs to make the whole workflow complete faster
 .PHONY: ci-checks
-ci-checks: .generated-files-check .shellcheck .black-check .flake8 check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check check-python-packages 
+ci-checks: .generated-files-check .shellcheck .black-check .flake8 check-sdist-requirements .st2client-dependencies-check .st2common-circular-dependencies-check .rst-check check-python-packages
 
 .PHONY: .rst-check
 .rst-check:
