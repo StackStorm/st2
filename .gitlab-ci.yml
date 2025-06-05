@@ -43,6 +43,7 @@ unittests:
 
 
   before_script:
+    - rm -rf $CONTENT_FOLDER
     - git clone https://$GITLAB_TOKEN_U:$GITLAB_TOKEN_K@gitlab.ifp.lmco.com/orchestration/stackstorm/stackstorm-test-content-version  $CONTENT_FOLDER
     - yum --enablerepo lmprod install -y sudo mongodb-mongosh bind-utils
     - yum --enablerepo rocky8_app_stream install -y python3.11-devel
