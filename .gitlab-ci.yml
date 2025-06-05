@@ -26,7 +26,7 @@ unittests:
     FF_NETWORK_PER_BUILD: 1
     ST2_OVERRIDE_HOST: mymongo
     # tests actually expect coordinator to be off
-    ST2_TESTS_REDIS_HOST: redis
+    ST2TESTS_REDIS_HOST: redis
     ST2_DB_CONNECTION_TIMEOUT: 60000 # milliseconds
     ST2_MESSAGING_HOST: rabbitmq
     DOCKER_DRIVER: overlay2
