@@ -54,8 +54,8 @@ COVERAGE_GLOBS_QUOTED := $(foreach glob,$(COVERAGE_GLOBS),'$(glob)')
 REQUIREMENTS := test-requirements.txt requirements.txt
 
 # Redis config for testing
-ST2TESTS_REDIS_HOST := 127.0.0.1
-ST2TESTS_REDIS_PORT := 6379
+ST2TESTS_REDIS_HOST ?= 127.0.0.1
+ST2TESTS_REDIS_PORT ?= 6379
 
 # mongodb host
 ST2_MONGO ?= mymongo
