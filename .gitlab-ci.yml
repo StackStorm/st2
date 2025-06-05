@@ -34,11 +34,11 @@ unittests:
     PYTHON_VERSION: python3.11
 
   services:
-    - name: harbor.global.lmco.com/ext.hub.docker.com/library/mongo:7.0.20
+    - name: harbor.global.lmco.com/ext.hub.docker.com/library/mongo:7.0.20-nanoserver
       alias: mymongo
-    - name: registry.ifp.lmco.com/redis:6.0
+    - name: harbor.global.lmco.com/ext.hub.docker.com/library/redis:7.4-alpine
       alias: redis
-    - name: registry.ifp.lmco.com/rabbitmq:3.6-management
+    - name: harbor.global.lmco.com/ext.hub.docker.com/library/rabbitmq:3.13-management-alpine
       alias: rabbitmq
 
 
