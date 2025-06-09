@@ -238,7 +238,7 @@ function getpids() {
 # If in Docker, refuse any of the VM‐style commands
 if running_in_docker; then
     case "$1" in
-        status|start|stop|restart|restart-component|reopen-log-files|reload)
+        status|start|stop|restart|reopen-log-files)
             suggest_docker_usage "$1"
             ;;
     esac
