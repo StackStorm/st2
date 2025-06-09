@@ -71,12 +71,8 @@ function must_be_root() {
 
 # -- Detect whether running inside a Docker container --
 function running_in_docker() {
-    # /.dockerenv exists in Docker; cgroup contains “docker” on most systems
-    if [ -f /.dockerenv ] || grep -qa 'docker' /proc/1/cgroup; then
-        return 0
-    else
-        return 1
-    fi
+    [ -f /.dockerenv ] && return 0
+    return 1
 }
 
 # Tell the user to use Docker commands instead of st2ctl
@@ -238,7 +234,7 @@ function getpids() {
 # If in Docker, refuse any of the VM‐style commands
 if running_in_docker; then
     case "$1" in
-        status|start|stop|restart|reopen-log-files)
+        status)
             suggest_docker_usage "$1"
             ;;
     esac
