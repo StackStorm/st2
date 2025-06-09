@@ -35,16 +35,27 @@ from .base import FunctionalTest
 __all__ = ["ActionExecutionOutputStreamControllerTestCase"]
 
 
-class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
-    def test_get_one_id_last_no_executions_in_the_database(self):
-        ActionExecution.query().delete()
+class FunctionalTestBase(FunctionalTest):
+    def _parse_response(self, response):
+        """
+        Parse event stream response and return a list of events.
+        """
+        events = []
 
-        resp = self.app.get("/v1/executions/last/output", expect_errors=True)
-        self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
-        self.assertEqual(
-            resp.json["faultstring"], "No executions found in the database"
-        )
+        lines = response.strip().split("\n")
+        for index, line in enumerate(lines):
+            if "data:" in line:
+                e_line = lines[index - 1]
+                event_name = e_line[e_line.find("event: ") + len("event:") :].strip()
+                event_data = line[line.find("data: ") + len("data :") :].strip()
 
+                event_data = json.loads(event_data) if len(event_data) > 2 else {}
+                events.append((event_name, event_data))
+
+        return events
+
+
+class ActionExecutionOutputStreamControllerRunningTestCase(FunctionalTestBase):
     def test_get_output_running_execution(self):
         # Retrieve listener instance to avoid race with listener connection not being established
         # early enough for tests to pass.
@@ -137,6 +148,17 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
 
         listener.shutdown()
 
+
+class ActionExecutionOutputStreamControllerTestCase(FunctionalTestBase):
+    def test_get_one_id_last_no_executions_in_the_database(self):
+        ActionExecution.query().delete()
+
+        resp = self.app.get("/v1/executions/last/output", expect_errors=True)
+        self.assertEqual(resp.status_int, http_client.BAD_REQUEST)
+        self.assertEqual(
+            resp.json["faultstring"], "No executions found in the database"
+        )
+
     def test_get_output_finished_execution(self):
         # Test the execution output API endpoint for execution which has finished
         for status in action_constants.LIVEACTION_COMPLETED_STATES:
@@ -202,21 +224,3 @@ class ActionExecutionOutputStreamControllerTestCase(FunctionalTest):
             events = self._parse_response(resp.text)
             self.assertEqual(len(events), 11)
             self.assertEqual(events[10][0], "EOF")
-
-    def _parse_response(self, response):
-        """
-        Parse event stream response and return a list of events.
-        """
-        events = []
-
-        lines = response.strip().split("\n")
-        for index, line in enumerate(lines):
-            if "data:" in line:
-                e_line = lines[index - 1]
-                event_name = e_line[e_line.find("event: ") + len("event:") :].strip()
-                event_data = line[line.find("data: ") + len("data :") :].strip()
-
-                event_data = json.loads(event_data) if len(event_data) > 2 else {}
-                events.append((event_name, event_data))
-
-        return events
