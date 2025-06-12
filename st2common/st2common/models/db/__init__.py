@@ -48,6 +48,7 @@ if "nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"):
 import copy
 import importlib
 import traceback
+import time
 
 import six
 from oslo_config import cfg
@@ -254,7 +255,7 @@ def db_setup(
     authentication_mechanism=None,
     ssl_match_hostname=True,  # deprecated
 ):
-    mongoengine.connection.disconnect()
+    time.sleep(1)
     connection = _db_connect(
         db_name,
         db_host,

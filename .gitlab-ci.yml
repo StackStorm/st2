@@ -27,6 +27,7 @@ unittests:
     ST2_OVERRIDE_HOST: mymongo
     # tests actually expect coordinator to be off
     ST2TESTS_REDIS_HOST: redis
+    ST2_MONGO: mymongo
     ST2_DB_CONNECTION_TIMEOUT: 60000 # milliseconds
     ST2_MESSAGING_HOST: rabbitmq
     DOCKER_DRIVER: overlay2
