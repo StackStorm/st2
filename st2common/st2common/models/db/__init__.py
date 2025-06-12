@@ -254,9 +254,7 @@ def db_setup(
     authentication_mechanism=None,
     ssl_match_hostname=True,  # deprecated
 ):
-    #ensure disconnected
     mongoengine.connection.disconnect()
-    #create connection
     connection = _db_connect(
         db_name,
         db_host,
