@@ -1,6 +1,8 @@
 checks:
   tags:
     - el8
+    - packaging
+    - venv
   stage: checks
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
@@ -19,6 +21,8 @@ checks:
 unittests:
   tags:
     - el8
+    - packaging
+    - venv
   stage: unittests
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
