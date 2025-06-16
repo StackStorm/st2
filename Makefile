@@ -17,7 +17,7 @@ else
 endif
 
 # Assign PYTHON_VERSION if it doesn't already exist
-PYTHON_VERSION ?= python3
+PYTHON_VERSION ?= python3.11
 
 BINARIES := bin
 
