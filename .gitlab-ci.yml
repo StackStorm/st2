@@ -67,7 +67,7 @@ unittests:
     - ls -al
     - >
       . virtualenv/bin/activate; pytest
-      -rx --verbose st2common/tests/unit/controllers/v1/
+      -rx --verbose st2common/tests/unit/
     #- make unit-tests
 
   rules:
