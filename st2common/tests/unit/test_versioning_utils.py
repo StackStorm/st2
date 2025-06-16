@@ -14,13 +14,13 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util.versioning import complex_semver_match
 from st2common.util.pack import normalize_pack_version
 
 
-class VersioningUtilsTestCase(unittest2.TestCase):
+class VersioningUtilsTestCase(unittest.TestCase):
     def test_complex_semver_match(self):
         # Positive test case
         self.assertTrue(complex_semver_match("1.6.0", ">=1.6.0, <2.2.0"))

@@ -16,7 +16,7 @@
 from __future__ import absolute_import
 
 import mongoengine
-import unittest2
+import unittest
 
 from tooz import coordination
 
@@ -25,7 +25,7 @@ from st2common.exceptions import workflow as wf_exc
 from st2common.models.db import workflow as wf_db_models
 
 
-class WorkflowExceptionTest(unittest2.TestCase):
+class WorkflowExceptionTest(unittest.TestCase):
     def test_retry_on_transient_db_errors(self):
         instance = wf_db_models.WorkflowExecutionDB()
         exc = db_exc.StackStormDBObjectWriteConflictError(instance)

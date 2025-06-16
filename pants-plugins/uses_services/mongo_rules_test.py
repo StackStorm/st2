@@ -51,7 +51,17 @@ def run_mongo_is_running(
             "--backend-packages=uses_services",
             *(extra_args or ()),
         ],
-        env_inherit={"PATH", "PYENV_ROOT", "HOME"},
+        env_inherit={
+            "PATH",
+            "PYENV_ROOT",
+            "HOME",
+            "ST2_DATABASE__HOST",
+            "ST2_DATABASE__PORT",
+            "ST2_DATABASE__USERNAME",
+            "ST2_DATABASE__PASSWORD",
+            "ST2_DATABASE__CONNECTION_TIMEOUT",
+            "ST2TESTS_PARALLEL_SLOT",
+        },
     )
     result = rule_runner.request(
         MongoIsRunning,
@@ -62,7 +72,9 @@ def run_mongo_is_running(
 
 # Warning this requires that mongo be running
 def test_mongo_is_running(rule_runner: RuleRunner) -> None:
-    request = UsesMongoRequest()
+    request = UsesMongoRequest.from_env(
+        execution_slot_var="ST2TESTS_PARALLEL_SLOT", env=rule_runner.environment
+    )
     mock_platform = platform(os="TestMock")
 
     # we are asserting that this does not raise an exception

@@ -28,6 +28,7 @@ CONF = cfg.CONF
 
 
 def parse_args(args=None):
+    common_config.use_st2_env_vars(CONF)
     CONF(
         args=args,
         version=VERSION_STRING,

@@ -19,7 +19,7 @@ import sys
 import subprocess
 
 import six
-import lib.datatransformer as transformer
+import lib.datatransformer as transformer  # pylint:disable=import-error,no-name-in-module
 
 
 def main(args):

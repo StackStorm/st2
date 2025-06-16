@@ -21,6 +21,7 @@ monkey_patch()
 import six
 
 from st2api.controllers.v1.triggers import TriggerTypeController
+from st2common.models.db.trigger import TriggerTypeDB
 
 from st2tests.api import FunctionalTest
 from st2tests.api import APIControllerWithIncludeAndExcludeFilterTestCase
@@ -56,6 +57,9 @@ class TriggerTypeControllerTestCase(
     controller_cls = TriggerTypeController
     include_attribute_field_name = "payload_schema"
     exclude_attribute_field_name = "parameters_schema"
+
+    ensure_indexes = True
+    ensure_indexes_models = [TriggerTypeDB]
 
     @classmethod
     def setUpClass(cls):

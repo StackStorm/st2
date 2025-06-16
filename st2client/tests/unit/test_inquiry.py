@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
 import copy
 import json
 import mock
@@ -294,6 +295,13 @@ class TestInquirySubcommands(TestInquiryBase):
             "ERROR: 400 Client Error: Bad Request", self.stdout.getvalue().strip()
         )
 
+    @mock.patch.object(
+        requests,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps({}), 404, "NOT FOUND")
+        ),
+    )
     def test_respond_nonexistent_inquiry(self):
         """Test responding to an inquiry that doesn't exist"""
         inquiry_id = "134234"

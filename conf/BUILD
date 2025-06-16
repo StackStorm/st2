@@ -57,3 +57,55 @@ file(
     name="st2_package_conf",
     source="st2.package.conf",
 )
+
+shell_command(
+    name="htpasswd",
+    description="An empty htpasswd file for st2-auth-backend-flat-file",
+    command="touch htpasswd",
+    tools=["touch"],
+    output_files=["htpasswd"],
+)
+
+shell_command(
+    name="packaged_st2_conf",
+    execution_dependencies=[":st2_package_conf"],
+    # virtualenv_opts is no longer needed for most OSes. We used to do this only for EL 8.
+    command="""crudini --verbose --set st2.package.conf actionrunner virtualenv_opts ''""",
+    runnable_dependencies=["//:crudini"],
+    output_files=["st2.package.conf"],
+)
+
+nfpm_content_files(
+    name="packaged_conf_files",
+    dependencies=[
+        ":packaged_st2_conf",
+        ":logrotate",
+        ":nginx_sample_config",
+        ":htpasswd",
+    ],
+    files=[
+        ("st2.package.conf", "/etc/st2/st2.conf"),
+        ("logrotate.conf", "/etc/logrotate.d/st2"),
+        ("nginx/st2.conf", "/usr/share/doc/st2/conf/nginx/st2.conf"),
+        ("htpasswd", "/etc/st2/htpasswd"),
+    ],
+    content_type="config|noreplace",
+    file_owner="root",
+    file_group="root",
+    file_mode="rw-r--r--",
+    overrides={
+        "/etc/st2/st2.conf": dict(
+            # st2.conf typically contains secrets, so it is not world readable.
+            file_mode="rw-r-----",  # NOTE: Packaging used to install this world readable.
+            # TODO: Maybe set file_group=ST2_SVC_USER if a non-root process needs access.
+        ),
+        "/etc/st2/htpasswd": dict(
+            file_owner=ST2_SVC_USER,
+            file_group=ST2_SVC_USER,
+            file_mode="rw-------",
+        ),
+        "/usr/share/doc/st2/conf/nginx/st2.conf": dict(
+            content_type="",
+        ),
+    },
+)

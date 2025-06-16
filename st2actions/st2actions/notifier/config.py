@@ -21,10 +21,9 @@ import st2common.config as common_config
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
-CONF = cfg.CONF
-
 
 def parse_args(args=None):
+    common_config.use_st2_env_vars(cfg.CONF)
     cfg.CONF(
         args=args,
         version=VERSION_STRING,

@@ -8,6 +8,7 @@ python_sources()
 
 python_tests(
     name="tests",
+    tags=["unit"],
     dependencies=[
         "./fixtures",
         "!//conftest.py:test_utils",
@@ -17,7 +18,7 @@ python_tests(
 python_requirement(
     name="pylint",
     requirements=[
-        "pylint~=2.8.2",
+        "pylint~=3.1.0",
         "setuptools",  # includes pkg_resources
     ],
 )

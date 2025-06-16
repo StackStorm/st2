@@ -19,10 +19,6 @@ import datetime
 import mock
 import eventlet
 
-from st2tests import config as test_config
-
-test_config.parse_args()
-
 import st2common
 from st2tests import ExecutionDbTestCase
 from st2tests.fixtures.generic.fixture import PACK_NAME as PACK

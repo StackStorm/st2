@@ -14,14 +14,14 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util import hash as hash_utils
 from st2common.util import auth as auth_utils
 from six.moves import range
 
 
-class TestHashWithApiKeys(unittest2.TestCase):
+class TestHashWithApiKeys(unittest.TestCase):
     def test_hash_repeatability(self):
         api_key = auth_utils.generate_api_key()
         hash1 = hash_utils.hash(api_key)

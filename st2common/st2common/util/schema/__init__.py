@@ -19,8 +19,8 @@ import os
 
 import six
 import jsonschema
-from jsonschema import _validators
-from jsonschema.validators import create
+from jsonschema import _legacy_validators, _validators
+from jsonschema.validators import Draft4Validator, create
 
 from st2common.exceptions.action import InvalidActionParameterException
 from st2common.util import jsonify
@@ -113,30 +113,32 @@ CustomValidator = create(
         "$ref": _validators.ref,
         "additionalItems": _validators.additionalItems,
         "additionalProperties": _validators.additionalProperties,
-        "allOf": _validators.allOf_draft4,
-        "anyOf": _validators.anyOf_draft4,
+        "allOf": _validators.allOf,
+        "anyOf": _validators.anyOf,
         "dependencies": _validators.dependencies,
         "enum": _validators.enum,
         "format": _validators.format,
         "items": _validators.items,
         "maxItems": _validators.maxItems,
         "maxLength": _validators.maxLength,
-        "maxProperties": _validators.maxProperties_draft4,
+        "maxProperties": _validators.maxProperties,
         "maximum": _validators.maximum,
         "minItems": _validators.minItems,
         "minLength": _validators.minLength,
-        "minProperties": _validators.minProperties_draft4,
+        "minProperties": _validators.minProperties,
         "minimum": _validators.minimum,
         "multipleOf": _validators.multipleOf,
-        "not": _validators.not_draft4,
-        "oneOf": _validators.oneOf_draft4,
+        "not": _validators.not_,
+        "oneOf": _validators.oneOf,
         "pattern": _validators.pattern,
         "patternProperties": _validators.patternProperties,
-        "properties": _validators.properties_draft3,
-        "type": _validators.type_draft4,
+        "properties": _legacy_validators.properties_draft3,
+        "type": _validators.type,
         "uniqueItems": _validators.uniqueItems,
     },
     version="custom_validator",
+    type_checker=Draft4Validator.TYPE_CHECKER,
+    id_of=Draft4Validator.ID_OF,
 )
 
 

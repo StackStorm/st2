@@ -44,13 +44,15 @@ def db_cleanup_with_retry(
     db_port,
     username=None,
     password=None,
-    ssl=False,
-    ssl_keyfile=None,
-    ssl_certfile=None,
-    ssl_cert_reqs=None,
-    ssl_ca_certs=None,
+    tls=False,
+    tls_certificate_key_file=None,
+    tls_certificate_key_file_password=None,
+    tls_allow_invalid_certificates=None,
+    tls_ca_file=None,
+    tls_allow_invalid_hostnames=None,
+    ssl_cert_reqs=None,  # deprecated
     authentication_mechanism=None,
-    ssl_match_hostname=True,
+    ssl_match_hostname=True,  # deprecated
 ):
     """
     This method is a retry version of db_cleanup.
@@ -62,13 +64,15 @@ def db_cleanup_with_retry(
         db_port,
         username=username,
         password=password,
-        ssl=ssl,
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
-        ssl_cert_reqs=ssl_cert_reqs,
-        ssl_ca_certs=ssl_ca_certs,
+        tls=tls,
+        tls_certificate_key_file=tls_certificate_key_file,
+        tls_certificate_key_file_password=tls_certificate_key_file_password,
+        tls_allow_invalid_certificates=tls_allow_invalid_certificates,
+        tls_ca_file=tls_ca_file,
+        tls_allow_invalid_hostnames=tls_allow_invalid_hostnames,
+        ssl_cert_reqs=ssl_cert_reqs,  # deprecated
         authentication_mechanism=authentication_mechanism,
-        ssl_match_hostname=ssl_match_hostname,
+        ssl_match_hostname=ssl_match_hostname,  # deprecated
     )
 
 

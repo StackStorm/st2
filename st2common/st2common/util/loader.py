@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 
-import imp
+import importlib.util
 import inspect
 import json
 import os
@@ -73,8 +73,8 @@ def _get_classes_in_module(module):
     ]
 
 
-def _get_plugin_classes(module_name):
-    return _get_classes_in_module(module_name)
+def _get_plugin_classes(module):
+    return _get_classes_in_module(module)
 
 
 def _get_plugin_methods(plugin_klass):
@@ -129,7 +129,7 @@ def register_plugin_class(base_class, file_path, class_name):
     """
     Retrieve a register plugin class from the provided file.
 
-    This method also validate that the class implements all the abstract methods
+    This method also validates that the class implements all the abstract methods
     from the base plugin class.
 
     :param base_class: Base plugin class.
@@ -148,7 +148,9 @@ def register_plugin_class(base_class, file_path, class_name):
     if module_name is None:
         return None
 
-    module = imp.load_source(module_name, file_path)
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
     klass = getattr(module, class_name, None)
 
     if not klass:
@@ -170,7 +172,9 @@ def register_plugin(plugin_base_class, plugin_abs_file_path):
     if module_name is None:
         return None
 
-    module = imp.load_source(module_name, plugin_abs_file_path)
+    spec = importlib.util.spec_from_file_location(module_name, plugin_abs_file_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
     klasses = _get_plugin_classes(module)
 
     # Try registering classes in plugin file. Some may fail.

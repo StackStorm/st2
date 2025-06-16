@@ -1,4 +1,6 @@
-shell_source(
-    source="send_mail",
+st2_shell_sources_and_resources(
+    name="send_mail",
+    sources=["send_mail"],
     skip_shellcheck=True,
+    skip_shfmt=True,
 )

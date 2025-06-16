@@ -1,0 +1,18 @@
+[Unit]
+Description=StackStorm service st2workflowengine
+After=network.target
+
+[Service]
+Type=simple
+User=st2
+Group=st2
+Environment="DAEMON_ARGS=--config-file /etc/st2/st2.conf"
+EnvironmentFile=-/etc/sysconfig/st2workflowengine
+ExecStart=/opt/stackstorm/st2/bin/st2workflowengine $DAEMON_ARGS
+TimeoutSec=60
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

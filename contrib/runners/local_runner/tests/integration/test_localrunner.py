@@ -15,6 +15,7 @@
 
 from __future__ import absolute_import
 import os
+import unittest
 import uuid
 
 import mock
@@ -44,6 +45,8 @@ from local_runner.local_shell_command_runner import LocalShellCommandRunner
 from local_runner.local_shell_script_runner import LocalShellScriptRunner
 
 __all__ = ["LocalShellCommandRunnerTestCase", "LocalShellScriptRunnerTestCase"]
+
+ST2_CI = os.environ.get("ST2_CI", "false").lower() == "true"
 
 MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
@@ -94,6 +97,11 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output_dbs[0].output_type, "stdout")
         self.assertEqual(output_dbs[0].data, "10\n")
 
+    # This test depends on passwordless sudo. Don't require that for local development.
+    @unittest.skipIf(
+        not ST2_CI,
+        'Skipping tests because ST2_CI environment variable is not set to "true"',
+    )
     def test_timeout(self):
         models = self.fixtures_loader.load_models(
             fixtures_pack=GENERIC_PACK, fixtures_dict={"actions": ["local.yaml"]}
@@ -141,8 +149,13 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
         self.assertEqual(result["stdout"].strip(), "mock-token")
 
+    # This test depends on passwordless sudo. Don't require that for local development.
+    @unittest.skipIf(
+        not ST2_CI,
+        'Skipping tests because ST2_CI environment variable is not set to "true"',
+    )
     def test_sudo_and_env_variable_preservation(self):
-        # Verify that the environment environment are correctly preserved when running as a
+        # Verify that the environment vars are correctly preserved when running as a
         # root / non-system user
         # Note: This test will fail if SETENV option is not present in the sudoers file
         models = self.fixtures_loader.load_models(
@@ -297,6 +310,11 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             self.assertEqual(output_dbs[db_index_1].data, mock_stderr[0])
             self.assertEqual(output_dbs[db_index_2].data, mock_stderr[1])
 
+    # This test depends on passwordless sudo. Don't require that for local development.
+    @unittest.skipIf(
+        not ST2_CI,
+        'Skipping tests because ST2_CI environment variable is not set to "true"',
+    )
     def test_shell_command_sudo_password_is_passed_to_sudo_binary(self):
         # Verify that sudo password is correctly passed to sudo binary via stdin
         models = self.fixtures_loader.load_models(

@@ -1,9 +1,10 @@
 __defaults__(
-    {(python_test, python_tests): dict(tags=["integration"])},
+    {python_test: dict(tags=["integration"])},
     extend=True,
 )
 
 python_tests(
     name="tests",
-    uses=["redis"],
+    uses=["mongo", "rabbitmq", "redis", "st2cluster", "system_user"],
+    tags=["integration", "st2cluster"],
 )

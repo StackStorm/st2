@@ -31,7 +31,7 @@ LOG = logging.getLogger(__name__)
 
 
 # TODO: replace makefile reference with pants equivalent
-# ./pants fmt st2common/st2common/openapi.yaml
+# pants fmt st2common/st2common/openapi.yaml
 SPEC_HEADER = """\
 # NOTE: This file is auto-generated - DO NOT EDIT MANUALLY
 # Edit st2common/st2common/openapi.yaml.j2 and then run

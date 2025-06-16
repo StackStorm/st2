@@ -164,7 +164,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
 
         # "ref" is not provided and "name" contains invalid characters
         expected_msg = "contains invalid characters"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar._register_pack_db,
@@ -180,7 +180,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
             r"Pack ref / name can only contain valid word characters .*?,"
             " dashes are not allowed."
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValidationError,
             expected_msg,
             registrar._register_pack_db,
@@ -202,7 +202,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
             r'Pack name "dummy pack 14" contains invalid characters and "ref" '
             "attribute is not available. You either need to add"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar._register_pack_db,
@@ -235,7 +235,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
 
         # Wrong characters in the required st2 version
         expected_msg = "'wrongstackstormversion' does not match"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValidationError,
             expected_msg,
             registrar._register_pack_db,
@@ -252,7 +252,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = (
             'Config schema ".*?dummy_pack_17/config.schema.yaml" is empty and invalid.'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_packs,
@@ -268,7 +268,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         expected_msg = (
             r"Additional properties are not allowed \(\'invalid\' was unexpected\)"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_packs,
@@ -282,7 +282,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         packs_base_paths = content_utils.get_packs_base_paths()
 
         expected_msg = r"'4' is not one of \['2', '3'\]"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_packs,

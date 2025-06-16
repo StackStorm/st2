@@ -15,12 +15,12 @@
 
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common.util import jinja as jinja_utils
 
 
-class JinjaUtilsJsonpathQueryTestCase(unittest2.TestCase):
+class JinjaUtilsJsonpathQueryTestCase(unittest.TestCase):
     def test_jsonpath_query_static(self):
         env = jinja_utils.get_jinja_environment()
         obj = {

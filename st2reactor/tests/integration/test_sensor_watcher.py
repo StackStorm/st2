@@ -31,6 +31,15 @@ class SensorWatcherTestCase(IntegrationTestCase):
     def setUpClass(cls):
         super(SensorWatcherTestCase, cls).setUpClass()
 
+    def setUp(self):
+        super().setUp()
+        # pre-condition: Make sure there is no test pollution
+        sw_queues = self._get_sensor_watcher_amqp_queues(
+            queue_name="st2.sensor.watch.covfefe"
+        )
+        # TODO: Maybe just delete any leftover queues from previous failed test runs.
+        self.assertTrue(len(sw_queues) == 0)
+
     def test_sensor_watch_queue_gets_deleted_on_stop(self):
         def create_handler(sensor_db):
             pass
@@ -64,7 +73,8 @@ class SensorWatcherTestCase(IntegrationTestCase):
         )
         self.assertTrue(len(sw_queues) == 0)
 
-    def _list_amqp_queues(self):
+    @staticmethod
+    def _list_amqp_queues():
         rabbit_client = Client("localhost:15672", "guest", "guest")
         queues = [q["name"] for q in rabbit_client.get_queues()]
         return queues

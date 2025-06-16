@@ -39,7 +39,7 @@ def get_base_public_api_url():
     if cfg.CONF.auth.api_url:
         api_url = get_url_without_trailing_slash(cfg.CONF.auth.api_url)
     else:
-        LOG.warn('"auth.api_url" configuration option is not configured')
+        LOG.warning('"auth.api_url" configuration option is not configured')
         api_url = "http://%s:%s" % (cfg.CONF.api.host, cfg.CONF.api.port)
 
     return api_url

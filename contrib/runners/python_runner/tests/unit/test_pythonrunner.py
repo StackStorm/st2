@@ -36,13 +36,15 @@ from st2common.constants.action import (
 from st2common.constants.action import LIVEACTION_STATUS_TIMED_OUT
 from st2common.constants.action import MAX_PARAM_LENGTH
 from st2common.constants.pack import COMMON_LIB_DIR
-from st2common.constants.pack import SYSTEM_PACK_NAME
+from st2common.constants.pack import SYSTEM_PACK_NAMES
 from st2common.persistence.execution import ActionExecutionOutput
 from python_runner.python_action_wrapper import PythonActionWrapper
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
 from st2tests.base import blocking_eventlet_spawn
 from st2tests.base import make_mock_stream_readline
+from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
+from st2tests.fixtures.packs.dummy_pack_5.fixture import PACK_NAME as DUMMY_PACK_5
 from st2tests.fixtures.packs.dummy_pack_9.fixture import PACK_PATH as DUMMY_PACK_9_PATH
 from st2tests.fixtures.packs.test_content_version_fixture.fixture import (
     PACK_NAME as TEST_CONTENT_VERSION,
@@ -100,6 +102,10 @@ MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
 
 
+# Use DUMMY_PACK_1 instead of depending on everything in the core (SYSTEM_PACK_NAME) pack.
+@mock.patch(
+    "st2common.util.sandboxing.SYSTEM_PACK_NAMES", [DUMMY_PACK_1, *SYSTEM_PACK_NAMES]
+)
 @mock.patch("python_runner.python_runner.sys", mock_sys)
 class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     register_packs = True
@@ -229,12 +235,10 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         self.assertEqual(output["result"], [1, 2])
 
     def test_simple_action_config_value_provided_overriden_in_datastore(self):
-        pack = "dummy_pack_5"
         user = "joe"
 
         # No values provided in the datastore
-        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
-
+        runner = self._get_mock_runner_obj_from_container(pack=DUMMY_PACK_5, user=user)
         self.assertEqual(runner._config["api_key"], "some_api_key")  # static value
         self.assertEqual(runner._config["regions"], ["us-west-1"])  # static value
         self.assertEqual(runner._config["api_secret"], None)
@@ -242,19 +246,19 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # api_secret overriden in the datastore (user scoped value)
         config_service.set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5",
+            pack_name=DUMMY_PACK_5,
             key_name="api_secret",
-            user="joe",
+            user=user,
             value="foosecret",
             secret=True,
         )
 
         # private_key_path overriden in the datastore (global / non-user scoped value)
         config_service.set_datastore_value_for_config_key(
-            pack_name="dummy_pack_5", key_name="private_key_path", value="foopath"
+            pack_name=DUMMY_PACK_5, key_name="private_key_path", value="foopath"
         )
 
-        runner = self._get_mock_runner_obj_from_container(pack=pack, user=user)
+        runner = self._get_mock_runner_obj_from_container(pack=DUMMY_PACK_5, user=user)
         self.assertEqual(runner._config["api_key"], "some_api_key")  # static value
         self.assertEqual(runner._config["regions"], ["us-west-1"])  # static value
         self.assertEqual(runner._config["api_secret"], "foosecret")
@@ -281,7 +285,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         runner.entry_point = ""
 
         expected_msg = "Action .*? is missing entry_point attribute"
-        self.assertRaisesRegexp(Exception, expected_msg, runner.run, {})
+        self.assertRaisesRegex(Exception, expected_msg, runner.run, {})
 
     @mock.patch("st2common.util.concurrency.subprocess_popen")
     def test_action_with_user_supplied_env_vars(self, mock_popen):
@@ -603,7 +607,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs["env"]
-        pack_common_lib_path = "fixtures/packs/core/lib"
+        pack_common_lib_path = f"fixtures/packs/{DUMMY_PACK_1}/lib"
         self.assertIn("PYTHONPATH", actual_env)
         self.assertIn(pack_common_lib_path, actual_env["PYTHONPATH"])
 
@@ -626,7 +630,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
         _, call_kwargs = mock_popen.call_args
         actual_env = call_kwargs["env"]
         pack_common_lib_path = (
-            "/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/core/lib"
+            f"/mnt/src/storm/st2/st2tests/st2tests/fixtures/packs/{DUMMY_PACK_1}/lib"
         )
         self.assertIn("PYTHONPATH", actual_env)
         self.assertNotIn(pack_common_lib_path, actual_env["PYTHONPATH"])
@@ -714,17 +718,17 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
     def test_python_action_wrapper_action_script_file_doesnt_exist_friendly_error(self):
         # File in a directory which is not a Python package
         wrapper = PythonActionWrapper(
-            pack="dummy_pack_5", file_path="/tmp/doesnt.exist", user="joe"
+            pack=DUMMY_PACK_5, file_path="/tmp/doesnt.exist", user="joe"
         )
 
         expected_msg = (
             'File "/tmp/doesnt.exist" has no action class or the file doesn\'t exist.'
         )
-        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+        self.assertRaisesRegex(Exception, expected_msg, wrapper._get_action_instance)
 
         # File in a directory which is a Python package
         wrapper = PythonActionWrapper(
-            pack="dummy_pack_5", file_path=ACTION_1_PATH, user="joe"
+            pack=DUMMY_PACK_5, file_path=ACTION_1_PATH, user="joe"
         )
 
         expected_msg = (
@@ -732,20 +736,20 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             r"\(action file most likely doesn\'t exist or contains invalid syntax\): "
             r"\[Errno 2\] No such file or directory"
         )
-        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+        self.assertRaisesRegex(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_python_action_wrapper_action_script_file_contains_invalid_syntax_friendly_error(
         self,
     ):
         wrapper = PythonActionWrapper(
-            pack="dummy_pack_5", file_path=ACTION_2_PATH, user="joe"
+            pack=DUMMY_PACK_5, file_path=ACTION_2_PATH, user="joe"
         )
         expected_msg = (
             r'Failed to load action class from file ".*?invalid_syntax.py" '
             r"\(action file most likely doesn\'t exist or contains invalid syntax\): "
             r"No module named \'?invalid\'?"
         )
-        self.assertRaisesRegexp(Exception, expected_msg, wrapper._get_action_instance)
+        self.assertRaisesRegex(Exception, expected_msg, wrapper._get_action_instance)
 
     def test_simple_action_log_messages_and_log_level_runner_param(self):
         expected_msg_1 = (
@@ -927,7 +931,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             '"v0.30.0" provided. Make sure that git repository is up '
             "to date and contains that revision."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch("python_runner.python_runner.get_sandbox_virtualenv_path")
     @mock.patch("st2common.util.concurrency.subprocess_popen")
@@ -978,7 +982,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
             "<module '?local_module'? from '?%s/actions/local_module.py'?>.*"
             % runner.git_worktree_path
         )
-        self.assertRegexpMatches(output["stdout"].strip(), expected_stdout)
+        self.assertRegex(output["stdout"].strip(), expected_stdout)
 
     @mock.patch("st2common.runners.base.run_command")
     def test_content_version_old_git_version(self, mock_run_command):
@@ -994,11 +998,11 @@ git: 'worktree' is not a git command. See 'git --help'.
         runner.runner_parameters = {"content_version": "v0.10.0"}
 
         expected_msg = (
-            r'Failed to create git worktree for pack "core": Installed git version '
+            rf'Failed to create git worktree for pack "{DUMMY_PACK_1}": Installed git version '
             "doesn't support git worktree command. To be able to utilize this "
             "functionality you need to use git >= 2.5.0."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch("st2common.runners.base.run_command")
     def test_content_version_pack_repo_not_git_repository(self, mock_run_command):
@@ -1015,12 +1019,12 @@ Stopping at filesystem boundary (GIT_DISCOVERY_ACROSS_FILESYSTEM not set).
         runner.runner_parameters = {"content_version": "v0.10.0"}
 
         expected_msg = (
-            r'Failed to create git worktree for pack "core": Pack directory '
+            rf'Failed to create git worktree for pack "{DUMMY_PACK_1}": Pack directory '
             '".*" is not a '
             "git repository. To utilize this functionality, pack directory needs to "
             "be a git repository."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     @mock.patch("st2common.runners.base.run_command")
     def test_content_version_invalid_git_revision(self, mock_run_command):
@@ -1036,11 +1040,11 @@ fatal: invalid reference: vinvalid
         runner.runner_parameters = {"content_version": "vinvalid"}
 
         expected_msg = (
-            r'Failed to create git worktree for pack "core": Invalid content_version '
+            rf'Failed to create git worktree for pack "{DUMMY_PACK_1}": Invalid content_version '
             '"vinvalid" provided. Make sure that git repository is up '
             "to date and contains that revision."
         )
-        self.assertRaisesRegexp(ValueError, expected_msg, runner.pre_run)
+        self.assertRaisesRegex(ValueError, expected_msg, runner.pre_run)
 
     def test_missing_config_item_user_friendly_error(self):
         runner = self._get_mock_runner_obj()
@@ -1052,7 +1056,9 @@ fatal: invalid reference: vinvalid
         self.assertIsNotNone(output)
         self.assertIn("{}", output["stdout"])
         self.assertIn("default_value", output["stdout"])
-        self.assertIn('Config for pack "core" is missing key "key"', output["stderr"])
+        self.assertIn(
+            f'Config for pack "{DUMMY_PACK_1}" is missing key "key"', output["stderr"]
+        )
         self.assertIn(
             'make sure you run "st2ctl reload --register-configs"', output["stderr"]
         )
@@ -1107,7 +1113,7 @@ fatal: invalid reference: vinvalid
         """
         action = mock.Mock()
         action.ref = "dummy.action"
-        action.pack = SYSTEM_PACK_NAME
+        action.pack = DUMMY_PACK_1
         action.entry_point = "foo.py"
         action.runner_type = {"name": "python-script"}
         return action

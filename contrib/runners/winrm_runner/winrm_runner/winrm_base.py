@@ -18,7 +18,6 @@ from __future__ import absolute_import
 import base64
 import os
 import re
-import six
 import time
 
 from base64 import b64encode
@@ -194,11 +193,18 @@ class WinRmBaseRunner(ActionRunner):
         return b"".join(stdout_buffer), b"".join(stderr_buffer), return_code
 
     def _winrm_run_cmd(self, session, command, args=(), env=None, cwd=None):
-        # NOTE: this is copied from pywinrm because it doesn't support
-        # passing env and working_directory from the Session.run_cmd.
-        # It also doesn't support timeouts. All of these things have been
-        # added
-        shell_id = session.protocol.open_shell(env_vars=env, working_directory=cwd)
+        """Run a command on the remote host and return the standard output and
+        error as a tuple.
+
+        Extended from pywinrm to support passing env and cwd to open_shell,
+        as well as enforcing the UTF-8 codepage. Also supports timeouts.
+
+        """
+        shell_id = session.protocol.open_shell(
+            working_directory=cwd,
+            env_vars=env,
+            codepage=65001,
+        )
         command_id = session.protocol.run_command(shell_id, command, args)
         # try/catch is for custom timeout handing (StackStorm custom)
         try:
@@ -257,10 +263,10 @@ class WinRmBaseRunner(ActionRunner):
         }
 
         # Ensure stdout and stderr is always a string
-        if isinstance(result["stdout"], six.binary_type):
+        if isinstance(result["stdout"], bytes):
             result["stdout"] = result["stdout"].decode("utf-8")
 
-        if isinstance(result["stderr"], six.binary_type):
+        if isinstance(result["stderr"], bytes):
             result["stderr"] = result["stderr"].decode("utf-8")
 
         # automatically convert result stdout/stderr from JSON strings to
@@ -316,7 +322,7 @@ $path""".format(
 
     def _upload_chunk(self, dst_path, src_data):
         # adapted from https://github.com/diyan/pywinrm/issues/18
-        if not isinstance(src_data, six.binary_type):
+        if not isinstance(src_data, bytes):
             src_data = src_data.encode("utf-8")
 
         ps = """$filePath = "{dst_path}"
@@ -446,7 +452,7 @@ Add-Content -value $data -encoding byte -path $filePath
         ps_str = ""
         if param is None:
             ps_str = "$null"
-        elif isinstance(param, six.string_types):
+        elif isinstance(param, str):
             ps_str = '"' + self._multireplace(param, PS_ESCAPE_SEQUENCES) + '"'
         elif isinstance(param, bool):
             ps_str = "$true" if param else "$false"
@@ -459,7 +465,7 @@ Add-Content -value $data -encoding byte -path $filePath
             ps_str += "; ".join(
                 [
                     (self._param_to_ps(k) + " = " + self._param_to_ps(v))
-                    for k, v in six.iteritems(param)
+                    for k, v in param.items()
                 ]
             )
             ps_str += "}"
@@ -473,7 +479,7 @@ Add-Content -value $data -encoding byte -path $filePath
                 positional_args[i] = self._param_to_ps(arg)
 
         if named_args:
-            for key, value in six.iteritems(named_args):
+            for key, value in named_args.items():
                 named_args[key] = self._param_to_ps(value)
 
         return positional_args, named_args
@@ -486,9 +492,7 @@ Add-Content -value $data -encoding byte -path $filePath
         # concatenate them into a long string
         ps_params_str = ""
         if named_args:
-            ps_params_str += " ".join(
-                [(k + " " + v) for k, v in six.iteritems(named_args)]
-            )
+            ps_params_str += " ".join([(k + " " + v) for k, v in named_args.items()])
             ps_params_str += " "
         if positional_args:
             ps_params_str += " ".join(positional_args)

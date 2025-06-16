@@ -17,6 +17,10 @@ from __future__ import absolute_import
 
 import json
 import hashlib
+import sys
+
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 import mongoengine as me
 
@@ -116,7 +120,9 @@ class TriggerDB(
         # compatibility reasons.
         parameters = getattr(self, "parameters", {})
         parameters = json.dumps(parameters, sort_keys=True)
-        parameters = hashlib.md5(parameters.encode()).hexdigest()
+        parameters = hashlib.md5(
+            parameters.encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         uid = uid + self.UID_SEPARATOR + parameters
         return uid

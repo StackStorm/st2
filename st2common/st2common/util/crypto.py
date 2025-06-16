@@ -39,6 +39,10 @@ import binascii
 import base64
 
 from hashlib import sha1
+import sys
+
+# TODO: Move keywords directly to sha1 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 import six
 
@@ -70,7 +74,13 @@ __all__ = [
 # Keyczar related constants
 KEYCZAR_HEADER_SIZE = 5
 KEYCZAR_AES_BLOCK_SIZE = 16
-KEYCZAR_HLEN = sha1().digest_size
+# usedforsecurity: False used here because KEYCZAR is deprecated
+# inherently insecure and will need to be removed from the code base when
+# the cryptography implementation is revised.  This is just to keep
+# bandit happy.
+KEYCZAR_HLEN = sha1(
+    **hashlib_kwargs
+).digest_size  # nosec. remove nosec after py3.8 drop
 
 # Minimum key size which can be used for symmetric crypto
 MINIMUM_AES_KEY_SIZE = 128

@@ -14,10 +14,11 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from st2common import operators
 from st2common.util import date as date_utils
+import st2tests.config as tests_config
 
 
 def list_of_dicts_strict_equal(lofd1, lofd2):
@@ -37,7 +38,7 @@ def list_of_dicts_strict_equal(lofd1, lofd2):
     return not t2
 
 
-class ListOfDictsStrictEqualTest(unittest2.TestCase):
+class ListOfDictsStrictEqualTest(unittest.TestCase):
     """
     Tests list_of_dicts_strict_equal
 
@@ -156,7 +157,12 @@ class ListOfDictsStrictEqualTest(unittest2.TestCase):
         )
 
 
-class SearchOperatorTest(unittest2.TestCase):
+class SearchOperatorTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     # The search command extends the rules engine into being a recursive descent
     # parser. As such, its tests are much more complex than other commands, so we
     # pull its tests out into their own test case.
@@ -762,7 +768,7 @@ class SearchOperatorTest(unittest2.TestCase):
         self.assertFalse(result)
 
 
-class OperatorTest(unittest2.TestCase):
+class OperatorTest(unittest.TestCase):
     def test_matchwildcard(self):
         op = operators.get_operator("matchwildcard")
         self.assertTrue(op("v1", "v1"), "Failed matchwildcard.")
@@ -1215,7 +1221,7 @@ class OperatorTest(unittest2.TestCase):
         self.assertTrue(op("a", "bcd"), "Should return True")
 
 
-class GetOperatorsTest(unittest2.TestCase):
+class GetOperatorsTest(unittest.TestCase):
     def test_get_operator(self):
         self.assertTrue(operators.get_operator("equals"))
         self.assertTrue(operators.get_operator("EQUALS"))

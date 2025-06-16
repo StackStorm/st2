@@ -1,14 +1,9 @@
 [MESSAGES CONTROL]
 # C0111 Missing docstring
 # I0011 Warning locally suppressed using disable-msg
-# I0012 Warning locally suppressed using disable-msg
-# W0704 Except doesn't do anything Used when an except clause does nothing but "pass" and there is no "else" clause
-# W0142 Used * or * magic* Used when a function or method is called using *args or **kwargs to dispatch arguments.
 # W0212 Access to a protected member %s of a client class
-# W0232 Class has no __init__ method Used when a class has no __init__ method, neither its parent classes.
 # W0613 Unused argument %r Used when a function or method argument is not used.
 # W0702 No exception's type specified Used when an except clause doesn't specify exceptions type to catch.
-# R0201 Method could be a function
 # W0614 Unused import XYZ from wildcard import
 # R0914 Too many local variables
 # R0912 Too many branches
@@ -18,14 +13,13 @@
 # E0211: Method has no argument
 # E1128: Assigning to function call which only returns None Used when an assignment is done on a function call but the inferred function returns nothing but None.
 # E1129: Context manager ‘%s’ doesn’t implement __enter__ and __exit__. Used when an instance in a with statement doesn’t implement the context manager protocol(__enter__/__exit__).
-disable=C0103,C0111,I0011,I0012,W0704,W0142,W0212,W0232,W0613,W0702,R0201,W0614,R0914,R0912,R0915,R0913,R0904,R0801,not-context-manager,assignment-from-none
+disable=C0103,C0111,I0011,W0212,W0613,W0702,W0614,R0914,R0912,R0915,R0913,R0904,R0801,not-context-manager,assignment-from-none
 
 [BASIC]
 property-classes=abc.abstractproperty
 
 [TYPECHECK]
-# Note: This modules are manipulated during the runtime so we can't detect all the properties during
-# static analysis
+# Note: These modules are manipulated during the runtime so we can't detect all the properties during static analysis
 # orjson has type stubs, but pylint doesn't support __init__.pyi yet: https://github.com/PyCQA/pylint/issues/2873
 ignored-modules=distutils,eventlet.green.subprocess,six,six.moves,orjson
 

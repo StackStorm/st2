@@ -20,11 +20,8 @@ from http_runner import http_runner
 from python_runner import python_runner
 from orquesta_runner import orquesta_runner
 
+# This import must be early for import-time side-effects.
 import st2tests
-
-import st2tests.config as tests_config
-
-tests_config.parse_args()
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar

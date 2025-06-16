@@ -31,6 +31,7 @@ from st2common.transport import publishers
 from st2tests import DbTestCase
 
 
+# PoolPublisher is mocked, so this does not need messaging.prefix
 FAKE_STATE_MGMT_XCHG = kombu.Exchange("st2.fake.state", type="topic")
 
 

@@ -51,7 +51,14 @@ def run_rabbitmq_is_running(
             "--backend-packages=uses_services",
             *(extra_args or ()),
         ],
-        env_inherit={"PATH", "PYENV_ROOT", "HOME"},
+        env_inherit={
+            "PATH",
+            "PYENV_ROOT",
+            "HOME",
+            "ST2_MESSAGING__URL",
+            "ST2_MESSAGING__PREFIX",
+            "ST2TESTS_PARALLEL_SLOT",
+        },
     )
     result = rule_runner.request(
         RabbitMQIsRunning,
@@ -62,7 +69,7 @@ def run_rabbitmq_is_running(
 
 # Warning this requires that rabbitmq be running
 def test_rabbitmq_is_running(rule_runner: RuleRunner) -> None:
-    request = UsesRabbitMQRequest()
+    request = UsesRabbitMQRequest.from_env(env=rule_runner.environment)
     mock_platform = platform(os="TestMock")
 
     # we are asserting that this does not raise an exception

@@ -15,18 +15,18 @@
 
 from __future__ import absolute_import
 
-# Ignore CryptographyDeprecationWarning warnings which appear on older versions of Python 2.7
+# Ignore CryptographyDeprecationWarning warnings which appear on Python 3.6
+# TODO: Remove after dropping python3.6
 import warnings
-from cryptography.utils import CryptographyDeprecationWarning
 
-warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
+warnings.filterwarnings("ignore", message="Python 3.6 is no longer supported")
 
 import os
 import sys
 import select
 import traceback
 
-import distutils.sysconfig
+import sysconfig
 
 # NOTE: We intentionally use orjson directly here instead of json_encode - orjson.dumps relies
 # on config option which we don't parse for the action wrapper since it speeds things down - action
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # This puts priority on loading virtualenv library in the pack's action. This is necessary
     # for the situation that both st2 and pack require to load same name libraries with different
     # version. Without this statement, action may call library method with unexpected dependencies.
-    sys.path.insert(0, distutils.sysconfig.get_python_lib())
+    sys.path.insert(0, sysconfig.get_path("platlib"))
 
 import sys
 import argparse
@@ -132,8 +132,10 @@ class ActionService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None):
-        return self.datastore_service.list_values(local=local, prefix=prefix)
+    def list_values(self, local=True, prefix=None, limit=None, offset=None):
+        return self.datastore_service.list_values(
+            local=local, prefix=prefix, limit=limit, offset=offset
+        )
 
     def get_value(self, name, local=True, scope=SYSTEM_SCOPE, decrypt=False):
         return self.datastore_service.get_value(

@@ -22,7 +22,7 @@ import st2tests.config as tests_config
 
 tests_config.parse_args()
 
-from unittest2 import TestCase
+from unittest import TestCase
 from st2common.constants import action as action_constants
 from st2tests.fixtures.generic.fixture import PACK_NAME as GENERIC_PACK
 from st2tests.fixturesloader import FixturesLoader

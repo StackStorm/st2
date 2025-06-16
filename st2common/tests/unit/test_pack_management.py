@@ -18,7 +18,7 @@ from __future__ import absolute_import
 import os
 import sys
 
-import unittest2
+import unittest
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PACK_ACTIONS_DIR = os.path.join(BASE_DIR, "../../../contrib/packs/actions")
@@ -35,7 +35,7 @@ from st2common.util.pack_management import eval_repo_url
 __all__ = ["InstallPackTestCase"]
 
 
-class InstallPackTestCase(unittest2.TestCase):
+class InstallPackTestCase(unittest.TestCase):
     def test_eval_repo(self):
         result = eval_repo_url("stackstorm/st2contrib")
         self.assertEqual(result, "https://github.com/stackstorm/st2contrib")

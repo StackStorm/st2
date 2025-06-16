@@ -56,7 +56,7 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
             '"show last {{count}} metrics for {{server}}"'
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ParseException,
             expected_msg,
             self.assertExtractedParametersMatch,
@@ -81,7 +81,7 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
             'Command "foo bar a test=1" matched multiple format '
             "strings: foo bar {{bar}}, foo bar {{baz}}"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AssertionError,
             expected_msg,
             self.assertCommandMatchesExactlyOneFormatString,
@@ -97,7 +97,7 @@ class PackActionAliasUnitTestUtils(BaseActionAliasTestCase):
             'Command "does not match foo" didn\'t match any of the provided format '
             "strings"
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             AssertionError,
             expected_msg,
             self.assertCommandMatchesExactlyOneFormatString,

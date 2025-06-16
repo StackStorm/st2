@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import
 from st2tests.base import BaseActionTestCase
-import unittest2
+import pytest
 
 from dig import DigAction
 
@@ -24,23 +24,33 @@ from dig import DigAction
 class DigActionTestCase(BaseActionTestCase):
     action_cls = DigAction
 
-    @unittest2.skip("does not work on our environment")
+    @pytest.mark.skip("does not work on our environment")
     def test_run_with_empty_hostname(self):
         action = self.get_action_instance()
 
         # Use the defaults from dig.yaml
         result = action.run(
-            rand=False, count=0, nameserver=None, hostname="", queryopts="short"
+            rand=False,
+            count=0,
+            nameserver=None,
+            hostname="",
+            queryopts="short",
+            querytype="",
         )
         self.assertIsInstance(result, list)
         self.assertEqual(len(result), 0)
 
-    @unittest2.skip("does not work on our environment")
+    @pytest.mark.skip("does not work on our environment")
     def test_run_with_empty_queryopts(self):
         action = self.get_action_instance()
 
         results = action.run(
-            rand=False, count=0, nameserver=None, hostname="google.com", queryopts=""
+            rand=False,
+            count=0,
+            nameserver=None,
+            hostname="google.com",
+            queryopts="",
+            querytype="",
         )
         self.assertIsInstance(results, list)
 
@@ -48,7 +58,7 @@ class DigActionTestCase(BaseActionTestCase):
             self.assertIsInstance(result, str)
             self.assertGreater(len(result), 0)
 
-    @unittest2.skip("does not work on our environment")
+    @pytest.mark.skip("does not work on our environment")
     def test_run_with_empty_querytype(self):
         action = self.get_action_instance()
 
@@ -66,7 +76,7 @@ class DigActionTestCase(BaseActionTestCase):
             self.assertIsInstance(result, str)
             self.assertGreater(len(result), 0)
 
-    @unittest2.skip("does not work on our environment")
+    @pytest.mark.skip("does not work on our environment")
     def test_run(self):
         action = self.get_action_instance()
 

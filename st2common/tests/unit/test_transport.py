@@ -20,18 +20,17 @@ monkey_patch()
 import ssl
 import random
 
-import unittest2
+import unittest
 import eventlet
 
 from bson.objectid import ObjectId
 from kombu.mixins import ConsumerMixin
-from kombu import Exchange
-from kombu import Queue
 from oslo_config import cfg
 
 from st2common.transport.publishers import PoolPublisher
 from st2common.transport.utils import _get_ssl_kwargs
 from st2common.transport import utils as transport_utils
+from st2common.transport.kombu import Exchange, Queue
 from st2common.models.db.liveaction import LiveActionDB
 
 __all__ = ["TransportUtilsTestCase"]
@@ -56,7 +55,7 @@ class QueueConsumer(ConsumerMixin):
         message.ack()
 
 
-class TransportUtilsTestCase(unittest2.TestCase):
+class TransportUtilsTestCase(unittest.TestCase):
     def tearDown(self):
         super(TransportUtilsTestCase, self).tearDown()
         cfg.CONF.set_override(name="compression", group="messaging", override=None)
@@ -69,7 +68,7 @@ class TransportUtilsTestCase(unittest2.TestCase):
         live_action_db.result = {"foo": "bar"}
 
         exchange = Exchange("st2.execution.test", type="topic")
-        queue_name = "test-" + str(random.randint(1, 10000))
+        queue_name = f"st2.test-{random.randint(1, 10000)}"
         queue = Queue(
             name=queue_name, exchange=exchange, routing_key="#", auto_delete=True
         )

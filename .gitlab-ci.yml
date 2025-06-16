@@ -1,12 +1,18 @@
 checks:
   tags:
-    - el8 
-  stage: checks 
+    - el8
+    - packaging
+    - rpm_mock
+    - venv
+  stage: checks
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
     GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ_2
+    PYTHON_VERSION: python3.11
   before_script:
-    - yum --enablerepo epel install -y ShellCheck 
+    - yum --enablerepo epel install -y ShellCheck
+    - yum --enablerepo rocky8_app_stream install -y python3.11-devel
+    - yum --enablerepo rocky8_base_os install -y openldap-devel
   script:
     - make requirements
     - make ci-checks
@@ -16,43 +22,51 @@ checks:
 unittests:
   tags:
     - el8
-  stage: unittests 
+    - packaging
+    - rpm_mock
+    - venv
+  stage: unittests
   variables:
     GITLAB_TOKEN_U: ORCHESTRATION_GAT
     GITLAB_TOKEN_K: $ORCHESTRATION_GAT_READ_2
     FF_NETWORK_PER_BUILD: 1
     ST2_OVERRIDE_HOST: mymongo
     # tests actually expect coordinator to be off
-    ST2_OVERRIDE_COORD: redis
+    ST2TESTS_REDIS_HOST: redis
+    ST2_MONGO: mymongo
     ST2_DB_CONNECTION_TIMEOUT: 60000 # milliseconds
     ST2_MESSAGING_HOST: rabbitmq
-    DOCKER_DRIVER: overlay2 
+    DOCKER_DRIVER: overlay2
     CONTENT_FOLDER: st2tests/st2tests/fixtures/packs/test_content_version
+    PYTHON_VERSION: python3.11
 
   services:
-    - name: registry.ifp.lmco.com/mongo:4.4
+    - name: harbor.global.lmco.com/ext.hub.docker.com/library/mongo:7.0.20
       alias: mymongo
-    - name: registry.ifp.lmco.com/redis:6.0
+    - name: harbor.global.lmco.com/ext.hub.docker.com/library/redis:7.4-alpine
       alias: redis
-    - name: registry.ifp.lmco.com/rabbitmq:3.6-management
+    - name: harbor.global.lmco.com/ext.hub.docker.com/library/rabbitmq:3.13-management-alpine
       alias: rabbitmq
 
 
   before_script:
+    - rm -rf $CONTENT_FOLDER
     - git clone https://$GITLAB_TOKEN_U:$GITLAB_TOKEN_K@gitlab.ifp.lmco.com/orchestration/stackstorm/stackstorm-test-content-version  $CONTENT_FOLDER
-    - yum --enablerepo lmprod install -y sudo
-    - yum --enablerepo lmprod install -y mongodb-org-shell 
-    - yum --enablerepo lmprod install -y bind-utils
-    - time mongo mymongo/admin
+    - yum --enablerepo lmprod install -y sudo mongodb-mongosh bind-utils
+    - yum --enablerepo rocky8_app_stream install -y python3.11-devel
+    - yum --enablerepo rocky8_base_os install -y openldap-devel
+    - time mongosh mymongo/admin
     - useradd stanley
-    - time nslookup mymongo 
+    - time nslookup mymongo
 
   script:
-    - export ST2_OVERRIDE_HOST=$(dig +short mymongo | head -n1)
-    - echo $ST2_OVERRIDE_HOST
-    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make runners-tests
-    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make packs-tests
-    - PYTHON_VERSION=python3.8 PIP_VERSION=23.1.0 make unit-tests
+    - export ST2_MONGO=$(dig +short mymongo | head -n1)
+    - echo $ST2_MONGO
+    - make requirements
+    #- >
+      #. virtualenv/bin/activate; pytest
+      #-rx --verbose st2common/tests/unit/
+    - make unit-tests
 
   rules:
     - if: '($CI_PIPELINE_SOURCE == "push")'
@@ -60,4 +74,4 @@ unittests:
 
 stages:
   - checks
-  - unittests 
+  - unittests

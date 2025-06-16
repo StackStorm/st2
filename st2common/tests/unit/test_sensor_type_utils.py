@@ -15,13 +15,13 @@
 
 from __future__ import absolute_import
 import mock
-import unittest2
+import unittest
 
 from st2common.models.api.sensor import SensorTypeAPI
 from st2common.models.utils import sensor_type_utils
 
 
-class SensorTypeUtilsTestCase(unittest2.TestCase):
+class SensorTypeUtilsTestCase(unittest.TestCase):
     def test_to_sensor_db_model_no_trigger_types(self):
         sensor_meta = {
             "artifact_uri": "file:///data/st2contrib/packs/jira/sensors/jira_sensor.py",

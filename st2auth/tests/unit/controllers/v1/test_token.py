@@ -97,6 +97,19 @@ class TestTokenController(FunctionalTest):
         self.assertLess(actual_expiry, expected_expiry)
         return response
 
+    def test_token_post_proxy_user(self):
+        headers = {"X-Forwarded-For": "192.0.2.1", "X-Forwarded-User": "testuser"}
+        response = self.app.post_json(
+            TOKEN_V1_PATH,
+            {},
+            headers=headers,
+            expect_errors=False,
+            extra_environ={"REMOTE_USER": ""},
+        )
+        self.assertEqual(response.status_int, 201)
+        self.assertIsNotNone(response.json["token"])
+        self.assertEqual(response.json["user"], "testuser")
+
     def test_token_post_unauthorized(self):
         response = self.app.post_json(
             TOKEN_V1_PATH, {}, expect_errors=True, extra_environ={"REMOTE_USER": ""}

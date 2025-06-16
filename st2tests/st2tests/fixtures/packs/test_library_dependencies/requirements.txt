@@ -1,1 +1,3 @@
-six
+# This is purposely an older version to test that it gets installed
+# in the pack virtualenv, shadowing six from st2 virtualenv.
+six<1.13.0

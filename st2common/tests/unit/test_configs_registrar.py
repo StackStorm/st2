@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import six
 import mock
 
 from st2common.content import utils as content_utils
@@ -122,18 +121,12 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar._register_pack(pack_name="dummy_pack_5", pack_dir=PACK_6_PATH)
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        if six.PY3:
-            expected_msg = (
-                'Failed validating attribute "regions" in config for pack '
-                "\"dummy_pack_6\" (.*?): 1000 is not of type 'array'"
-            )
-        else:
-            expected_msg = (
-                'Failed validating attribute "regions" in config for pack '
-                "\"dummy_pack_6\" (.*?): 1000 is not of type u'array'"
-            )
+        expected_msg = (
+            'Failed validating attribute "regions" in config for pack '
+            "\"dummy_pack_6\" (.*?): 1000 is not of type 'array'"
+        )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,
@@ -161,20 +154,13 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
         registrar._register_pack(pack_name=DUMMY_PACK_19, pack_dir=PACK_19_PATH)
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        if six.PY3:
-            expected_msg = (
-                'Failed validating attribute "instances.0.alias" in config for pack '
-                "\"dummy_pack_19\" (.*?): {'not': 'string'} is not of type "
-                "'string'"
-            )
-        else:
-            expected_msg = (
-                'Failed validating attribute "instances.0.alias" in config for pack '
-                "\"dummy_pack_19\" (.*?): {'not': 'string'} is not of type "
-                "u'string'"
-            )
+        expected_msg = (
+            'Failed validating attribute "instances.0.alias" in config for pack '
+            "\"dummy_pack_19\" (.*?): {'not': 'string'} is not of type "
+            "'string'"
+        )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,
@@ -212,7 +198,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
             "the default values in the schema."
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,
@@ -250,7 +236,7 @@ class ConfigsRegistrarTestCase(CleanDbTestCase):
             "the default values in the schema."
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             registrar.register_from_packs,

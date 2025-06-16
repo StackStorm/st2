@@ -25,6 +25,10 @@ import shutil
 import hashlib
 import stat
 import re
+import sys
+
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 # This test workaround needs to be used before importing git
 from st2common.util.monkey_patch import use_select_poll_workaround
@@ -35,7 +39,7 @@ import six
 from git.repo import Repo
 from gitdb.exc import BadName, BadObject
 from lockfile import LockFile
-from distutils.spawn import find_executable
+from shutil import which as shutil_which
 
 from st2common import log as logging
 from st2common.content import utils
@@ -67,7 +71,7 @@ CONFIG_FILE = "config.yaml"
 CURRENT_STACKSTORM_VERSION = get_stackstorm_version()
 CURRENT_PYTHON_VERSION = get_python_version()
 
-SUDO_BINARY = find_executable("sudo")
+SUDO_BINARY = shutil_which("sudo")
 
 
 def download_pack(
@@ -113,7 +117,9 @@ def download_pack(
 
     result = [pack_url, None, None]
 
-    temp_dir_name = hashlib.md5(pack_url.encode()).hexdigest()
+    temp_dir_name = hashlib.md5(
+        pack_url.encode(), **hashlib_kwargs
+    ).hexdigest()  # nosec. remove nosec after py3.8 drop
     lock_file = LockFile("/tmp/%s" % (temp_dir_name))
     lock_file_path = lock_file.lock_file
 

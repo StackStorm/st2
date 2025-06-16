@@ -21,7 +21,7 @@ import six
 import jsonschema
 from jsonschema import Draft3Validator
 from prompt_toolkit import prompt
-from prompt_toolkit import token
+from pygments import token
 from prompt_toolkit import validation
 
 from st2client.exceptions.operations import OperationFailureException

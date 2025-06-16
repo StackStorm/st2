@@ -15,15 +15,21 @@
 
 from __future__ import absolute_import
 import json
-import unittest2
+import unittest
 import yaml
 
 from st2common.constants.keyvalue import FULL_SYSTEM_SCOPE
 from st2common.util import jinja as jinja_utils
 from st2common.services.keyvalues import KeyValueLookup
+import st2tests.config as tests_config
 
 
-class JinjaUtilsDataFilterTestCase(unittest2.TestCase):
+class JinjaUtilsDataFilterTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     def test_filter_from_json_string(self):
         env = jinja_utils.get_jinja_environment()
         expected_obj = {"a": "b", "c": {"d": "e", "f": 1, "g": True}}

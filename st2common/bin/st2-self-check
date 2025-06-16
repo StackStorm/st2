@@ -29,6 +29,7 @@ function usage() {
 RUN_ORQUESTA_TESTS=true
 RUN_WINDOWS_TESTS=false
 ST2_TESTS_BRANCH="master"
+TESTS_TO_SKIP="${TESTS_TO_SKIP:-}"
 
 while getopts "b:wo" o
 do
@@ -101,21 +102,29 @@ if [ ${EXIT_CODE} -ne 0 ]; then
 fi
 
 echo "Copying asserts, fixtures, tests and examples packs."
-chown -R root:st2packs st2tests/packs/
-chmod -R 775 st2tests/packs/*
+if [ -n "${GITHUB_ACTIONS}" ]; then
+  cp -Rf --preserve /home/runner/work/st2/st2/contrib/examples /opt/stackstorm/packs/
+else
+  chmod -R 775 st2tests/packs/*
+  cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
+  chown -R root:st2packs st2tests/packs/
+fi
+
 cp -R --preserve st2tests/packs/* /opt/stackstorm/packs/
-cp -Rf --preserve /usr/share/doc/st2/examples /opt/stackstorm/packs/
 
 echo "Installing asserts, fixtures, tests and examples packs."
-st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui
-st2ctl reload --register-all
+st2 run packs.setup_virtualenv packs=examples,tests,asserts,fixtures,webui || ((ERRORS++))
+st2ctl reload --register-all || ((ERRORS++))
 
 echo "Deleting 'st2tests' directory from `pwd`."
 rm -R st2tests/
 popd
 
-# Retrieve test action list
-TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref" | grep tests.test_`
+TEST_ACTION_LIST=""
+if [ $ERRORS -eq 0 ]; then
+  # Retrieve test action list
+  TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref" | grep tests.test_`
+fi
 
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
@@ -132,6 +141,11 @@ do
     fi
 
     if [ ${RUN_WINDOWS_TESTS} = "false" ] && [ ${TEST} = "tests.test_winrm_large_script" ]; then
+        echo "Skipping ${TEST}..."
+        continue
+    fi
+
+    if [[ " ${TESTS_TO_SKIP} " =~ " ${TEST} " ]]; then
         echo "Skipping ${TEST}..."
         continue
     fi
@@ -179,6 +193,9 @@ if [ $ERRORS -ne 0 ]; then
     echo "SELF CHECK FAILED!"
     echo "st2-self-check failed.  See above.  Also check the execution list for details."
     echo "st2 execution list"
+    if [ -n "${GITHUB_ACTIONS}" ]; then
+      exit 1
+    fi
 else
     echo "SELF CHECK SUCCEEDED!"
     echo -e "st2-self-check succeeded."

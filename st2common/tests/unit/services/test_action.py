@@ -629,7 +629,7 @@ class TestActionExecutionService(DbTestCase):
         parameters = {"hosts": "127.0.0.1", "cmd": "uname -a", "arg_default_value": 123}
         liveaction = LiveActionDB(action=ACTION_REF, parameters=parameters)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             jsonschema.ValidationError,
             "123 is not of type 'string'",
             action_service.create_request,

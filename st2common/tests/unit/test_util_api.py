@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import unittest2
+import unittest
 
 from oslo_config import cfg
 
@@ -27,7 +27,7 @@ from six.moves import zip
 parse_args()
 
 
-class APIUtilsTestCase(unittest2.TestCase):
+class APIUtilsTestCase(unittest.TestCase):
     def test_get_base_public_api_url(self):
         values = [
             "http://foo.bar.com",
