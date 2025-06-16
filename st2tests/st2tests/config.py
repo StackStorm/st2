@@ -90,7 +90,7 @@ def _override_db_opts():
     )
     CONF.set_override(
         name="host",
-        override=os.environ.get("ST2_OVERRIDE_HOST", "127.0.0.1"),
+        override=os.environ.get("ST2_MONGO", "127.0.0.1"),
         group="database",
     )
 
