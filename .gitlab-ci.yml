@@ -64,6 +64,7 @@ unittests:
     - echo $ST2_MONGO
     - make requirements
     - >
+      cd st2common;
       . virtualenv/bin/activate; pytest
       -rx --verbose st2common/tests/unit/controllers/v1/
     #- make unit-tests
