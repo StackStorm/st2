@@ -359,7 +359,9 @@ class DbConnectionTestCase(DbTestCase):
     @mock.patch("st2common.models.db.mongoengine")
     def test_db_setup(self, mock_mongoengine):
 
-        cfg.CONF.set_override(name="connection_timeout", group="database", override=300)
+        cfg.CONF.set_override(
+            name="connection_timeout", group="database", override=3000
+        )
         db_setup(
             db_name="name",
             db_host="host",
