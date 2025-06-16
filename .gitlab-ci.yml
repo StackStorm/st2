@@ -2,6 +2,7 @@ checks:
   tags:
     - el8
     - packaging
+    - rpm_mock
     - venv
   stage: checks
   variables:
@@ -22,6 +23,7 @@ unittests:
   tags:
     - el8
     - packaging
+    - rpm_mock
     - venv
   stage: unittests
   variables:
