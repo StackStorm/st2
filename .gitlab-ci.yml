@@ -63,8 +63,9 @@ unittests:
     - export ST2_MONGO=$(dig +short mymongo | head -n1)
     - echo $ST2_MONGO
     - make requirements
+    - pwd
+    - ls -al
     - >
-      cd st2common;
       . virtualenv/bin/activate; pytest
       -rx --verbose st2common/tests/unit/controllers/v1/
     #- make unit-tests

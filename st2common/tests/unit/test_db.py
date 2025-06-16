@@ -102,13 +102,11 @@ class DbIndexNameTestCase(TestCase):
 class DbConnectionTestCase(DbTestCase):
     def setUp(self):
         # NOTE: It's important we re-establish a connection on each setUp
-        self.setUpClass()
-        cfg.CONF.reset()
+        pass
 
     def tearDown(self):
         # NOTE: It's important we disconnect here otherwise tests will fail
         disconnect()
-        cfg.CONF.reset()
 
     @classmethod
     def tearDownClass(cls):

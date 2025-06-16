@@ -30,6 +30,7 @@ from st2common.util.monkey_patch import monkey_patch
 monkey_patch()
 
 import mongoengine as me
+from mongoengine.connection import disconnect
 
 from st2common.fields import ComplexDateTimeField
 from st2common.util import date as date_utils
@@ -79,11 +80,11 @@ ModelJsonDictFieldAccess = MongoDBAccess(ModelWithJSONDictFieldDB)
 class JSONDictFieldTestCase(unittest.TestCase):
     def setUp(self):
         # NOTE: It's important we re-establish a connection on each setUp
-        cfg.CONF.reset()
+        pass
 
     def tearDown(self):
         # NOTE: It's important we disconnect here otherwise tests will fail
-        cfg.CONF.reset()
+        disconnect()
 
     def test_set_to_mongo(self):
         field = JSONDictField(use_header=False)
