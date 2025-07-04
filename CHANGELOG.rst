@@ -26,6 +26,7 @@ Other options that were renamed under `[database]` are (more details available i
 
 Fixed
 ~~~~~
+* Fixed #6338 by rebuilding PEM format when parsing RSA private key to avoid malformed key errors in Paramiko. (@amritupreti)
 * Fixed #6021 and #5327 by adding max_page_size to api_opts and added limit and offset to list_values() methods of
   both action_service and sensor_service
 * Fix `packs.get` action. Assumed `master` is primary branch on all packs. #6225

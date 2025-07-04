@@ -18,6 +18,7 @@ from __future__ import absolute_import
 import os
 import posixpath
 import time
+import textwrap
 
 from oslo_config import cfg
 from six.moves import StringIO
@@ -628,13 +629,26 @@ class ParamikoSSHClient(object):
             self.logger.exception("Non UTF-8 character found in data: %s", data)
             raise
 
+    def _rebuild_pem(self, key):
+        key = (
+            key.replace("-----BEGIN RSA PRIVATE KEY-----", "")
+            .replace("-----END RSA PRIVATE KEY-----", "")
+            .strip()
+        )
+        lines = textwrap.wrap(key, 64)
+        return (
+            "-----BEGIN RSA PRIVATE KEY-----\n"
+            + "\n".join(lines)
+            + "\n-----END RSA PRIVATE KEY-----"
+        )
+
     def _get_pkey_object(self, key_material, passphrase):
         """
         Try to detect private key type and return paramiko.PKey object.
         """
-
         for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
             try:
+                key_material = self._rebuild_pem(key_material)
                 key = cls.from_private_key(StringIO(key_material), password=passphrase)
             except paramiko.ssh_exception.SSHException:
                 # Invalid key, try other key type
