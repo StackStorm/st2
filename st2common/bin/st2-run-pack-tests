@@ -36,12 +36,12 @@ function join { local IFS="$1"; shift; echo "$*"; }
 PACK_TEST_PYTHON_DEPENDENCIES_NAMES=(
     'pytest'
     'mock'
-    'coverage'
+    'pytest-cov'
 )
 PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS=(
     '>7'
     '>=4.0.3'
-    '>=4.4.1'
+    '>=6.1.1'
 )
 
 VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
@@ -69,7 +69,7 @@ STACKSTORM_VIRTUALENV_PYTHON_BINARY="${STACKSTORM_VIRTUALENV_BIN}/python"
 
 function usage() {
     echo "Usage: $0  [-c] [-j] [-t] [-v] [-x] -p <path to pack> [-f <test file module / class / method>]" >&2
-    echo "  -f : Run a specific test file or test class method (e.g. -f test_action_download:DownloadGitRepoActionTestCase.test_run_pack_download)" >&2
+    echo "  -f : Run a specific test file or test class method (e.g. -f test_action_download.py::DownloadGitRepoActionTestCase::test_run_pack_download)" >&2
     echo "  -c : Run tests with code coverage reporting enabled" >&2
     echo "  -j : Just run tests. Use previously installed dependencies" >&2
     echo "       and virtualenv, if any, for subsequent test runs." >&2
@@ -270,7 +270,7 @@ elif [ "${ENABLE_COVERAGE}" = true ]; then
     for((i = 0; i < ${#PACK_TEST_PYTHON_DEPENDENCIES_NAMES[@]}; i++)); do
         DEPENDENCY_NAME="${PACK_TEST_PYTHON_DEPENDENCIES_NAMES[$i]}"
 
-        if [ "${DEPENDENCY_NAME}" = "coverage" ]; then
+        if [ "${DEPENDENCY_NAME}" = "pytest-cov" ]; then
             DEPENDENCY_VERSION="${PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS[$i]}"
 
             echo ${INSTALLED_PIP_PACKAGES} | grep "${DEPENDENCY_NAME}"  > /dev/null || pip install --cache-dir ${HOME}/.pip-cache ${ST2_PIP_OPTIONS} "${DEPENDENCY_NAME}${DEPENDENCY_VERSION}"
@@ -333,15 +333,7 @@ if [ "${ENABLE_COVERAGE}" = true ]; then
   done # end for each $PACK_PYTHON_DIR
 fi # end enable test coverage
 
-PYTEST=(pytest)
-if head -n 1 $(command -v pytest) | grep -q ' -sE$'; then
-    # workaround pants+pex default of hermetic scripts so we can run pytest with PYTHONPATH
-    if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
-        PYTEST=(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -m "pytest")
-    else
-        PYTEST=(python3 -m "pytest")
-    fi
-fi
+PYTEST=(python3 -m pytest)
 
 # Change to the pack's directory (required for test coverage reporting)
 pushd ${PACK_PATH} > /dev/null
@@ -349,7 +341,7 @@ pushd ${PACK_PATH} > /dev/null
 # Execute the tests
 if [ "${TEST_LOCATION}" ]; then
     # Run a specific test file, class or method
-    ${PYTEST[@]} ${PYTEST_OPTS[@]} ${TEST_LOCATION}
+    ${PYTEST[@]} ${PYTEST_OPTS[@]} ${PACK_TESTS_PATH}${TEST_LOCATION}
 else
     # Run all tests inside the pack
     ${PYTEST[@]} ${PYTEST_OPTS[@]} ${PACK_TESTS_PATH}
