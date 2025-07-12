@@ -26,6 +26,9 @@ Other options that were renamed under `[database]` are (more details available i
 
 Fixed
 ~~~~~
+* Fixed 6335 by, instead of iterating over individual key names that the user has access to, fetching all the keys
+  and then only returning those that the user has access to. This way the 'prefix' and 'name' filters are honored
+  and the behavior of the method is consistent regardless of whether the user is an admin or not.
 * Fixed #6021 and #5327 by adding max_page_size to api_opts and added limit and offset to list_values() methods of
   both action_service and sensor_service
 * Fix `packs.get` action. Assumed `master` is primary branch on all packs. #6225

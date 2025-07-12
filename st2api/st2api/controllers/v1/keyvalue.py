@@ -223,50 +223,42 @@ class KeyValuePairController(ResourceController):
         )
 
         # Special cases for ALL_SCOPE
-        # 1. If user is an admin, then retrieves all system scoped items else only
-        #    specific system scoped items that the user is granted permission to.
-        # 2. Retrieves all the user scoped items that the current user owns.
+        # 1. Retrieve all keys
+        # 2. Only return keys that the user has access to
         kvp_apis_system = []
         kvp_apis_user = []
 
         if scope in [ALL_SCOPE, SYSTEM_SCOPE, FULL_SYSTEM_SCOPE]:
             decrypted_keys = []
             # If user has system role, then retrieve all system scoped items
+            
+            raw_filters["scope"] = FULL_SYSTEM_SCOPE
+            raw_filters["prefix"] = prefix
+
+            items = self._get_all(
+                from_model_kwargs=from_model_kwargs,
+                sort=sort,
+                offset=offset,
+                limit=limit,
+                raw_filters=raw_filters,
+                requester_user=requester_user,
+            )
             if has_system_role:
-                raw_filters["scope"] = FULL_SYSTEM_SCOPE
-                raw_filters["prefix"] = prefix
-
-                items = self._get_all(
-                    from_model_kwargs=from_model_kwargs,
-                    sort=sort,
-                    offset=offset,
-                    limit=limit,
-                    raw_filters=raw_filters,
-                    requester_user=requester_user,
-                )
-
                 kvp_apis_system.extend(items.json or [])
                 if decrypt and items.json:
                     decrypted_keys.extend(
                         kv_api["name"] for kv_api in items.json if kv_api["secret"]
                     )
             else:
-                # Otherwise if user is not an admin, then get the list of
-                # system scoped items that user is granted permission to.
-                for key in get_all_system_kvp_names_for_user(current_user):
-                    try:
-                        item = self._get_one_by_scope_and_name(
-                            from_model_kwargs=from_model_kwargs,
-                            scope=FULL_SYSTEM_SCOPE,
-                            name=key,
-                        )
-
+                # Otherwise, if user is not an admin, only add the keys that
+                # they have the permissions to
+                permitted_kvp_names = get_all_system_kvp_names_for_user(current_user)
+                for item in items.json or []:
+                    if item["name"] in permitted_kvp_names:
                         kvp_apis_system.append(item)
-                    except Exception as e:
-                        LOG.error("Unable to get key %s: %s", key, str(e))
-                        continue
-                    if decrypt and item.secret:
-                        decrypted_keys.append(key)
+                        if decrypt and item["secret"]:
+                            decrypted_keys.append(item['name'])
+                    
             if decrypted_keys:
                 LOG.audit(
                     "User %s decrypted the values %s ",
