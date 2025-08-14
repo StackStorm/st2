@@ -46,6 +46,7 @@ class ParallelSSHClient(object):
         password=None,
         pkey_file=None,
         pkey_material=None,
+        pkey_certificate=None,
         port=22,
         bastion_host=None,
         concurrency=10,
@@ -68,6 +69,7 @@ class ParallelSSHClient(object):
         self._ssh_user = user
         self._ssh_key_file = pkey_file
         self._ssh_key_material = pkey_material
+        self._ssh_key_certificate = pkey_certificate
         self._ssh_password = password
         self._hosts = hosts
         self._successful_connects = 0
@@ -270,6 +272,7 @@ class ParallelSSHClient(object):
             bastion_host=self._bastion_host,
             key_files=self._ssh_key_file,
             key_material=self._ssh_key_material,
+            key_certificate=self._ssh_key_certificate,
             passphrase=self._passphrase,
             handle_stdout_line_func=self._handle_stdout_line_func,
             handle_stderr_line_func=self._handle_stderr_line_func,

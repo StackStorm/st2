@@ -102,6 +102,7 @@ class ParamikoSSHClient(object):
         bastion_host=None,
         key_files=None,
         key_material=None,
+        key_certificate=None,
         timeout=None,
         passphrase=None,
         handle_stdout_line_func=None,
@@ -125,6 +126,7 @@ class ParamikoSSHClient(object):
         self.key_files = key_files
         self.timeout = timeout
         self.key_material = key_material
+        self.key_certificate = key_certificate
         self.bastion_host = bastion_host
         self.passphrase = passphrase
         self.ssh_connect_timeout = cfg.CONF.ssh_runner.ssh_connect_timeout
@@ -628,7 +630,7 @@ class ParamikoSSHClient(object):
             self.logger.exception("Non UTF-8 character found in data: %s", data)
             raise
 
-    def _get_pkey_object(self, key_material, passphrase):
+    def _get_pkey_object(self, key_material, passphrase, key_certificate=None):
         """
         Try to detect private key type and return paramiko.PKey object.
         """
@@ -636,6 +638,8 @@ class ParamikoSSHClient(object):
         for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
             try:
                 key = cls.from_private_key(StringIO(key_material), password=passphrase)
+                if key_certificate is not None:
+                    key.load_certificate(key_certificate)
             except paramiko.ssh_exception.SSHException:
                 # Invalid key, try other key type
                 pass
@@ -758,8 +762,8 @@ class ParamikoSSHClient(object):
 
         if self.key_material:
             conninfo["pkey"] = self._get_pkey_object(
-                key_material=self.key_material, passphrase=self.passphrase
-            )
+                key_material=self.key_material, passphrase=self.passphrase,
+                key_certificate=self.key_certificate)
 
         if not self.password and not (self.key_files or self.key_material):
             conninfo["allow_agent"] = True
