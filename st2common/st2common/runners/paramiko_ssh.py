@@ -638,7 +638,7 @@ class ParamikoSSHClient(object):
         for cls in [paramiko.RSAKey, paramiko.DSSKey, paramiko.ECDSAKey]:
             try:
                 key = cls.from_private_key(StringIO(key_material), password=passphrase)
-                if key_certificate is not None:
+                if key_certificate:
                     key.load_certificate(key_certificate)
             except paramiko.ssh_exception.SSHException:
                 # Invalid key, try other key type
