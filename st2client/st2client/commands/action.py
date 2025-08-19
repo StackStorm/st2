@@ -595,9 +595,9 @@ class ActionRunCommandMixin(object):
             options["json"] = args.json
             options["yaml"] = args.yaml
             options["with_schema"] = args.with_schema
-            options[
-                "attribute_transform_functions"
-            ] = self.attribute_transform_functions
+            options["attribute_transform_functions"] = (
+                self.attribute_transform_functions
+            )
             self.print_output(instance, formatter, **options)
 
     def _run_and_print_child_task_list(self, execution, args, **kwargs):
@@ -878,7 +878,7 @@ class ActionRunCommandMixin(object):
             # the 'result' to the dict type value.
             if all([isinstance(x, str) and ":" in x for x in result]) and auto_dict:
                 result_dict = {}
-                for (k, v) in [x.split(":") for x in result]:
+                for k, v in [x.split(":") for x in result]:
                     # To parse values using the 'transformer' according to the type which is
                     # specified in the action metadata, calling 'normalize' method recursively.
                     if (

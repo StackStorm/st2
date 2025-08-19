@@ -129,9 +129,9 @@ class RuleEnforcementViewController(ResourceController):
         trigger_instance_dbs_by_id = {}
 
         for trigger_instance_db in trigger_instance_dbs:
-            trigger_instance_dbs_by_id[
-                str(trigger_instance_db.id)
-            ] = trigger_instance_db
+            trigger_instance_dbs_by_id[str(trigger_instance_db.id)] = (
+                trigger_instance_db
+            )
 
         # Ammend rule enforcement objects with additional data
         for rule_enforcement_api in rule_enforcement_apis:

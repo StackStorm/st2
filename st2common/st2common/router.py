@@ -241,11 +241,11 @@ class Router(object):
         validate(fast_deepcopy_dict(self.spec))
 
         for filter in transforms:
-            for (path, methods) in six.iteritems(spec["paths"]):
+            for path, methods in six.iteritems(spec["paths"]):
                 if not re.search(filter, path):
                     continue
 
-                for (method, endpoint) in six.iteritems(methods):
+                for method, endpoint in six.iteritems(methods):
                     conditions = {"method": [method.upper()]}
 
                     connect_kw = {}

@@ -762,8 +762,10 @@ class ParamikoSSHClient(object):
 
         if self.key_material:
             conninfo["pkey"] = self._get_pkey_object(
-                key_material=self.key_material, passphrase=self.passphrase,
-                key_certificate=self.key_certificate)
+                key_material=self.key_material,
+                passphrase=self.passphrase,
+                key_certificate=self.key_certificate,
+            )
 
         if not self.password and not (self.key_files or self.key_material):
             conninfo["allow_agent"] = True
