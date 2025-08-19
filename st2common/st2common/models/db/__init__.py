@@ -180,9 +180,9 @@ def _db_connect(
         compressor_kwargs["compressors"] = cfg.CONF.database.compressors
 
     if cfg.CONF.database.zlib_compression_level is not None:
-        compressor_kwargs["zlibCompressionLevel"] = (
-            cfg.CONF.database.zlib_compression_level
-        )
+        compressor_kwargs[
+            "zlibCompressionLevel"
+        ] = cfg.CONF.database.zlib_compression_level
 
     # NOTE: We intentionally set "serverSelectionTimeoutMS" to 3 seconds. By default it's set to
     # 30 seconds, which means it will block up to 30 seconds and fail if there are any SSL related
@@ -477,9 +477,9 @@ def _get_tls_kwargs(
         tls_kwargs["tls"] = True
         tls_kwargs["tlsCertificateKeyFile"] = tls_certificate_key_file
         if tls_certificate_key_file_password:
-            tls_kwargs["tlsCertificateKeyFilePassword"] = (
-                tls_certificate_key_file_password
-            )
+            tls_kwargs[
+                "tlsCertificateKeyFilePassword"
+            ] = tls_certificate_key_file_password
     if tls_allow_invalid_certificates is not None:
         tls_kwargs["tlsAllowInvalidCertificates"] = tls_allow_invalid_certificates
     elif ssl_cert_reqs:  # fall back to old option
