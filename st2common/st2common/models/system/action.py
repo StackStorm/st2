@@ -309,7 +309,7 @@ class ShellScriptAction(ShellCommandAction):
 
         # add all named_args in the format <kwarg_op>name=value (e.g. --name=value)
         if named_args is not None:
-            for (arg, value) in six.iteritems(named_args):
+            for arg, value in six.iteritems(named_args):
                 if value is None or (
                     isinstance(value, (str, six.text_type)) and len(value) < 1
                 ):

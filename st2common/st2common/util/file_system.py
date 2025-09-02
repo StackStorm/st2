@@ -59,7 +59,7 @@ def get_file_list(directory, exclude_patterns=None):
 
         return True
 
-    for (dirpath, dirnames, filenames) in os.walk(directory):
+    for dirpath, dirnames, filenames in os.walk(directory):
         base_path = dirpath.replace(directory, "")
 
         for filename in filenames:
