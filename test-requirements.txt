@@ -25,7 +25,7 @@ alabaster<0.7.14
 # Required by st2client tests
 pyyaml==6.0.2
 # Constrain pygments required by editor to align with st2 core version
-pygments==2.19.1
+pygments==2.19.2
 RandomWords
 gunicorn==23.0.0
 psutil==7.0.0
@@ -49,4 +49,4 @@ zstandard==0.23.0
 # ujson is used for micro benchmarks
 ujson==5.10.0
 # needed by integration tests for coordination
-redis==5.0.8
+redis==6.1.1
