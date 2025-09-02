@@ -15,14 +15,14 @@ jsonpath-rw==1.4.0
 jsonschema==3.2.0
 orjson==3.10.15
 prettytable==3.10.2
-prompt-toolkit==3.0.50
+prompt-toolkit==3.0.52
 pyOpenSSL
-pygments==2.19.1
+pygments==2.19.2
 pysocks
 python-dateutil==2.9.0.post0
 pytz==2025.2
 pyyaml==6.0.2
-requests==2.32.3
+requests==2.32.4
 six==1.17.0
 sseclient-py==1.8.0
 typing-extensions==4.12.2
