@@ -55,7 +55,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -147,7 +147,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -237,7 +237,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -332,7 +332,7 @@ jobs:
       # or they require config in entrypoint args (which we can't override for GHA services)
       # so we use RabbitMQ's conf.d feature to get config files from mounted volumes.
       rabbitmq:
-        image: bitnami/rabbitmq:3.8
+        image: rabbitmq:3.13
         volumes:
           - /home/runner/rabbitmq_conf:/etc/rabbitmq/conf.d  # RABBITMQ_MOUNTED_CONF_DIR
         env:
@@ -447,7 +447,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -567,7 +567,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
