@@ -125,7 +125,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -197,7 +197,6 @@ jobs:
           sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
 
       - name: Reconfigure RabbitMQ
-        # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
         # We need to switch to custom.conf or advanced.config.
         timeout-minutes: 2  # may die if rabbitmq fails to start
@@ -308,7 +307,7 @@ jobs:
           - 6379:6379/tcp
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -380,7 +379,6 @@ jobs:
 
       - name: Reconfigure RabbitMQ
         if: "${{ env.TASK == 'ci-unit' || env.TASK == 'ci-integration' }}"
-        # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
         # We need to switch to custom.conf or advanced.config.
         timeout-minutes: 2  # may die if rabbitmq fails to start
@@ -399,13 +397,17 @@ jobs:
         timeout-minutes: 19
         run: |
           script -e -c "make ${TASK}"
+
       - name: Nightly
         # Run any additional nightly checks only as part of a nightly (cron) build
         if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
         run: |
           ./scripts/ci/run-nightly-make-task-if-exists.sh "${TASK}"
+
       - name: Codecov
-        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
+        # NOTE: We only generate and submit coverage report for master and version branches and
+        # only when the build succeeds (default on GitHub Actions, this was not the case on Travis
+        # so we had to explicitly check success)
         if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
@@ -422,7 +424,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
+        # NOTE: To speed-up the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
           - {version-short: '3.8', version: '3.8.18'}
@@ -448,17 +450,17 @@ jobs:
           - 27017:27017
 
       # In GHA, these services are started first before the code is checked out.
-      # We use bitnami images to facilitate reconfiguring RabbitMQ during ci-integration tests.
+      # We need to reconfigure RabbitMQ during ci-integration tests.
       # We rely on custom config and SSL certs that are in the repo.
       # Many images require config in env vars (which we can't change during the test job)
       # or they require config in entrypoint args (which we can't override for GHA services)
-      # bitnami builds ways to get config files from mounted volumes.
+      # so we use RabbitMQ's conf.d feature to get config files from mounted volumes.
       rabbitmq:
-        image: bitnami/rabbitmq:3.8
+        image: rabbitmq:3.13
         volumes:
-          - /home/runner/rabbitmq_conf:/bitnami/conf  # RABBITMQ_MOUNTED_CONF_DIR
+          - /home/runner/rabbitmq_conf:/etc/rabbitmq/conf.d  # RABBITMQ_MOUNTED_CONF_DIR
         env:
-          # tell bitnami/rabbitmq to enable this by default
+          # tell rabbitmq to enable this by default
           RABBITMQ_PLUGINS: rabbitmq_management
           RABBITMQ_USERNAME: guest
           RABBITMQ_PASSWORD: guest
@@ -468,7 +470,7 @@ jobs:
           --name rabbitmq
 
         ports:
-          # These 6 ports are exposed by bitnami/rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
+          # These 6 ports are exposed by rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
           # host_port:container_port/protocol
           - 5671:5671/tcp   # AMQP SSL port
           - 5672:5672/tcp   # AMQP standard port
@@ -554,7 +556,6 @@ jobs:
           sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
 
       - name: Reconfigure RabbitMQ
-        # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
         # We need to switch to custom.conf or advanced.config.
         timeout-minutes: 2  # may die if rabbitmq fails to start
