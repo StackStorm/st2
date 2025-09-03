@@ -70,7 +70,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
