@@ -65,16 +65,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.0
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -157,16 +157,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.0
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -247,16 +247,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.0
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -326,29 +326,29 @@ jobs:
           - 27017:27017
 
       # In GHA, these services are started first before the code is checked out.
-      # We use bitnami images to facilitate reconfiguring RabbitMQ during integration tests.
+      # We need to reconfigure RabbitMQ during ci-integration tests.
       # We rely on custom config and SSL certs that are in the repo.
       # Many images require config in env vars (which we can't change during the test job)
       # or they require config in entrypoint args (which we can't override for GHA services)
-      # bitnami builds ways to get config files from mounted volumes.
+      # so we use RabbitMQ's conf.d feature to get config files from mounted volumes.
       rabbitmq:
         image: bitnami/rabbitmq:3.8
         volumes:
-          - /home/runner/rabbitmq_conf:/bitnami/conf  # RABBITMQ_MOUNTED_CONF_DIR
+          - /home/runner/rabbitmq_conf:/etc/rabbitmq/conf.d  # RABBITMQ_MOUNTED_CONF_DIR
         env:
-          # tell bitnami/rabbitmq to enable this by default
+          # tell rabbitmq to enable this by default
           RABBITMQ_PLUGINS: rabbitmq_management
           RABBITMQ_USERNAME: guest
           RABBITMQ_PASSWORD: guest
           RABBITMQ_LOGS: '-'
-          # bitnami's default relative limit was too high
+          # default relative limit was too high
           RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
 
         # These are strictly docker options, not entrypoint args (GHA restriction)
         options: >-
           --name rabbitmq
         ports:
-          # These 6 ports are exposed by bitnami/rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
+          # These 6 ports are exposed by rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
           # host_port:container_port/protocol
           - 5671:5671/tcp   # AMQP SSL port
           - 5672:5672/tcp   # AMQP standard port
@@ -359,16 +359,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.0
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -404,7 +404,6 @@ jobs:
 
       # This is only required for st2common/tests/integration/test_rabbitmq_ssl_listener.py
       - name: Reconfigure RabbitMQ
-        # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
         # We need to switch to custom.conf or advanced.config.
         timeout-minutes: 2  # may die if rabbitmq fails to start
@@ -458,7 +457,7 @@ jobs:
 
       redis:
         # Docker Hub image
-        image: redis
+        image: redis:8.0
         # Set health checks to wait until redis has started
         options: >-
           --name "redis"
@@ -578,16 +577,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
+        image: redis:8.0
          # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository

@@ -80,7 +80,7 @@ jobs:
 
       redis:
         # Docker Hub image
-        image: redis
+        image: redis:8.0
         # Set health checks to wait until redis has started
         options: >-
           --name "redis"
