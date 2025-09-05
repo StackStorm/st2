@@ -20,6 +20,7 @@ on:
     # run every night at midnight
     - cron:  '0 0 * * *'
 
+
 jobs:
   # TODO: Fix the required checks!
   #       When the pre_job triggers and skips builds, it prevents merging the PR because
@@ -70,29 +71,37 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
+
       - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python.version }}'
+
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
+
       - name: Install requirements
         run: |
           ./scripts/ci/install-requirements.sh
+
       - name: Print versions
         run: |
           ./scripts/ci/print-versions.sh
+
       - name: make
         # use: script -e -c to print colors
         timeout-minutes: 7
         run: |
           script -e -c "make ${TASK}"
+
       - name: Nightly
         # Run any additional nightly checks only as part of a nightly (cron) build
         if: "${{ env.IS_NIGHTLY_BUILD == 'yes' }}"
@@ -148,24 +157,32 @@ jobs:
 
       # Space separated list of tests to be skipped if the self-check is running in GitHub Actions
       TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
+
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
+
       - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python.version }}'
+
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
+
       - name: Install requirements
         run: |
           ./scripts/ci/install-requirements.sh
+
       - name: Setup Tests
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
@@ -173,11 +190,12 @@ jobs:
           # integration tests (important)
           cp conf/st2.dev.conf "${ST2_CONF}"
           sed -i -e "s,/home/vagrant/.ssh/stanley_rsa,/home/stanley/.ssh/stanley_rsa," "${ST2_CONF}"
-
           sudo -E ./scripts/ci/add-itest-user-key.sh
+
       - name: Permissions Workaround
         run: |
           sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
+
       - name: Reconfigure RabbitMQ
         # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
@@ -185,14 +203,17 @@ jobs:
         timeout-minutes: 2  # may die if rabbitmq fails to start
         run: |
           ./scripts/github/configure-rabbitmq.sh
+
       - name: Print versions
         run: |
           ./scripts/ci/print-versions.sh
+
       - name: make
         timeout-minutes: 14  # may die if rabbitmq fails to start
         # use: script -e -c to print colors
         run: |
           script -e -c "make .ci-prepare-integration" && exit 0
+
       - name: Extend the path for upcoming tasks
         # pants uses PEP 660 editable wheels to add our code to the virtualenv.
         # But PEP 660 editable wheels do not include 'scripts'.
@@ -203,28 +224,33 @@ jobs:
           echo ${component_bin} | tee -a $GITHUB_PATH
           done
           echo ${GITHUB_WORKSPACE}/virtualenv/bin | tee -a $GITHUB_PATH
+
       - name: Create symlinks to find the binaries when running st2 actions
         # st2 is actually a console_script entry point, not just a 'script'
         # so it IS included in the virtualenv. But, st2-run-pack-tests might not be included.
         run: |
           ln -s ${GITHUB_WORKSPACE}/virtualenv/bin/st2 /usr/local/bin/st2
           ln -s ${GITHUB_WORKSPACE}/st2common/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
+
       - name: Install st2client
         timeout-minutes: 5
         run: |
           cd ./st2client
           pip3 install --upgrade pip
           python3 setup.py develop
+
       - name: Run self-verification script
         env:
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
         run: |
           sudo -E ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t) PATH=${PATH} st2common/bin/st2-self-check
+
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
           ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
+
       - name: Upload StackStorm services Logs
         if: ${{ failure() }}
         uses: actions/upload-artifact@v4
@@ -281,7 +307,6 @@ jobs:
         ports:
           - 6379:6379/tcp
 
-
       rabbitmq:
         image: rabbitmq:3.8-management
         options: >-
@@ -315,36 +340,44 @@ jobs:
 
       # GitHub is juggling how to set vars for multiple shells. Protect our PATH assumptions.
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
+
       - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python.version }}'
+
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
+
       - name: Install requirements
         run: |
           ./scripts/ci/install-requirements.sh
+
       - name: Setup Tests
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
           # this user is the username of the user in GitHub actions, used for SSH, etc during
           # integration tests (important)
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
-
           sudo -E ./scripts/ci/add-itest-user-key.sh
+
       - name: Permissions Workaround
         run: |
           echo "$ST2_CI_REPO_PATH"
           sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
+
       - name: Reconfigure RabbitMQ
         if: "${{ env.TASK == 'ci-unit' || env.TASK == 'ci-integration' }}"
         # bitnami image allows (see bitnami/rabbitmq readme):
@@ -353,9 +386,11 @@ jobs:
         timeout-minutes: 2  # may die if rabbitmq fails to start
         run: |
           ./scripts/github/configure-rabbitmq.sh
+
       - name: Print versions
         run: |
           ./scripts/ci/print-versions.sh
+
       - name: make
         # use: script -e -c to print colors
         # TODO: Use dynamic timeout value based on the branch - for master we
@@ -484,33 +519,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
+
       - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
         uses: ./.github/actions/setup-python
         with:
           python-version: '${{ matrix.python.version }}'
+
       - name: Cache and Install APT Dependencies
         uses: ./.github/actions/apt-packages
+
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
+
       - name: Install requirements
         run: |
           ./scripts/ci/install-requirements.sh
+
       - name: Setup Integration Tests
         run: |
           # prep a ci-specific dev conf file that uses runner instead of stanley
           # this user is the username of the user in GitHub actions, used for SSH, etc during
           # integration tests (important)
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
-
           sudo -E ./scripts/ci/add-itest-user-key.sh
+
       - name: Permissions Workaround
         run: |
           echo "$ST2_CI_REPO_PATH"
           sudo ST2_CI_REPO_PATH="${ST2_CI_REPO_PATH}" scripts/ci/permissions-workaround.sh
+
       - name: Reconfigure RabbitMQ
         # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
@@ -518,10 +560,11 @@ jobs:
         timeout-minutes: 2  # may die if rabbitmq fails to start
         run: |
           ./scripts/github/configure-rabbitmq.sh
+
       - name: Print versions
         run: |
-
           ./scripts/ci/print-versions.sh
+
       - name: make
         #timeout-minutes: 7
         # TODO: Use dynamic timeout value based on the branch - for master we
@@ -530,6 +573,7 @@ jobs:
         # use: script -e -c to print colors
         run: |
           script -e -c "make ${TASK}" && exit 0
+
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
         if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
@@ -537,11 +581,13 @@ jobs:
           ./scripts/ci/submit-codecov-coverage.sh
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Compress Service Logs Before upload
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         run: |
           ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
+
       - name: Upload StackStorm services Logs
         if: ${{ failure() && env.TASK == 'ci-integration' }}
         uses: actions/upload-artifact@v4
@@ -549,6 +595,7 @@ jobs:
           name: logs-py${{ matrix.python.version }}-pytest-${{ matrix.make.shard.k }}
           path: logs.tar.gz
           retention-days: 7
+
 
   slack-notification:
     name: Slack notification for failed master builds
@@ -563,6 +610,7 @@ jobs:
       - name: Workflow conclusion
         # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs
         uses: technote-space/workflow-conclusion-action@v2
+
       - name: CI Run Failure Slack Notification
         if: ${{ env.WORKFLOW_CONCLUSION == 'failure' && github.ref == 'refs/heads/master' }}
         env:
