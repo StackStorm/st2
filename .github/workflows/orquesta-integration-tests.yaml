@@ -70,7 +70,7 @@ jobs:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -80,7 +80,7 @@ jobs:
 
       redis:
         # Docker Hub image
-        image: redis
+        image: redis:8.0
         # Set health checks to wait until redis has started
         options: >-
           --name "redis"
