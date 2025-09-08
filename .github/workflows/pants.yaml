@@ -12,7 +12,7 @@ on:
       # also version tags, which include bugfix releases (eg: v3.4.0)
       - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
-    type: [opened, reopened, edited]
+    types: [opened, reopened, synchronize]
     branches:
       # Only for PRs targeting those branches
       - master
@@ -21,7 +21,7 @@ on:
 jobs:
   pants-tailor:
     name: Make sure pants BUILD files are up-to-date
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

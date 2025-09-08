@@ -25,3 +25,9 @@ runs:
         # install dev dependencies for Python YAML and LDAP packages
         # https://github.com/StackStorm/st2-auth-ldap
         ./scripts/github/install-apt-packages-use-cache.sh
+
+    - name: Install Mongo Shell
+      shell: bash
+      run: |
+        # Required as part of switch to GHA image ubuntu-22.04
+        ./scripts/github/install-mongosh.sh

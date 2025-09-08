@@ -25,6 +25,10 @@ import shutil
 import hashlib
 import stat
 import re
+import sys
+
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 # This test workaround needs to be used before importing git
 from st2common.util.monkey_patch import use_select_poll_workaround
@@ -113,7 +117,9 @@ def download_pack(
 
     result = [pack_url, None, None]
 
-    temp_dir_name = hashlib.md5(pack_url.encode()).hexdigest()
+    temp_dir_name = hashlib.md5(
+        pack_url.encode(), **hashlib_kwargs
+    ).hexdigest()  # nosec. remove nosec after py3.8 drop
     lock_file = LockFile("/tmp/%s" % (temp_dir_name))
     lock_file_path = lock_file.lock_file
 

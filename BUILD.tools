@@ -1,6 +1,20 @@
 # This BUILD file has requirements for most of the tools resolves
 
 python_requirement(
+    name="crudini-reqs",
+    resolve="st2",
+    requirements=[
+        "crudini",
+    ],
+)
+pex_binary(
+    name="crudini",
+    resolve="st2",
+    dependencies=[":crudini-reqs"],
+    entry_point="crudini",
+)
+
+python_requirement(
     name="bandit-reqs",
     resolve="bandit",
     requirements=[
@@ -57,7 +71,8 @@ python_requirement(
     name="twine-reqs",
     resolve="twine",
     requirements=[
-        "twine>=3.7.1,<3.8",
+        "twine>=3.7.1,<5",
         "colorama>=0.4.3",
+        "importlib-metadata<8",
     ],
 )

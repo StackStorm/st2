@@ -12,4 +12,5 @@ shell_sources(
         "st2tests/conf:vagrant_ssh_key",
     ],
     skip_shellcheck=True,
+    skip_shfmt=True,
 )

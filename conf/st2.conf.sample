@@ -84,7 +84,7 @@ token_ttl = 86400
 # Standalone mode options - options below only apply when auth service is running in the standalone
 # mode.
 
-# Authentication backend to use in a standalone mode. Available backends: flat_file, ldap.
+# Authentication backend to use in a standalone mode. Available backends: flat_file, ldap, pam.
 backend = flat_file
 # JSON serialized arguments which are passed to the authentication backend in a standalone mode.
 backend_kwargs = None
@@ -233,6 +233,8 @@ connection_retries = 10
 connection_retry_wait = 10000
 # Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).
 login_method = None
+# Prefix for all exchange and queue names.
+prefix = st2
 # Use SSL / TLS to connect to the messaging server. Same as appending "?ssl=true" at the end of the connection URL string.
 ssl = False
 # ca_certs file contains a set of concatenated CA certificates, which are used to validate certificates passed from RabbitMQ.

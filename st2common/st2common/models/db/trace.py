@@ -15,6 +15,10 @@
 
 from __future__ import absolute_import
 import hashlib
+import sys
+
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 import mongoengine as me
 
@@ -107,7 +111,9 @@ class TraceDB(stormbase.StormFoundationDB, stormbase.UIDFieldMixin):
         parts = []
         parts.append(self.RESOURCE_TYPE)
 
-        components_hash = hashlib.md5()
+        components_hash = hashlib.md5(
+            **hashlib_kwargs
+        )  # nosec. remove nosec after py3.8 drop
         components_hash.update(str(self.trace_tag).encode())
         components_hash.update(str(self.trigger_instances).encode())
         components_hash.update(str(self.rules).encode())

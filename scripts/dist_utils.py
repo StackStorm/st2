@@ -106,9 +106,6 @@ def fetch_requirements(requirements_file_path):
             else:
                 req_name = line
 
-                if ";" in req_name:
-                    req_name = req_name.split(";")[0].strip()
-
             reqs.append(req_name)
 
     return (reqs, links)

@@ -13,7 +13,7 @@ on:
       # also version tags, which include bugfix releases (eg: v3.4.0)
       - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
-    type: [opened, reopened, edited]
+    types: [opened, reopened, synchronize]
     branches:
       # Only for PRs targeting those branches
       - master
@@ -22,18 +22,31 @@ on:
   #  # run every night at midnight
   #  - cron:  '0 0 * * *'
 
+env:
+  COLUMNS: '120'
+
+  # Tell StackStorm that we are indeed in CI mode, using our CI-provider agnostic var.
+  ST2_CI: 'true'
+
+  # GitHub Actions uses the 'runner' user, so use that instead of stanley.
+  ST2TESTS_SYSTEM_USER: 'runner'
+
+  # This is the host:port provided by services.redis
+  ST2TESTS_REDIS_HOST: '127.0.0.1'
+  ST2TESTS_REDIS_PORT: '6379'
+
 jobs:
   pants-plugins-tests:
     name: 'Pants Plugins Tests (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          # Pants itself uses only 3.9
-          - {version-short: '3.9', version: '3.9.14'}
+          # Pants itself uses only 3.11
+          - {version-short: '3.11', version: '3.11.11'}
 
     services:
       mongo:
@@ -62,9 +75,6 @@ jobs:
            --health-retries 5
          ports:
            - 6379:6379/tcp
-
-    env:
-      COLUMNS: '120'
 
     steps:
       - name: Checkout repository
@@ -99,11 +109,6 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python.version }}
 
       - name: Test pants-plugins
-        env:
-          # Github Actions uses the 'runner' user, so use that instead of stanley.
-          ST2TESTS_SYSTEM_USER: 'runner'
-          ST2TESTS_REDIS_HOST: '127.0.0.1'
-          ST2TESTS_REDIS_PORT: '6379'
         run: |
           pants test pants-plugins/::
 
@@ -116,15 +121,17 @@ jobs:
 
   unit-tests:
     name: 'Unit Tests Shard ${{ matrix.shard.k }}/${{ matrix.shard.n }} (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
-          - {version-short: '3.9', version: '3.9.14'}
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
         shard:
           # Sharding of tests is handled by pants:
           # https://www.pantsbuild.org/stable/docs/using-pants/advanced-target-selection#sharding-the-input-targets
@@ -161,9 +168,6 @@ jobs:
          ports:
            - 6379:6379/tcp
 
-    env:
-      COLUMNS: '120'
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -197,11 +201,6 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python.version }}
 
       - name: Unit Tests
-        env:
-          # Github Actions uses the 'runner' user, so use that instead of stanley.
-          ST2TESTS_SYSTEM_USER: 'runner'
-          ST2TESTS_REDIS_HOST: '127.0.0.1'
-          ST2TESTS_REDIS_PORT: '6379'
         run: >
           pants
           --python-bootstrap-search-path=[]
@@ -219,15 +218,17 @@ jobs:
 
   pack-tests:
     name: 'Pack Tests (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.10'}
-          - {version-short: '3.9', version: '3.9.14'}
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
 
     services:
       mongo:
@@ -256,9 +257,6 @@ jobs:
            --health-retries 5
          ports:
            - 6379:6379/tcp
-
-    env:
-      COLUMNS: '120'
 
     steps:
       - name: Checkout repository
@@ -293,11 +291,6 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python.version }}
 
       - name: Pack Tests
-        env:
-          # Github Actions uses the 'runner' user, so use that instead of stanley.
-          ST2TESTS_SYSTEM_USER: 'runner'
-          ST2TESTS_REDIS_HOST: '127.0.0.1'
-          ST2TESTS_REDIS_PORT: '6379'
         run: >
           pants
           --python-bootstrap-search-path=[]
@@ -312,7 +305,403 @@ jobs:
           path: .pants.d/pants.log
         if: always()  # We want the log even on failures.
 
-  #integration-tests: TODO: run integration tests
+  integration-tests:
+    name: 'Integration Tests (pants runs: pytest) - Python ${{ matrix.python.version-short }}'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
+        python:
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
+
+    services:
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+      # In GHA, these services are started first before the code is checked out.
+      # We use bitnami images to facilitate reconfiguring RabbitMQ during integration tests.
+      # We rely on custom config and SSL certs that are in the repo.
+      # Many images require config in env vars (which we can't change during the test job)
+      # or they require config in entrypoint args (which we can't override for GHA services)
+      # bitnami builds ways to get config files from mounted volumes.
+      rabbitmq:
+        image: bitnami/rabbitmq:3.8
+        volumes:
+          - /home/runner/rabbitmq_conf:/bitnami/conf  # RABBITMQ_MOUNTED_CONF_DIR
+        env:
+          # tell bitnami/rabbitmq to enable this by default
+          RABBITMQ_PLUGINS: rabbitmq_management
+          RABBITMQ_USERNAME: guest
+          RABBITMQ_PASSWORD: guest
+          RABBITMQ_LOGS: '-'
+          # bitnami's default relative limit was too high
+          RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
+
+        # These are strictly docker options, not entrypoint args (GHA restriction)
+        options: >-
+          --name rabbitmq
+        ports:
+          # These 6 ports are exposed by bitnami/rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
+          # host_port:container_port/protocol
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+          #- 15671:15671/tcp # Management: SSL port
+          #- 25672:25672/tcp # inter-node or CLI
+          #- 4369:4369/tcp   # epmd
+
+      redis:
+         # Docker Hub image
+         image: redis
+         # Set health checks to wait until redis has started
+         options: >-
+           --name "redis"
+           --health-cmd "redis-cli ping"
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
+         ports:
+           - 6379:6379/tcp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'recursive'
+          # sadly, the submodule will only have fetch-depth=1, which is what we want
+          # for st2.git, but not for the submodules. We still want actions/checkout
+          # to do the initial checkout, however, so that it adds auth for fetching
+          # in the submodule.
+
+      - name: Fetch repository submodules
+        run: |
+          git submodule status
+          git submodule foreach 'git fetch --all --tags'
+          git submodule foreach 'git tag'
+
+      - name: 'Set up Python (${{ matrix.python.version }})'
+        id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python.version }}'
+
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages
+
+      - name: Initialize Pants and its GHA caches
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-py${{ matrix.python.version }}
+
+      # This is only required for st2common/tests/integration/test_rabbitmq_ssl_listener.py
+      - name: Reconfigure RabbitMQ
+        # bitnami image allows (see bitnami/rabbitmq readme):
+        # Here we're copying a rabbitmq.config file which won't do anything.
+        # We need to switch to custom.conf or advanced.config.
+        timeout-minutes: 2  # may die if rabbitmq fails to start
+        run: |
+          ./scripts/github/configure-rabbitmq.sh
+
+      - name: Integration Tests
+        run: >
+          pants
+          --python-bootstrap-search-path=[]
+          --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
+          --tag=integration
+          --tag=-st2cluster
+          test '::'
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v4
+        with:
+          name: pants-log-py${{ matrix.python.version }}-integration-tests
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
+
+  integration-st2cluster-tests:
+    name: 'Integration Tests (Full Cluster)- Python ${{ matrix.python.version-short }}'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
+        python:
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
+
+    services:
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'recursive'
+          # sadly, the submodule will only have fetch-depth=1, which is what we want
+          # for st2.git, but not for the submodules. We still want actions/checkout
+          # to do the initial checkout, however, so that it adds auth for fetching
+          # in the submodule.
+
+      - name: Fetch repository submodules
+        run: |
+          git submodule status
+          git submodule foreach 'git fetch --all --tags'
+          git submodule foreach 'git tag'
+
+      - name: 'Set up Python (${{ matrix.python.version }})'
+        id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python.version }}'
+
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages
+
+      - name: Initialize Pants and its GHA caches
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-py${{ matrix.python.version }}
+
+      - name: Export virtualenv to run Dev ST2 Cluster
+        run: >
+          pants
+          --python-bootstrap-search-path=[]
+          --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
+          export
+          --resolve=st2
+
+      - name: Launch Dev ST2 Cluster
+        env:
+          VIRTUALENV_DIR: ./dist/export/python/virtualenvs/st2/${{ steps.python.outputs.python-version }}
+        run: |
+          sudo -E ./scripts/github/prepare-integration.sh
+
+      - name: Integration Tests
+        env:
+          ST2_CI_RUN_ORQUESTA_PAUSE_RESUME_TESTS: 'true'
+        run: >
+          pants
+          --python-bootstrap-search-path=[]
+          --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
+          --tag=integration
+          --tag=st2cluster
+          test '::'
+
+      - name: Compress Service Logs Before upload
+        if: failure()
+        run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
+          tar cvzpf logs.tar.gz logs/*
+
+      - name: Upload StackStorm services Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-py${{ matrix.python-version }}-st2cluster-integration-tests
+          path: logs.tar.gz
+          retention-days: 7
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v4
+        with:
+          name: pants-log-py${{ matrix.python.version }}-st2cluster-integration-tests
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
+
+  self-check:
+    name: 'Self-Check - Python ${{ matrix.python.version-short }}'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # NOTE: We need to use full Python version as part of Python deps cache key otherwise
+        # setup virtualenv step will fail.
+        python:
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
+
+    services:
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+      rabbitmq:
+        image: rabbitmq:3.8-management
+        options: >-
+          --name rabbitmq
+        ports:
+          - 5671:5671/tcp   # AMQP SSL port
+          - 5672:5672/tcp   # AMQP standard port
+          - 15672:15672/tcp # Management: HTTP, CLI
+
+      redis:
+         # Docker Hub image
+         image: redis
+         # Set health checks to wait until redis has started
+         options: >-
+           --name "redis"
+           --health-cmd "redis-cli ping"
+           --health-interval 10s
+           --health-timeout 5s
+           --health-retries 5
+         ports:
+           - 6379:6379/tcp
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'recursive'
+          # sadly, the submodule will only have fetch-depth=1, which is what we want
+          # for st2.git, but not for the submodules. We still want actions/checkout
+          # to do the initial checkout, however, so that it adds auth for fetching
+          # in the submodule.
+
+      - name: Fetch repository submodules
+        run: |
+          git submodule status
+          git submodule foreach 'git fetch --all --tags'
+          git submodule foreach 'git tag'
+
+      - name: 'Set up Python (${{ matrix.python.version }})'
+        id: python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '${{ matrix.python.version }}'
+
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages
+
+      - name: Initialize Pants and its GHA caches
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-py${{ matrix.python.version }}
+
+      - name: Export virtualenv to run Dev ST2 Cluster
+        run: >
+          pants
+          --python-bootstrap-search-path=[]
+          --python-bootstrap-search-path=${{ steps.python.outputs.python-path }}
+          export
+          --resolve=st2
+
+      - name: Add ST2 System User Key
+        env:
+          ST2_CI_USER: ${{ env.ST2TESTS_SYSTEM_USER }}
+          ST2_SYSTEM_USER__USER: ${{ env.ST2TESTS_SYSTEM_USER }}
+          ST2_SYSTEM_USER__SSH_KEY_FILE: /home/${{ env.ST2TESTS_SYSTEM_USER }}/.ssh/stanley_rsa
+        run: |
+          sudo -E ./scripts/ci/add-itest-user-key.sh
+
+      - name: Launch Dev ST2 Cluster
+        env:
+          # NOTE: ST2_CONF defaults to ${GITHUB_WORKSPACE}/conf/st2.dev.conf
+          VIRTUALENV_DIR: ./dist/export/python/virtualenvs/st2/${{ steps.python.outputs.python-version }}
+          ST2_SYSTEM_USER__USER: ${{ env.ST2TESTS_SYSTEM_USER }}
+          ST2_SYSTEM_USER__SSH_KEY_FILE: /home/${{ env.ST2TESTS_SYSTEM_USER }}/.ssh/stanley_rsa
+        run: |
+          sudo -E ./scripts/github/prepare-integration.sh
+
+      - name: Extend the path for upcoming tasks
+        # pants uses PEP 660 editable wheels to add our code to the virtualenv.
+        # But PEP 660 editable wheels do not include 'scripts'.
+        # https://peps.python.org/pep-0660/#limitations
+        # So, we need to include each bin dir in PATH instead of virtualenv/bin.
+        env:
+          VIRTUALENV_DIR: dist/export/python/virtualenvs/st2/${{ steps.python.outputs.python-version }}
+        run: |
+          for component_bin in ${GITHUB_WORKSPACE}/st2*/bin; do
+          echo ${component_bin} | tee -a $GITHUB_PATH
+          done
+          echo ${GITHUB_WORKSPACE}/${VIRTUALENV_DIR}/bin | tee -a $GITHUB_PATH
+
+      - name: Create symlinks to find the binaries when running st2 actions
+        # st2 is actually a console_script entry point, not just a 'script'
+        # so it IS included in the virtualenv. But, st2-run-pack-tests might not be included.
+        env:
+          VIRTUALENV_DIR: dist/export/python/virtualenvs/st2/${{ steps.python.outputs.python-version }}
+        run: |
+          ln -s ${GITHUB_WORKSPACE}/${VIRTUALENV_DIR}/bin/st2 /usr/local/bin/st2
+          ln -s ${GITHUB_WORKSPACE}/st2common/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
+
+      - name: Run st2-self-check
+        env:
+          # Space separated list of tests to be skipped if the self-check is running in GitHub Actions
+          TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
+          ST2_SYSTEM_USER__USER: ${{ env.ST2TESTS_SYSTEM_USER }}
+          ST2_SYSTEM_USER__SSH_KEY_FILE: /home/${{ env.ST2TESTS_SYSTEM_USER }}/.ssh/stanley_rsa
+        run: >
+          sudo
+          -E
+          ST2_AUTH_TOKEN=$(st2 auth testu -p 'testp' -t)
+          ST2_CONF=${GITHUB_WORKSPACE}/conf/st2.dev.conf
+          PATH=${PATH}
+          st2common/bin/st2-self-check
+
+      - name: Compress Service Logs Before upload
+        if: failure()
+        run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
+          tar cvzpf logs.tar.gz logs/*
+
+      - name: Upload StackStorm services Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logs-py${{ matrix.python-version }}-self-check
+          path: logs.tar.gz
+          retention-days: 7
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v4
+        with:
+          name: pants-log-py${{ matrix.python.version }}-self-check
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
 
   set_merge_ok:
     name: Set Merge OK (Tests)
@@ -321,7 +710,9 @@ jobs:
       - pants-plugins-tests
       - unit-tests
       - pack-tests
-      #- integration-tests
+      - integration-tests
+      - integration-st2cluster-tests
+      - self-check
     outputs:
       merge_ok: ${{ steps.set_merge_ok.outputs.merge_ok }}
     runs-on: ubuntu-latest

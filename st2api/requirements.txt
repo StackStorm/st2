@@ -5,14 +5,15 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-eventlet==0.37.0
+backports.zoneinfo[tzdata]; python_version<"3.9"
+eventlet==0.39.1
 gunicorn==23.0.0
 jsonschema==3.2.0
-kombu==5.4.2
+kombu==5.5.2
 mongoengine==0.29.1
 oslo.config==9.6.0
 oslo.utils==7.3.0
 pymongo==4.6.3
 pyparsing==3.1.4
 simplejson
-six==1.16.0
+six==1.17.0

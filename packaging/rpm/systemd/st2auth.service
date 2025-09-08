@@ -1,0 +1,19 @@
+[Unit]
+Description=StackStorm service st2auth
+After=network.target st2auth.socket
+Requires=st2auth.socket
+
+[Service]
+Type=simple
+User=st2
+Group=st2
+Environment="DAEMON_ARGS=-k eventlet -b 127.0.0.1:9100 --workers 1 --threads 1 --graceful-timeout 10 --timeout 30 --log-config /etc/st2/logging.auth.gunicorn.conf --error-logfile /var/log/st2/st2auth.log"
+EnvironmentFile=-/etc/sysconfig/st2auth
+ExecStart=/opt/stackstorm/st2/bin/gunicorn st2auth.wsgi:application $DAEMON_ARGS
+TimeoutSec=60
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

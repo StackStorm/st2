@@ -13,7 +13,7 @@ on:
       # also version tags, which include bugfix releases (eg: v3.4.0)
       - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
-    type: [opened, reopened, edited]
+    types: [opened, reopened, synchronize]
     branches:
       # Only for PRs targeting those branches
       - master
@@ -26,7 +26,7 @@ jobs:
   # Lint checks which don't depend on any service containes, etc. to be running.
   lint-checks:
     name: 'Lint Checks (pants runs: shellcheck, bandit, black, flake8, pylint)'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     env:
       COLUMNS: '120'

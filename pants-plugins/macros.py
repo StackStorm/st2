@@ -112,6 +112,75 @@ def st2_component_python_distribution(**kwargs):
     python_distribution(**kwargs)  # noqa: F821
 
 
+# Default copied from PEX (which uses zipfile standard MS-DOS epoch).
+# https://github.com/pex-tool/pex/blob/v2.1.137/pex/common.py#L39-L45
+MTIME = "1980-01-01T00:00:00Z"
+
+# These are used for system packages (rpm/deb)
+ST2_PACKS_GROUP = "st2packs"
+ST2_SVC_USER = "st2"
+
+
+def st2_pack_archive(**kwargs):
+    """Create a makeself_archive using files from the given dependencies.
+
+    This macro should be used in the same BUILD file as the pack_metadata target.
+    """
+    build_file_path = build_file_dir()  # noqa: F821
+    if "st2tests" == build_file_path.parts[0]:
+        # avoid creating duplicate archive for the core pack
+        # which is also located under st2tests/st2tests/fixtures/packs
+        return
+    pack_name = build_file_path.name  # noqa: F821
+
+    dependencies = kwargs.pop("dependencies", [])
+    if ":metadata" not in dependencies:
+        dependencies = [":metadata", *dependencies]
+
+    # This is basically a "wrap_as_files" target (which does not exist yet)
+    shell_command(  # noqa: F821
+        name="files",
+        execution_dependencies=dependencies,
+        command="true",
+        output_directories=["."],
+        root_output_directory=".",
+    )
+
+    # https://www.pantsbuild.org/stable/docs/shell/self-extractable-archives
+    # https://www.pantsbuild.org/stable/reference/targets/makeself_archive
+    makeself_archive(  # noqa: F821
+        name="archive",
+        label=f"{pack_name} StackStorm pack",
+        files=[
+            ":files",  # archive contents
+            "//:license",  # LICENSE file included in archive header, excluded from contents
+        ],
+        args=(  # see: https://makeself.io/#usage
+            # Makeself expects '--arg value' (space) not '--arg=value' (equals) for cmdline
+            "--license",
+            "__archive/LICENSE",
+            "--target",
+            f"/opt/stackstorm/packs/{pack_name}",
+            # reproducibility flags:
+            "--tar-extra",  # extra tar args: '--arg=value' (equals delimited) space separated
+            f"--owner=root --group={ST2_PACKS_GROUP} --mtime={MTIME} --exclude=LICENSE",
+            "--packaging-date",
+            MTIME,
+        ),
+        output_path=f"packaging/packs/{pack_name}.tgz.run",
+    )
+
+    nfpm_content_file(  # noqa: F821
+        name="archive_for_nfpm",
+        dependencies=[":archive"],
+        src=f"packaging/packs/{pack_name}.tgz.run",
+        dst=f"/opt/stackstorm/install/packs/{pack_name}.tgz.run",
+        file_owner="root",
+        file_group=ST2_PACKS_GROUP,
+        file_mode="rwxr-x---",
+    )
+
+
 def st2_shell_sources_and_resources(**kwargs):
     """This creates a shell_sources and a resources target.
 
@@ -122,6 +191,7 @@ def st2_shell_sources_and_resources(**kwargs):
     shell_sources(**kwargs)  # noqa: F821
 
     kwargs.pop("skip_shellcheck", None)
+    kwargs.pop("skip_shfmt", None)
 
     kwargs["name"] += "_resources"
     resources(**kwargs)  # noqa: F821
@@ -156,3 +226,32 @@ def st2_logging_conf_resources(**kwargs):
     deps = list(deps) + list(_st2common_logging_deps)
     kwargs["dependencies"] = tuple(deps)
     resources(**kwargs)  # noqa: F821
+
+
+def st2_logging_conf_for_nfpm(**kwargs):
+    deps = kwargs.pop("dependencies") or []
+
+    shell_command(  # noqa: F821
+        name="package_logging_conf",
+        execution_dependencies=deps,
+        # Using "-E" and specifying the ".bak" suffix makes this portable
+        command="""
+        sed -E -i.bak "/args[[:space:]]*=[[:space:]]*/s:logs/:/var/log/st2/:g" logging.*conf;
+        for conf_file in logging.*conf syslog.*conf; do
+            crudini --verbose --set "${conf_file}" logger_root level INFO;
+        done
+        """,
+        runnable_dependencies=["//:crudini"],
+        tools=["sed"],
+        output_files=["*.conf"],
+    )
+
+    nfpm_content_files(  # noqa: F821
+        name="packaged_conf_files",
+        dependencies=[":package_logging_conf"],
+        file_owner="root",
+        file_group="root",
+        file_mode="rw-r--r--",
+        content_type="config|noreplace",
+        **kwargs,
+    )

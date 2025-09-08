@@ -59,8 +59,8 @@ ST2TESTS_REDIS_PORT := 6379
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 24.2
-SETUPTOOLS_VERSION ?= 75.2.0
+PIP_VERSION ?= 25.0.1
+SETUPTOOLS_VERSION ?= 75.3.2
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -71,21 +71,21 @@ ifndef XARGS_CONCURRENCY
 	XARGS_CONCURRENCY := 8
 endif
 
+ifndef NODE_INDEX
+	NODE_INDEX := 0
+endif
+ifndef NODE_TOTAL
+	NODE_TOTAL := 1
+endif
+
 # NOTE: We exclude resourceregistrar DEBUG level log messages since those are very noisy (we
 # loaded resources for every tests) which makes tests hard to troubleshoot on failure due to
 # pages and pages and pages of noise.
 # The minus in front of st2.st2common.bootstrap filters out logging statements from that module.
-# See https://nose.readthedocs.io/en/latest/usage.html#cmdoption-logging-filter
-NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --nocapture --logging-filter=-st2.st2common.bootstrap
-
-ifndef NOSE_TIME
-	NOSE_TIME := yes
-endif
-
-ifeq ($(NOSE_TIME),yes)
-	NOSE_OPTS := --rednose --immediate --with-parallel --parallel-strategy=FILE --with-timer --nocapture --logging-filter=-st2.st2common.bootstrap
-	NOSE_WITH_TIMER := 1
-endif
+# https://github.com/pytest-dev/pytest-xdist/issues/71
+#PYTEST_OPTS := -n auto --tx 2*popen//execmodel=eventlet
+# --suppress-no-test-exit-code is part of the pytest-custom_exit_code plugin
+PYTEST_OPTS := --test-group=$(NODE_INDEX) --test-group-count=$(NODE_TOTAL) -s --log-level=error --suppress-no-test-exit-code
 
 ifndef PIP_OPTIONS
 	PIP_OPTIONS :=
@@ -94,8 +94,8 @@ endif
 # NOTE: We only run coverage on master and version branches and not on pull requests since
 # it has a big performance overhead and is very slow.
 ifeq ($(ENABLE_COVERAGE),yes)
-	NOSE_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
-	NOSE_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
+	PYTEST_COVERAGE_FLAGS := --with-coverage --cover-branches --cover-erase
+	PYTEST_COVERAGE_PACKAGES := --cover-package=$(COMPONENTS_TEST_COMMA)
 else
 	INCLUDE_TESTS_IN_COVERAGE :=
 endif
@@ -103,8 +103,8 @@ endif
 # If we aren't running test coverage, don't try to include tests in coverage
 # results
 ifdef INCLUDE_TESTS_IN_COVERAGE
-	NOSE_COVERAGE_FLAGS += --cover-tests
-	NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
+	PYTEST_COVERAGE_FLAGS += --cover-tests
+	PYTEST_COVERAGE_PACKAGES := $(PYTEST_COVERAGE_PACKAGES),$(COMPONENTS_TEST_MODULES_COMMA)
 endif
 
 .PHONY: all
@@ -149,20 +149,17 @@ play:
 	@echo
 	@echo GITHUB_EVENT_NAME=$(GITHUB_EVENT_NAME)
 	@echo
-	@echo NOSE_OPTS=$(NOSE_OPTS)
+	@echo PYTEST_OPTS=$(PYTEST_OPTS)
 	@echo
 	@echo ENABLE_COVERAGE=$(ENABLE_COVERAGE)
 	@echo
-	@echo NOSE_COVERAGE_FLAGS=$(NOSE_COVERAGE_FLAGS)
+	@echo PYTEST_COVERAGE_FLAGS=$(PYTEST_COVERAGE_FLAGS)
 	@echo
-	@echo NOSE_COVERAGE_PACKAGES=$(NOSE_COVERAGE_PACKAGES)
+	@echo PYTEST_COVERAGE_PACKAGES=$(PYTEST_COVERAGE_PACKAGES)
 	@echo
 	@echo INCLUDE_TESTS_IN_COVERAGE=$(INCLUDE_TESTS_IN_COVERAGE)
 	@echo
-	@echo NODE_TOTAL=$(NODE_TOTAL)
-	@echo
-	@echo
-	@echo NODE_INDEX=$(NODE_INDEX)
+	@echo shard: NODE_INDEX/NODE_TOTAL=$(NODE_INDEX)/$(NODE_TOTAL)
 	@echo
 
 .PHONY: check
@@ -490,7 +487,7 @@ flake8: requirements .flake8
 	. $(VIRTUALENV_DIR)/bin/activate; flake8 --config ./lint-configs/python/.flake8 pylint_plugins/
 
 # Make task which verifies st2client README will parse pypi checks
-. PHONY: .st2client-pypi-check
+.PHONY: .st2client-pypi-check
 .st2client-pypi-check:
 	@echo
 	@echo "==================== st2client pypi check ===================="
@@ -830,17 +827,18 @@ unit-tests: requirements .unit-tests
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
-		    nosetests $(NOSE_OPTS) -s -v \
+		    pytest -rx --verbose \
 		    $$component/tests/unit || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
+	echo pytest runs failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-unit-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
-.run-unit-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.unit
+.run-unit-tests-coverage: PYTEST_COVERAGE_PACKAGES := $(PYTEST_COVERAGE_PACKAGES),tests.unit
 endif
 .run-unit-tests-coverage:
 	@echo
@@ -857,18 +855,18 @@ endif
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
-		    $(NOSE_COVERAGE_PACKAGES) \
+		    pytest --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
 		    $$component/tests/unit || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
+	echo pytest runs failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 	        coverage combine .coverage.unit.*; \
 	fi
@@ -887,14 +885,14 @@ endif
 
 .PHONY: .report-unit-tests-coverage
 .report-unit-tests-coverage: .coverage.unit
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 	        coverage report; \
 	fi
 
 .PHONY: .unit-tests-coverage-html
 .unit-tests-coverage-html: .coverage.unit
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.unit \
 	        coverage html; \
 	fi
@@ -915,17 +913,18 @@ itests: requirements .itests
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
-		    nosetests $(NOSE_OPTS) -s -v \
+		    pytest --capture=no --verbose $(PYTEST_OPTS) \
 		    $$component/tests/integration || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
+	echo pytest runs failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-integration-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
-.run-integration-tests-coverage: NOSE_COVERAGE_PACKAGES := $(NOSE_COVERAGE_PACKAGES),tests.integration
+.run-integration-tests-coverage: PYTEST_COVERAGE_PACKAGES := $(PYTEST_COVERAGE_PACKAGES),tests.integration
 endif
 .run-integration-tests-coverage:
 	@echo
@@ -940,13 +939,13 @@ endif
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
-		    nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) \
-		    $(NOSE_COVERAGE_PACKAGES) \
+		    pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
 		    $$component/tests/integration || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
+	echo pytest runs failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
 	# ci-integration-full target
@@ -956,12 +955,12 @@ endif
 #	@echo
 #	. $(VIRTUALENV_DIR)/bin/activate; \
 @#		COVERAGE_FILE=.coverage.integration.orquesta \
-@#		nosetests $(NOSE_OPTS) -s -v \
-@#		$(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
+@#		pytest --capture=no --verbose $(PYTEST_OPTS) \
+@#		$(PYTEST_COVERAGE_FLAGS) $(PYTEST_COVERAGE_PACKAGES) st2tests/integration/orquesta || exit 1; \
 
 .PHONY: .combine-integration-tests-coverage
 .combine-integration-tests-coverage: .run-integration-tests-coverage
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 	        coverage combine .coverage.integration.*; \
 	fi
@@ -980,14 +979,14 @@ endif
 
 .PHONY: .report-integration-tests-coverage
 .report-integration-tests-coverage: .coverage.integration
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 	        coverage report; \
 	fi
 
 .PHONY: .integration-tests-coverage-html
 .integration-tests-coverage-html: .coverage.integration
-	@if [ -n "$(NOSE_COVERAGE_FLAGS)" ]; then \
+	@if [ -n "$(PYTEST_COVERAGE_FLAGS)" ]; then \
 	    . $(VIRTUALENV_DIR)/bin/activate; COVERAGE_FILE=.coverage.integration \
 	        coverage html; \
 	fi
@@ -1040,7 +1039,7 @@ orquesta-itests: requirements .orquesta-itests
 	@echo "==================== Orquesta integration tests ===================="
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v st2tests/integration/orquesta || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) st2tests/integration/orquesta || exit 1;
 
 .PHONY: .orquesta-itests-coverage-html
 .orquesta-itests-coverage-html:
@@ -1048,8 +1047,7 @@ orquesta-itests: requirements .orquesta-itests
 	@echo "==================== Orquesta integration tests with coverage (HTML reports) ===================="
 	@echo "The tests assume st2 is running on 127.0.0.1."
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
-        --cover-inclusive --cover-html st2tests/integration/orquesta || exit 1;
+	. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) --cov=orquesta --cov-branch  st2tests/integration/orquesta || exit 1;
 
 .PHONY: packs-tests
 packs-tests: requirements .packs-tests
@@ -1079,7 +1077,7 @@ runners-tests: requirements .runners-tests
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/unit || ((failed+=1)); \
+		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/unit || ((failed+=1)); \
 	done; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
@@ -1097,8 +1095,9 @@ runners-itests: requirements .runners-itests
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v $$component/tests/integration || ((failed+=1)); \
+		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/integration || ((failed+=1)); \
 	done; \
+	echo pytest runs failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: .runners-itests-coverage-html
@@ -1112,9 +1111,10 @@ runners-itests: requirements .runners-itests
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; nosetests $(NOSE_OPTS) -s -v --with-coverage \
-			--cover-inclusive --cover-html $$component/tests/integration || ((failed+=1)); \
+		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) \
+			--cov=$$component --cov-report=html $$component/tests/integration || ((failed+=1)); \
 	done; \
+	echo pytest runs failed=$$failed; \
 	if [ $$failed -gt 0 ]; then exit 1; fi
 
 .PHONY: cli

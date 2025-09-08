@@ -18,6 +18,7 @@ st2_shell_sources_and_resources(
     name="test_content_version_shell",
     # do not check across git submodule boundary
     skip_shellcheck=True,
+    skip_shfmt=True,
     sources=[
         "test_content_version/**/*.sh",
     ],

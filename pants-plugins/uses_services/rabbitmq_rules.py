@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from textwrap import dedent
+from typing import Tuple
 
 from pants.backend.python.goals.pytest_runner import (
     PytestPluginSetupRequest,
@@ -27,6 +28,8 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
     rules as pex_rules,
 )
+from pants.core.goals.test import TestExtraEnv
+from pants.engine.env_vars import EnvironmentVars
 from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.rules import collect_rules, Get, MultiGet, rule
 from pants.engine.process import FallibleProcessResult, ProcessCacheScope
@@ -54,13 +57,17 @@ class UsesRabbitMQRequest:
     # These config opts for integration tests are in:
     #   conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
     #       (changed by setting ST2_CONFIG_PATH env var inside the tests)
-    # TODO: for unit tests: modify code to pull mq connect settings from env vars
-    # TODO: for int tests: modify st2.tests*.conf on the fly to set the per-pantsd-slot vhost
-    #                      and either add env vars for mq connect settings or modify conf files as well
+    # These can also be updated via the ST2_MESSAGING_* env vars (which oslo_config reads).
+    # Integration tests should pass these changes onto subprocesses via the same env vars.
 
-    #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
+    mq_urls: Tuple[str] = ("amqp://guest:guest@127.0.0.1:5672//",)
 
-    mq_urls: tuple[str] = ("amqp://guest:guest@127.0.0.1:5672//",)
+    @classmethod
+    def from_env(cls, env: EnvironmentVars) -> UsesRabbitMQRequest:
+        default = cls()
+        url = env.get("ST2_MESSAGING__URL", None)
+        mq_urls = (url,) if url else default.mq_urls
+        return UsesRabbitMQRequest(mq_urls=mq_urls)
 
 
 @dataclass(frozen=True)
@@ -83,9 +90,12 @@ class PytestUsesRabbitMQRequest(PytestPluginSetupRequest):
 )
 async def rabbitmq_is_running_for_pytest(
     request: PytestUsesRabbitMQRequest,
+    test_extra_env: TestExtraEnv,
 ) -> PytestPluginSetup:
     # this will raise an error if rabbitmq is not running
-    _ = await Get(RabbitMQIsRunning, UsesRabbitMQRequest())
+    _ = await Get(
+        RabbitMQIsRunning, UsesRabbitMQRequest.from_env(env=test_extra_env.env)
+    )
 
     return PytestPluginSetup()
 
@@ -167,6 +177,16 @@ async def rabbitmq_is_running(
                 """
             ),
             service_start_cmd_generic="systemctl start rabbitmq-server",
+            env_vars_hint=dedent(
+                """\
+                You can also export the ST2_MESSAGING__URL env var to automatically use any
+                RabbitMQ host, local or remote, while running unit and integration tests.
+                If needed, you can also override the default exchange/queue name prefix
+                by exporting ST2_MESSAGING__PREFIX. Note that tests always add a numeric
+                suffix to the exchange/queue name prefix so that tests can safely run
+                in parallel.
+                """
+            ),
         ),
     )
 
