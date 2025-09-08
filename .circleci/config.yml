@@ -8,7 +8,7 @@ jobs:
     # 'machine' executor runs Unit tests ~x1.5 faster, comparing to 'docker' executor
     # but the fastest is still ~x1.5-2 slower, comparing to Travis
     machine: true
-    parallelism: 3
+    parallelism: 4
     working_directory: ~/st2
     steps:
       - checkout
@@ -44,8 +44,8 @@ jobs:
   integration:
     docker:
       - image: circleci/python:3.8
-      - image: mongo:4.4
-      - image: rabbitmq:3
+      - image: mongo:7.0
+      - image: rabbitmq:3.13
     working_directory: ~/st2
     steps:
       - checkout
@@ -58,8 +58,8 @@ jobs:
           command: |
             set -x
             sudo apt-get -qq -y install gnupg curl
-            curl -fsSL https://www.mongodb.org/static/pgp/server-4.4.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/mongodb-server-4.4.gpg
-            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+            curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/mongodb-server-7.0.gpg
+            echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list
             sudo apt-get -qq -y update
             sudo apt-get -qq -y install mongodb-org-shell
       - run:
@@ -81,8 +81,8 @@ jobs:
   lint:
     docker:
       - image: circleci/python:3.8
-      - image: mongo:4.4
-      - image: rabbitmq:3
+      - image: mongo:7.0
+      - image: rabbitmq:3.13
     working_directory: ~/st2
     steps:
       - checkout
@@ -108,7 +108,7 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 3
+    parallelism: 4
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
@@ -117,7 +117,7 @@ jobs:
       - image: circleci/python:3.8
     working_directory: ~/st2
     environment:
-      - DISTROS: "focal el8 el9"
+      - DISTROS: "focal jammy el8 el9"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -240,7 +240,7 @@ jobs:
       - image: circleci/ruby:2.7
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "focal el8 el9"
+      - DISTROS: "focal jammy el8 el9"
     steps:
       - attach_workspace:
           at: .
