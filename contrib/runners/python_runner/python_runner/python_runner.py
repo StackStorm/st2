@@ -189,7 +189,7 @@ class PythonRunner(GitWorktreeActionRunner):
         stdin = None
         stdin_params = None
         if (
-            len(serialized_parameters.encode("utf-8", errors="ignore"))
+            len(serialized_parameters.encode(sys.getdefaultencoding(), errors="ignore"))
             >= MAX_PARAM_LENGTH
         ):
             stdin = subprocess.PIPE
