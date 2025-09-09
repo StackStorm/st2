@@ -33,7 +33,6 @@ decorator==5.2.1
 oslo.config==9.6.0
 oslo.utils==7.3.0
 paramiko==3.5.1
-passlib==1.7.4
 # 202403: bump to 3.0.43 for py3.10 support
 prompt-toolkit==3.0.52
 pyinotify==0.9.6 ; platform_system=="Linux"

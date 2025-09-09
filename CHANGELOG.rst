@@ -72,7 +72,7 @@ Changed
 * Migrated github actions from image ubunutu 20.04 with python 3.8.10 to image ubuntu 22.04 with python 3.8.12. #6301
   Contributed by @nzlosh
 
-* Regenerate pants lockfiles.  #6350
+* Regenerate pants lockfiles and drop passlib requirement.  #6350
   Contributed by @nzlosh
 
 Added

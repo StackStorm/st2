@@ -2,7 +2,6 @@
 bcrypt
 eventlet
 oslo.config
-passlib
 pymongo
 six
 stevedore
