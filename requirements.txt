@@ -39,7 +39,6 @@ orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2c
 oslo.config==9.6.0
 oslo.utils==7.3.0
 paramiko==3.5.1
-passlib==1.7.4
 prettytable==3.10.2
 prompt-toolkit==3.0.52
 psutil==7.0.0
@@ -73,7 +72,7 @@ st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 stevedore==5.3.0
 tenacity==9.0.0
 tooz==6.3.0
-typing-extensions==4.12.2
+typing-extensions>=4.13.2; python_version < "3.11"
 urllib3==2.2.3
 webob==1.8.9
 webtest==3.0.1

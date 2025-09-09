@@ -25,6 +25,6 @@ pyyaml==6.0.2
 requests==2.32.4
 six==1.17.0
 sseclient-py==1.8.0
-typing-extensions==4.12.2
+typing-extensions>=4.13.2; python_version < "3.11"
 urllib3==2.2.3
 zipp==3.20.2

@@ -9,7 +9,6 @@ bcrypt==4.3.0
 eventlet==0.39.1
 gunicorn==23.0.0
 oslo.config==9.6.0
-passlib==1.7.4
 pymongo==4.6.3
 six==1.17.0
 st2-auth-backend-flat-file
