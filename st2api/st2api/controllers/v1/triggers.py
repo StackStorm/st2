@@ -244,7 +244,6 @@ class TriggerController(object):
     """
 
     def get_one(self, trigger_id):
-
         """
         List trigger by id.
 

@@ -91,6 +91,8 @@ Added
   Contributed by @cognifloyd
 * Allow `st2-rule-tester` to run without a mongo connection if user is testing against local `rule`/`trigger-instance` files. #6208
   Contributed by @jk464
+* Added `certificate` parameter to the base SSH runners to enable certificate-based ssh authentication. #6347
+  Contributed by @freddierice
 
 * Added a `get_result` method to the `ExecutionResourceManager` Class for st2client
   Contributed by @skiedude
