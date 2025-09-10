@@ -19,8 +19,8 @@ from oslo_config import cfg
 
 from st2common.models.api.action import ActionAPI
 from st2common.models.api.action import RunnerTypeAPI
+from st2common.models.api.action import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionAPI
-from st2common.models.api.execution import LiveActionAPI
 from st2common.models.api.execution import ActionExecutionOutputAPI
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.models.db.execution import ActionExecutionDB
