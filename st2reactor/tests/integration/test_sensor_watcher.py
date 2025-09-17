@@ -34,10 +34,13 @@ class SensorWatcherTestCase(IntegrationTestCase):
     def setUp(self):
         super().setUp()
         # pre-condition: Make sure there is no test pollution
+        # Delete any leftover queues from previous failed test runs
+        self._delete_sensor_watcher_amqp_queues(queue_name="st2.sensor.watch.covfefe")
+
+        # Verify queues are deleted
         sw_queues = self._get_sensor_watcher_amqp_queues(
             queue_name="st2.sensor.watch.covfefe"
         )
-        # TODO: Maybe just delete any leftover queues from previous failed test runs.
         self.assertTrue(len(sw_queues) == 0)
 
     def test_sensor_watch_queue_gets_deleted_on_stop(self):
@@ -82,3 +85,22 @@ class SensorWatcherTestCase(IntegrationTestCase):
     def _get_sensor_watcher_amqp_queues(self, queue_name):
         all_queues = self._list_amqp_queues()
         return set([q_name for q_name in all_queues if queue_name in q_name])
+
+    def _delete_sensor_watcher_amqp_queues(self, queue_name):
+        """
+        Delete all queues containing the specified queue_name pattern.
+
+        :param string queue_name: Pattern to match in queue names
+        :returns: None
+        """
+        # Get all queues matching the pattern
+        queues_to_delete = self._get_sensor_watcher_amqp_queues(queue_name=queue_name)
+
+        if not queues_to_delete:
+            return
+
+        # Create a rabbit client and delete each queue
+        rabbit_client = Client("localhost:15672", "guest", "guest")
+        for queue in queues_to_delete:
+            # Use default vhost "/"
+            rabbit_client.delete_queue("/", queue)
