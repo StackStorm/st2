@@ -3,6 +3,7 @@ importlib-metadata
 # importlib-metadata requires typing-extensions
 typing-extensions
 argcomplete
+ply
 prettytable
 pytz
 python-dateutil
