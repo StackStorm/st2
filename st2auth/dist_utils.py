@@ -22,7 +22,6 @@ from __future__ import absolute_import
 
 import os
 import re
-import sys
 
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 #
@@ -36,7 +35,6 @@ import sys
 #       for subpackages.
 #       At the very least we can vendorize some of their code instead of reimplementing
 #       each piece of their code every time our parsing breaks.
-text_type = str
 
 GET_PIP = "curl https://bootstrap.pypa.io/get-pip.py | python"
 
