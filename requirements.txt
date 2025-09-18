@@ -39,7 +39,6 @@ orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2c
 oslo.config==9.6.0
 oslo.utils==7.3.0
 paramiko==3.5.1
-ply
 prettytable==3.10.2
 prompt-toolkit==3.0.52
 psutil==7.0.0
