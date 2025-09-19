@@ -10,7 +10,7 @@ amqp==5.3.1
 apscheduler==3.11.0
 chardet==5.2.0
 cffi==1.17.1
-cryptography==43.0.3
+cryptography==45.0.7
 eventlet==0.39.1
 flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
