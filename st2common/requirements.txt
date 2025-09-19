@@ -29,6 +29,7 @@ networkx==3.1
 orjson==3.10.15
 orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 oslo.config==9.6.0
+oslo.serialization
 paramiko==3.5.1
 pyOpenSSL
 pymongo==4.6.3
