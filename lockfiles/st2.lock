@@ -5694,7 +5694,7 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "d34d5cbb539182553ec8b35a0763decb6b66bd37aa51f3a61db1eb30449f6f10",
+              "hash": "f445faec6e5f55437f379be08dd78aa2f1181ed9dbd04fe19bddfb6f4c2fe911",
               "url": "git+https://github.com/StackStorm/st2-rbac-backend.git@master"
             }
           ],

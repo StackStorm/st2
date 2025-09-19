@@ -14,7 +14,7 @@ bcrypt==4.3.0
 cffi==1.17.1
 chardet==5.2.0
 ciso8601
-cryptography==43.0.3
+cryptography==45.0.7
 decorator==5.2.1
 dnspython
 editor==1.6.6
@@ -37,6 +37,7 @@ networkx==3.1
 orjson==3.10.15
 orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 oslo.config==9.6.0
+oslo.serialization
 oslo.utils==7.3.0
 paramiko==3.5.1
 prettytable==3.10.2

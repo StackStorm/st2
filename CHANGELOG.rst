@@ -33,6 +33,7 @@ Fixed
 * Fix Popen.pid typo in st2tests. #6184
 * Bump tooz package to `6.2.0` to fix TLS. #6220 (@jk464)
 * Shells via `pywinrm` are initialized with the 65001 codepage to ensure raw string responses are UTF-8. #6034 (@stealthii)
+* Fix integration test required clean rabbit queue (@guzzijones12)
 
 Changed
 ~~~~~~~
