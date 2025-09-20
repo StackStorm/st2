@@ -18,24 +18,16 @@ on:
       # FOr now, open the PR to alternate branches first, and then run this workflow.
 
 jobs:
-  input_vars:
-    name: Ensure input vars are valid
+  resolves:
+    name: Preprocess input var - resolves
     runs-on: ubuntu-22.04
     outputs:
-      RESOLVES_JSON: ${{ steps.resolves.outputs.JSON }}
-      PR_JSON: ${{ steps.pr.outputs.JSON }}
-      PR_REPO: ${{ steps.pr.outputs.PR_REPO }}
-      PR_REF: ${{ steps.pr.outputs.PR_REF }}
-      PR_BASE_REF: ${{ steps.pr.outputs.PR_BASE_REF }}
-      PR_CHECKOUT: ${{ steps.pr.outputs.PR_CHECKOUT }}
+      JSON: ${{ steps.resolves.outputs.JSON }}
     steps:
-      - name: Validate input - resolves
-        id: resolves
+      - name: Validate input var - resolves
         run: |
           if [[ "${{ inputs.resolves }}" =~ ^([a-z0-9-]+(,[a-z0-9-]+)*|)$ ]]; then
             echo "VALID INPUT: resolves"
-            JSON=$(jq '.|split(",")' <<<'"${{ inputs.resolves }}"')
-            echo "JSON=${JSON}" >> ${GITHUB_OUTPUT}
             exit 0
           else
             echo "INVALID INPUT: resolves"
@@ -43,47 +35,42 @@ jobs:
             exit 1
           fi
 
-      - name: Validate input - pr
-        id: pr
+      - name: Get resolves in JSON
+        id: resolves
+        run: |
+          if [[ "${{ inputs.resolves }}" != "" ]]; then
+            JSON=$(jq '.|split(",")' <<< '"${{ inputs.resolves }}"')
+          else
+            # Pull pants.toml from the branch that the workflow runs from
+            pants_toml=$(
+              gh api -X GET \
+                'repos/${{ github.repository }}/contents/pants.toml' \
+                -f 'ref=${{ github.sha }}'
+            )
+            JSON=$(yq -e -p toml '.python.resolves|keys()' -o json -I 0 <<< ${pants_toml})
+          fi
+          echo ${JSON}
+          echo "JSON=${JSON}" >> ${GITHUB_OUTPUT}
+
+  pr:
+    name: Preprocess input var - pr
+    runs-on: ubuntu-22.04
+    outputs:
+      JSON: ${{ steps.pr.outputs.JSON }}
+      CHECKOUT_REF: ${{ steps.pr.outputs.CHECKOUT_REF }}
+      PR_REPO: ${{ steps.pr.outputs.PR_REPO }}
+      PR_REF: ${{ steps.pr.outputs.PR_REF }}
+      PR_BASE_REF: ${{ steps.pr.outputs.PR_BASE_REF }}
+    steps:
+      - name: Validate input var - pr
         run: |
           if [ "${{ inputs.pr }}" = new ]; then
             echo "VALID INPUT: pr"
-            echo 'PR_REPO=${{ github.repository }}' >> ${GITHUB_OUTPUT}
-            echo 'JSON={"headRepository":"${{ github.repository_owner }}"}' >> ${GITHUB_OUTPUT}
+            echo "The next step will collect some data for PR creation."
             exit 0
           elif [[ "${{ inputs.pr }}" =~ ^[0-9]+$ ]]; then
             echo "VALID INPUT: pr"
-            pr_fields=id,number,state,isDraft,closed,labels,url
-            pr_fields+=,author,maintainerCanModify
-            pr_fields+=,headRepositoryOwner,headRepository,headRefName,baseRefName
-            pr=$(gh pr view "${{ inputs.pr }}" --json "${pr_fields}")
-            echo 'PR_REPO=${{ github.repository }}' >> ${GITHUB_OUTPUT}
-            echo "PR_REF=${GITHUB_REF_NAME}" >> ${GITHUB_OUTPUT}
-            echo "PR_BASE_REF=${GITHUB_REF_NAME}" >> ${GITHUB_OUTPUT}
-            echo "PR_CHECKOUT=${GITHUB_REF}" >> ${GITHUB_OUTPUT}
-            echo "JSON=${pr}" >> ${GITHUB_OUTPUT}
-            if [ $? > 0 ]; then
-              echo "Pull Request #${{ inputs.pr }} not found! Giving up."
-              exit 2
-            elif (jq -e .closed <<<${pr} >/dev/null); then
-              echo "Pull Request #${{ inputs.pr }} is already closed! Giving up."
-              exit 3
-            elif ! (jq -e .maintainerCanModify <<<${pr} >/dev/null); then
-              echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification! Giving up."
-              exit 4
-            fi
-            PR_REPO=$(jq -r '.headRepositoryOwner.login + "/" + .headRepository.name' <<<${pr})
-            PR_REF=$(jq -r '.headRefName' <<<${pr})
-            PR_BASE_REF=$(jq -r '.baseRefName' <<<${pr})
-            echo "PR_REPO=${PR_REPO}" >> ${GITHUB_OUTPUT}
-            echo "PR_REF=${PR_REF}" >> ${GITHUB_OUTPUT}
-            echo "PR_BASE_REF=${PR_BASE_REF}" >> ${GITHUB_OUTPUT}
-            # TODO: should this build on top of the merge commit? or HEAD?
-            #       if HEAD, what is the equivalent to github.event.pull_request.head.sha ?
-            echo "PR_CHECKOUT=refs/pull/${{ inputs.pr }}/merge" >> ${GITHUB_OUTPUT}
-            echo "Found Pull Request #${{ inputs.pr }} by @$(jq .author.login <<<${pr})"
-            echo "Pull from ${PR_REPO}:${PR_REF} into ${PR_BASE_REF}"
-            echo "URL: $(jq -r .url <<<${pr})"
+            echo "The next step will validate that PR #${{ inputs.pr }} exists."
             exit 0
           else
             echo "INVALID INPUT: pr"
@@ -91,17 +78,88 @@ jobs:
             exit 1
           fi
 
+      - name: Get pr in JSON
+        id: pr
+        env:
+          PR_FIELDS: "\
+            id,\
+            number,\
+            url,\
+            closed,\
+            author,\
+            maintainerCanModify,\
+            headRepositoryOwner,\
+            headRepository,\
+            headRefName,\
+            baseRefName"
+        run: |
+          if [[ "${{ inputs.pr }}" == new ]]; then
+            echo "Planning new Pull Request metadata ..."
+            PR=$(
+              yq -e -p yaml . -o json -I 0 <<-HEREYAML
+              id: ""
+              number: "new"
+              url: ""
+              closed: false
+              author: # see https://api.github.com/users/github-actions[bot]
+                id: 41898282
+                is_bot: true
+                login: "github-actions[bot]"
+                name: "github-actions[bot]"
+              maintainerCanModify: true
+              headRepositoryOwner:
+                id: "${GITHUB_REPOSITORY_OWNER_ID}"
+                login: "${GITHUB_REPOSITORY_OWNER}"
+              headRepository:
+                id: "${GITHUB_REPOSITORY_ID}"
+                name: "${GITHUB_REPOSITORY#*/}"
+              headRefName: "regen-lockfiles-${GITHUB_RUN_ID}"
+              baseRefName: "${GITHUB_REF_NAME}"
+              HEREYAML
+            )
+            CHECKOUT_REF="${GITHUB_REF}"
+          else
+            CHECKOUT_REF="refs/pull/${{ inputs.pr }}/merge"
+            echo "Searching for Pull Request #${{ inputs.pr }} ..."
+            PR=$(gh pr view "${{ inputs.pr }}" --json "${PR_FIELDS}")
+            pr_search_rc=$?
+            if [ ${pr_search_rc} > 0 ]; then
+              echo "Pull Request #${{ inputs.pr }} not found!"
+              exit 2
+            elif (jq -e .closed <<< ${PR} >/dev/null); then
+              echo "Pull Request #${{ inputs.pr }} is closed!"
+              exit 3
+            elif ! (jq -e .maintainerCanModify <<< ${PR} >/dev/null); then
+              echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification!"
+              exit 4
+            fi
+            echo "Found Pull Request #${{ inputs.pr }} by @$(jq .author.login <<< ${PR})"
+            echo "URL: $(jq -r .url <<< ${PR})"
+          fi
+          echo "JSON=${PR}" >> ${GITHUB_OUTPUT}
+          echo "CHECKOUT_REF=${CHECKOUT_REF}" >> ${GITHUB_OUTPUT}
+          PR_REPO=$(jq -r '.headRepositoryOwner.login + "/" + .headRepository.name' <<< ${PR})
+          PR_REF=$(jq -r '.headRefName' <<< ${PR})
+          PR_BASE_REF=$(jq -r '.baseRefName' <<< ${PR})
+          echo "PR_REPO=${PR_REPO}" >> ${GITHUB_OUTPUT}
+          echo "PR_REF=${PR_REF}" >> ${GITHUB_OUTPUT}
+          echo "PR_BASE_REF=${PR_BASE_REF}" >> ${GITHUB_OUTPUT}
+          echo "Pull from ${PR_REPO}:${PR_REF} into ${PR_BASE_REF}"
+
   regenerate:
-    name: Regenerated requested lockfiles
-    needs: input_vars
+    name: Regenerate lockfiles/${{ matrix.resolve }}.lock
+    needs: [resolves, pr]
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        resolve: ${{ fromJSON(needs.resolves.ouptuts.JSON) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
-          ref: ${{ needs.input_vars.outputs.PR_CHECKOUT }}
+          ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
 
       - name: Initialize Pants and its GHA caches
         uses: ./.github/actions/init-pants
@@ -109,16 +167,14 @@ jobs:
           # To ignore a bad cache, bump the cache* integer.
           gha-cache-key: cache0-BUILD
 
-      - name: Regenerate ALL lockfiles
-        if: ${{ inputs.resolves == '' }}
+      - name: Regenerate lockfiles/${{ matrix.resolve }}.lock
+        env:
+          STDOUT_LOG: ${{ runner.temp }}/pants-gen-lock.stdout.log
+          STDERR_LOG: ${{ runner.temp }}/pants-gen-lock.stderr.log
         run: |
-          pants generate-lockfiles
-
-      - name: Regenerate selected lockfiles
-        if: ${{ inputs.resolves != '' }}
-        run: >
-          pants generate-lockfiles
-          --resolve=${{ join(fromJSON(needs.input_vars.outputs.RESOLVES_JSON), ' --resolve=') }}
+          pants generate-lockfiles '--resolve=${{ matrix.resolve }}' \
+            > >(tee ${STDOUT_LOG}) \
+            2> >(tee ${STDERR_LOG} >&2)
 
       # TODO: capture diff output for use in commit message
       # TODO: create commit
