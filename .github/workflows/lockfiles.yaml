@@ -1,0 +1,131 @@
+---
+name: Regenerate Lockfiles
+
+on:
+  workflow_dispatch:
+    inputs:
+      resolves:
+        description: Regenerate lockfiles only for the resolves in this comma-separated list, or for all resolves if this is empty.
+        required: false
+        type: string
+        default: ""
+      pr:
+        description: Push regenerated lockfiles to the branch of this PR (Use 'new' to open a new PR).
+        required: true
+        type: string
+
+      # FIXME: Add a baseRef for use when creating a 'new' PR to target a release branch.
+      # FOr now, open the PR to alternate branches first, and then run this workflow.
+
+jobs:
+  input_vars:
+    name: Ensure input vars are valid
+    runs-on: ubuntu-22.04
+    outputs:
+      RESOLVES_JSON: ${{ steps.resolves.outputs.JSON }}
+      PR_JSON: ${{ steps.pr.outputs.JSON }}
+      PR_REPO: ${{ steps.pr.outputs.PR_REPO }}
+      PR_REF: ${{ steps.pr.outputs.PR_REF }}
+      PR_BASE_REF: ${{ steps.pr.outputs.PR_BASE_REF }}
+      PR_CHECKOUT: ${{ steps.pr.outputs.PR_CHECKOUT }}
+    steps:
+      - name: Validate input - resolves
+        id: resolves
+        run: |
+          if [[ "${{ inputs.resolves }}" =~ ^([a-z0-9-]+(,[a-z0-9-]+)*|)$ ]]; then
+            echo "VALID INPUT: resolves"
+            JSON=$(jq '.|split(",")' <<<'"${{ inputs.resolves }}"')
+            echo "JSON=${JSON}" >> ${GITHUB_OUTPUT}
+            exit 0
+          else
+            echo "INVALID INPUT: resolves"
+            echo "resolves must be a comma separated list of resolve names, or an empty string"
+            exit 1
+          fi
+
+      - name: Validate input - pr
+        id: pr
+        run: |
+          if [ "${{ inputs.pr }}" = new ]; then
+            echo "VALID INPUT: pr"
+            echo 'PR_REPO=${{ github.repository }}' >> ${GITHUB_OUTPUT}
+            echo 'JSON={"headRepository":"${{ github.repository_owner }}"}' >> ${GITHUB_OUTPUT}
+            exit 0
+          elif [[ "${{ inputs.pr }}" =~ ^[0-9]+$ ]]; then
+            echo "VALID INPUT: pr"
+            pr_fields=id,number,state,isDraft,closed,labels,url
+            pr_fields+=,author,maintainerCanModify
+            pr_fields+=,headRepositoryOwner,headRepository,headRefName,baseRefName
+            pr=$(gh pr view "${{ inputs.pr }}" --json "${pr_fields}")
+            echo 'PR_REPO=${{ github.repository }}' >> ${GITHUB_OUTPUT}
+            echo "PR_REF=${GITHUB_REF_NAME}" >> ${GITHUB_OUTPUT}
+            echo "PR_BASE_REF=${GITHUB_REF_NAME}" >> ${GITHUB_OUTPUT}
+            echo "PR_CHECKOUT=${GITHUB_REF}" >> ${GITHUB_OUTPUT}
+            echo "JSON=${pr}" >> ${GITHUB_OUTPUT}
+            if [ $? > 0 ]; then
+              echo "Pull Request #${{ inputs.pr }} not found! Giving up."
+              exit 2
+            elif (jq -e .closed <<<${pr} >/dev/null); then
+              echo "Pull Request #${{ inputs.pr }} is already closed! Giving up."
+              exit 3
+            elif ! (jq -e .maintainerCanModify <<<${pr} >/dev/null); then
+              echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification! Giving up."
+              exit 4
+            fi
+            PR_REPO=$(jq -r '.headRepositoryOwner.login + "/" + .headRepository.name' <<<${pr})
+            PR_REF=$(jq -r '.headRefName' <<<${pr})
+            PR_BASE_REF=$(jq -r '.baseRefName' <<<${pr})
+            echo "PR_REPO=${PR_REPO}" >> ${GITHUB_OUTPUT}
+            echo "PR_REF=${PR_REF}" >> ${GITHUB_OUTPUT}
+            echo "PR_BASE_REF=${PR_BASE_REF}" >> ${GITHUB_OUTPUT}
+            # TODO: should this build on top of the merge commit? or HEAD?
+            #       if HEAD, what is the equivalent to github.event.pull_request.head.sha ?
+            echo "PR_CHECKOUT=refs/pull/${{ inputs.pr }}/merge" >> ${GITHUB_OUTPUT}
+            echo "Found Pull Request #${{ inputs.pr }} by @$(jq .author.login <<<${pr})"
+            echo "Pull from ${PR_REPO}:${PR_REF} into ${PR_BASE_REF}"
+            echo "URL: $(jq -r .url <<<${pr})"
+            exit 0
+          else
+            echo "INVALID INPUT: pr"
+            echo "pr must be a PR number, or the magic string 'new'."
+            exit 1
+          fi
+
+  regenerate:
+    name: Regenerated requested lockfiles
+    needs: input_vars
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
+          ref: ${{ needs.input_vars.outputs.PR_CHECKOUT }}
+
+      - name: Initialize Pants and its GHA caches
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-BUILD
+
+      - name: Regenerate ALL lockfiles
+        if: ${{ inputs.resolves == '' }}
+        run: |
+          pants generate-lockfiles
+
+      - name: Regenerate selected lockfiles
+        if: ${{ inputs.resolves != '' }}
+        run: >
+          pants generate-lockfiles
+          --resolve=${{ join(fromJSON(needs.input_vars.outputs.RESOLVES_JSON), ' --resolve=') }}
+
+      # TODO: capture diff output for use in commit message
+      # TODO: create commit
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v4
+        with:
+          name: pants-log-py${{ matrix.python-version }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
