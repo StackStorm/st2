@@ -153,6 +153,8 @@ jobs:
     strategy:
       matrix:
         resolve: ${{ fromJSON(needs.resolves.ouptuts.JSON) }}
+    outputs:
+      LOCKFILE_DIFF: ${{ steps.lockfile.outputs.DIFF }} # This has ansi escape chars!
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -168,20 +170,26 @@ jobs:
           gha-cache-key: cache0-BUILD
 
       - name: Regenerate lockfiles/${{ matrix.resolve }}.lock
+        id: lockfile
         env:
-          STDOUT_LOG: ${{ runner.temp }}/pants-gen-lock.stdout.log
+          # We only need stderr, because generate-lockfiles puts the diff on stderr.
+          # Nothing else should be on stderr because Pants disables logging to stderr when
+          # it detects the stderr redirection. (NOTE: stdout should be empty.)
           STDERR_LOG: ${{ runner.temp }}/pants-gen-lock.stderr.log
         run: |
           pants generate-lockfiles '--resolve=${{ matrix.resolve }}' \
-            > >(tee ${STDOUT_LOG}) \
-            2> >(tee ${STDERR_LOG} >&2)
+            2> >(tee ${STDERR_LOG} >&2 )
+          {
+            echo 'DIFF<<LOCKFILEDIFF'
+            cat ${STDERR_LOG}
+            echo LOCKFILEDIFF
+          } >> ${GITHUB_OUTPUT}
 
-      # TODO: capture diff output for use in commit message
       # TODO: create commit
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
         with:
-          name: pants-log-py${{ matrix.python-version }}
+          name: pants-log-${{ matrix.resolve }}
           path: .pants.d/pants.log
         if: always()  # We want the log even on failures.
