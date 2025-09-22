@@ -46,12 +46,12 @@ setup(
     author="StackStorm",
     author_email="info@stackstorm.com",
     url="https://stackstorm.com/",
+    license="Apache-2.0",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
