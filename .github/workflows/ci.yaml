@@ -235,7 +235,7 @@ jobs:
         run: |
           cd ./st2client
           pip3 install --upgrade pip
-          python3 setup.py develop
+          pip install -e .
 
       - name: Run self-verification script
         env:
