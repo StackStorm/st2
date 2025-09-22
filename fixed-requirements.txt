@@ -74,7 +74,6 @@ tooz==6.3.0
 virtualenv==20.34.0
 # This setuptools version number is in the Makefile, but CircleCI builds are pulling a version
 # that is incompatible with our logshipper fork.
-setuptools<78
 webob==1.8.9
 webtest==3.0.1
 zake==0.2.2

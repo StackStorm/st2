@@ -37,7 +37,6 @@ networkx==3.1
 orjson==3.10.15
 orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 oslo.config==9.6.0
-oslo.serialization
 oslo.utils==7.3.0
 paramiko==3.5.1
 prettytable==3.10.2
@@ -62,7 +61,7 @@ requests==2.32.4
 retrying==1.4.2
 routes==2.5.1
 semver==3.0.4
-setuptools<78
+setuptools
 simplejson
 six==1.17.0
 sseclient-py==1.8.0
