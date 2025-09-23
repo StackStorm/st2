@@ -185,7 +185,7 @@ jobs:
       - name: Regenerate ${{ matrix.resolve }} lockfile
         id: lockfile
         env:
-          PR_BASE_REF: ${{ needs.jobs.pr.outputs.PR_BASE_REF }}
+          PR_BASE_REF: ${{ needs.pr.outputs.PR_BASE_REF }}
         run: |
           mkdir -p ${OUTPUT_DIR}/
           git checkout ${{ env.PR_BASE_REF }} -- ${LOCKFILE}  # diff is for whole PR not just a commit.
