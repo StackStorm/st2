@@ -218,6 +218,25 @@ jobs:
             done
           done
 
+      - name: Prepare text-only lockfile diff for commit message
+        env:
+          # This sed script replaces ansi escape chars with unicode for use in the commit msg.
+          SED_SCRIPT: |
+            /^\x1B\[4m\( \+\)\(\x1B\[0m\)\?$/{ # line above headings (spaces with ansi underline)
+              s/ /_/g; # use underline char instead of space
+            }
+            # the next one adds a line of overline chars to replace the ansi overline
+            /^== .* ==$/{ # heading text line (the matched line goes in pattern space)
+              h;       # save copy of heading line in "hold" space
+              s/./‾/g; # make an line of overline chars to replace the heading's ansi underline
+              H;       # update "hold" space: append newline and line of overline chars
+              g        # replace the original line with lines from the "hold" space
+            }
+            /^\x1B\[0m$/d # drop blank line after heading (replaced with line of overline chars)
+            s/\x1B\[[0-9]\+m//g # strip out ansi escapes
+        run: |
+          sed -e "${SED_SCRIPT}" > ${STDERR_LOG}.txt
+
       # TODO: create commit
 
       - name: Upload pants log
