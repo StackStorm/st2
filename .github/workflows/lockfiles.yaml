@@ -237,7 +237,13 @@ jobs:
         run: |
           sed -e "${SED_SCRIPT}" > ${STDERR_LOG}.txt
 
-      # TODO: create commit
+      # TODO: create commit in a subsequent job to combine all of the updates in one commit
+
+      - name: Upload lockfile diff files
+        uses: actions/upload-artifact@v4
+        with:
+          name: lockfile-${{ matrix.resolve }}
+          path: ${{ env.OUTPUT_DIR }}
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
