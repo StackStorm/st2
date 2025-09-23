@@ -17,6 +17,10 @@ on:
       # FIXME: Add a baseRef for use when creating a 'new' PR to target a release branch.
       # FOr now, open the PR to alternate branches first, and then run this workflow.
 
+env:
+  # logs and screenshots go in {OUTPUT_BASE_DIR}/lockfile-{resolve}/ (where "lockfile-{resolve}" is the artifact name)
+  OUTPUT_BASE_DIR: dist/lockfiles # /dist/ is in .gitignore
+
 jobs:
   resolves:
     name: Preprocess input var - resolves
@@ -160,8 +164,8 @@ jobs:
       # We only need stderr, because generate-lockfiles puts the diff on stderr.
       # Nothing else should be on stderr because Pants disables logging to stderr when
       # it detects the stderr redirection. (NOTE: stdout should be empty.)
-      OUTPUT_DIR: dist/lockfiles/${{ matrix.resolve }} # /dist/ is in .gitignore
-      STDERR_LOG: dist/lockfiles/${{ matrix.resolve }}/stderr.log
+      OUTPUT_DIR: ${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}
+      STDERR_LOG: ${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}/stderr.log
     outputs:
       CHANGED: ${{ steps.lockfile.outputs.CHANGED }}
     steps:
@@ -287,9 +291,7 @@ jobs:
             echo
           ) | tee -a ${STDERR_LOG}.md >> ${GITHUB_STEP_SUMMARY}
 
-      # TODO: create commit in a subsequent job to combine all of the updates in one commit
-
-      - name: Upload lockfile diff files
+      - name: Upload lockfile and lockfile diff files
         uses: actions/upload-artifact@v4
         with:
           name: lockfile-${{ matrix.resolve }}
@@ -302,3 +304,19 @@ jobs:
           name: pants-log-${{ matrix.resolve }}
           path: .pants.d/pants.log
         if: always()  # We want the log even on failures.
+
+  commit:
+    name: Commit regenerated ${{ matrix.resolve }} lockfile(s)
+    needs: [resolves, pr]
+    runs-on: ubuntu-22.04
+    env:
+      COMMIT_MSG: ${{ env.OUTPUT_BASE_DIR }}/commit_msg
+    steps:
+      - name: Download lockfiles and lockfile diff files
+        uses: actions/download-artifact@v5
+        with:
+          pattern: lockfile-* # lockfile-{resolve}
+          path: ${{ env.OUTPUT_BASE_DIR }}
+          merge-multiple: true
+
+      # TODO: create commit to combine all of the updates in one commit
