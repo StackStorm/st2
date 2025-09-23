@@ -162,6 +162,8 @@ jobs:
       # it detects the stderr redirection. (NOTE: stdout should be empty.)
       OUTPUT_DIR: dist/lockfiles/${{ matrix.resolve }} # /dist/ is in .gitignore
       STDERR_LOG: dist/lockfiles/${{ matrix.resolve }}/stderr.log
+    outputs:
+      CHANGED: ${{ steps.lockfile.outputs.CHANGED }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -178,17 +180,30 @@ jobs:
 
       - name: Regenerate ${{ matrix.resolve }} lockfile
         id: lockfile
+        env:
+          PR_BASE_REF: ${{ needs.jobs.pr.outputs.PR_BASE_REF }}
         run: |
           mkdir -p ${OUTPUT_DIR}/
+          git checkout ${{ env.PR_BASE_REF }} -- ${LOCKFILE}  # diff is for whole PR not just a commit.
           pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee ${STDERR_LOG} >&2 )
           cp ${LOCKFILE} ${OUTPUT_DIR}/
+          CHANGED=$(
+            if git diff ${{ env.PR_BASE_REF }} --exit-code --quiet -- ${LOCKFILE}; then
+              echo "false"
+            else
+              echo "true"
+            fi
+          )
+          echo "CHANGED=${CHANGED}" | tee -a ${GITHUB_OUTPUT}
 
       - name: Install rsvg-convert for freeze
+        if: steps.lockfile.outputs.CHANGED == 'true'
         # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
         run: |
           sudo apt-get install librsvg2-bin
 
       - name: Install freeze
+        if: steps.lockfile.outputs.CHANGED == 'true'
         uses: robinraju/release-downloader@v1
         with:
           repository: charmbracelet/freeze
@@ -197,6 +212,7 @@ jobs:
           extract: true
 
       - name: Freeze lockfile diff as picture
+        if: steps.lockfile.outputs.CHANGED == 'true'
         # For samples of the themes freeze can use when generating a "terminal screenshot", see:
         #   - "charm" theme (default): https://github.com/charmbracelet/freeze
         #   - all other themes: https://xyproto.github.io/splash/docs/
@@ -219,6 +235,7 @@ jobs:
           done
 
       - name: Prepare text-only lockfile diff for commit message
+        if: steps.lockfile.outputs.CHANGED == 'true'
         env:
           # This sed script replaces ansi escape chars with unicode for use in the commit msg.
           SED_SCRIPT: |
@@ -238,6 +255,7 @@ jobs:
           sed -e "${SED_SCRIPT}" > ${STDERR_LOG}.txt
 
       - name: Prepare Job Summary
+        if: steps.lockfile.outputs.CHANGED == 'true'
         run: |
           (
             echo '## ${{ matrix.resolve }} Lockfile Diff'
@@ -271,6 +289,7 @@ jobs:
         with:
           name: lockfile-${{ matrix.resolve }}
           path: ${{ env.OUTPUT_DIR }}
+        if: steps.lockfile.outputs.CHANGED == 'true'
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
