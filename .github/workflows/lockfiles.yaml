@@ -138,14 +138,14 @@ jobs:
             echo "Found Pull Request #${{ inputs.pr }} by @$(jq .author.login <<< ${PR})"
             echo "URL: $(jq -r .url <<< ${PR})"
           fi
-          echo "JSON=${PR}" >> ${GITHUB_OUTPUT}
-          echo "CHECKOUT_REF=${CHECKOUT_REF}" >> ${GITHUB_OUTPUT}
+          echo "JSON=${PR}" | tee -a ${GITHUB_OUTPUT}
+          echo "CHECKOUT_REF=${CHECKOUT_REF}" | tee -a ${GITHUB_OUTPUT}
           PR_REPO=$(jq -r '.headRepositoryOwner.login + "/" + .headRepository.name' <<< ${PR})
           PR_REF=$(jq -r '.headRefName' <<< ${PR})
           PR_BASE_REF=$(jq -r '.baseRefName' <<< ${PR})
-          echo "PR_REPO=${PR_REPO}" >> ${GITHUB_OUTPUT}
-          echo "PR_REF=${PR_REF}" >> ${GITHUB_OUTPUT}
-          echo "PR_BASE_REF=${PR_BASE_REF}" >> ${GITHUB_OUTPUT}
+          echo "PR_REPO=${PR_REPO}" | tee -a ${GITHUB_OUTPUT}
+          echo "PR_REF=${PR_REF}" | tee -a ${GITHUB_OUTPUT}
+          echo "PR_BASE_REF=${PR_BASE_REF}" | tee -a ${GITHUB_OUTPUT}
           echo "Pull from ${PR_REPO}:${PR_REF} into ${PR_BASE_REF}"
 
   regenerate:
@@ -253,6 +253,8 @@ jobs:
             echo
             echo '<details>'
             echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
+            echo
+            echo 'Base git ref for diff: *${{ steps.pr.outputs.PR_BASE_REF }}* '
             echo
             echo '```'
             cat ${STDERR_LOG}.txt
