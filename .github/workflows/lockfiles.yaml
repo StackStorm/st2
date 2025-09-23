@@ -307,16 +307,55 @@ jobs:
 
   commit:
     name: Commit regenerated ${{ matrix.resolve }} lockfile(s)
-    needs: [resolves, pr]
+    needs: [resolves, pr, regenerate]
     runs-on: ubuntu-22.04
     env:
-      COMMIT_MSG: ${{ env.OUTPUT_BASE_DIR }}/commit_msg
+      COMMIT_MSG: ${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt
+      PR_COMMENT: ${{ env.OUTPUT_BASE_DIR }}/pr_comment.md
+      # preserve the order of resolves from input (eg pants.toml has st2 first, before tools)
+      RESOLVES: ${{ join(fromJSON(needs.resolves.ouptuts.JSON), ''' ''') }}
+      RESOLVES_CSV: ${{ join(fromJSON(needs.resolves.ouptuts.JSON), ', ') }}
+      LOCKFILES: ${{ needs.resolves.outputs.LOCKFILES }}
     steps:
       - name: Download lockfiles and lockfile diff files
         uses: actions/download-artifact@v5
         with:
           pattern: lockfile-* # lockfile-{resolve}
           path: ${{ env.OUTPUT_BASE_DIR }}
-          merge-multiple: true
+          merge-multiple: true # unpack in {path}/{artifact_name}/
+
+      - name: Prepare commit
+        run: |
+          echo "pants generate-lockfiles: ${RESOLVES_CSV}" > ${COMMIT_MSG}
+          echo >> ${COMMIT_MSG}
+          for resolve in ${RESOLVES}; do
+            LOCKFILE=$(jq '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
+            cp "${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE})" "${LOCKFILE}"
+            git add "${LOCKFILE}"
+            STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
+            if [ -e ${STDERR_LOG}.txt ]; then
+              cat ${STDERR_LOG}.txt >> ${COMMIT_MSG}
+            else
+              echo "${STDERR_LOG}.txt is missing"
+              echo "No changes to: ${LOCKFILE}" >> ${COMMIT_MSG}
+              echo >> ${COMMIT_MSG}
+            fi
+          done
+
+      - name: Prepare PR comment
+        run: |
+          echo "# Lockfile Diffs" > ${PR_COMMENT}
+          echo >> ${PR_COMMENT}
+          for resolve in ${RESOLVES}; do
+            LOCKFILE=$(jq '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
+            STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
+            if [ -e ${STDERR_LOG}.md ]; then
+              cat ${STDERR_LOG}.md >> ${PR_COMMENT}
+            else
+              echo "${STDERR_LOG}.md is missing"
+              echo "No changes to: `${LOCKFILE}`" >> ${PR_COMMENT}
+              echo >> ${PR_COMMENT}
+            fi
+          done
 
       # TODO: create commit to combine all of the updates in one commit
