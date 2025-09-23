@@ -183,6 +183,41 @@ jobs:
           pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee ${STDERR_LOG} >&2 )
           cp ${LOCKFILE} ${OUTPUT_DIR}/
 
+      - name: Install rsvg-convert for freeze
+        # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
+        run: |
+          sudo apt-get install librsvg2-bin
+
+      - name: Install freeze
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: charmbracelet/freeze
+          tag: v0.2.2
+          fileName: freeze_*_${{ runner.os }}_${{ fromJSON('{"X86":"i386","X64":"x86_64","ARM":"arm","ARM64":"arm64"}')[runner.arch] }}.tar.gz
+          extract: true
+
+      - name: Freeze lockfile diff as picture
+        # For samples of the themes freeze can use when generating a "terminal screenshot", see:
+        #   - "charm" theme (default): https://github.com/charmbracelet/freeze
+        #   - all other themes: https://xyproto.github.io/splash/docs/
+        env:
+          # Freeze processes the output line-by-line, so the ansi escape sequences
+          # that span multiple lines only apply to the first line.
+          # This sed script repeats those ansi escape sequences on each line.
+          SED_SCRIPT: |
+            s/^\x1B\[4m \+$/\0\x1B[0m/     # append ansi reset on line above heading
+            s/^== .* ==$/\x1B[4m\0\x1B[0m/ # add ansi underline to headling
+            s/^\x1b\[0m$//                 # drop ansi reset after the heading
+        run: |
+          for theme in github github-dark; do
+            for ext in svg png; do
+              # The diff output applies ansi underlines across multiple lines, but freeze formats
+              # each line separately. So, use sed to repeat ansi chars per line.
+              sed -e "${SED_SCRIPT}" ${STDERR_LOG} \
+              | freeze --config full --language ansi --theme ${theme} --output ${STDERR_LOG}.${theme}.${ext} -
+            done
+          done
+
       # TODO: create commit
 
       - name: Upload pants log
