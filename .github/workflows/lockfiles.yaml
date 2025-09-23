@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       JSON: ${{ steps.resolves.outputs.JSON }}
+      LOCKFILES: ${{ steps.resolves.outputs.LOCKFILES }}
     steps:
       - name: Validate input var - resolves
         run: |
@@ -48,9 +49,10 @@ jobs:
                 -f 'ref=${{ github.sha }}'
             )
             JSON=$(yq -e -p toml '.python.resolves|keys()' -o json -I 0 <<< ${pants_toml})
+            LOCKFILES=$(yq -e -p toml '.python.resolves' -o json -I 0 <<< ${pants_toml})
           fi
-          echo ${JSON}
-          echo "JSON=${JSON}" >> ${GITHUB_OUTPUT}
+          echo "JSON=${JSON}" | tee -a ${GITHUB_OUTPUT}
+          echo "LOCKFILES=${LOCKFILES}" | tee -a ${GITHUB_OUTPUT}
 
   pr:
     name: Preprocess input var - pr
@@ -147,14 +149,19 @@ jobs:
           echo "Pull from ${PR_REPO}:${PR_REF} into ${PR_BASE_REF}"
 
   regenerate:
-    name: Regenerate lockfiles/${{ matrix.resolve }}.lock
+    name: Regenerate ${{ matrix.resolve }} lockfile
     needs: [resolves, pr]
     runs-on: ubuntu-22.04
     strategy:
       matrix:
         resolve: ${{ fromJSON(needs.resolves.ouptuts.JSON) }}
-    outputs:
-      LOCKFILE_DIFF: ${{ steps.lockfile.outputs.DIFF }} # This has ansi escape chars!
+    env:
+      LOCKFILE: ${{ fromJSON(needs.resolves.outputs.LOCKFILES)[matrix.resolve] }}
+      # We only need stderr, because generate-lockfiles puts the diff on stderr.
+      # Nothing else should be on stderr because Pants disables logging to stderr when
+      # it detects the stderr redirection. (NOTE: stdout should be empty.)
+      OUTPUT_DIR: dist/lockfiles/${{ matrix.resolve }} # /dist/ is in .gitignore
+      STDERR_LOG: dist/lockfiles/${{ matrix.resolve }}/stderr.log
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -169,21 +176,12 @@ jobs:
           # To ignore a bad cache, bump the cache* integer.
           gha-cache-key: cache0-BUILD
 
-      - name: Regenerate lockfiles/${{ matrix.resolve }}.lock
+      - name: Regenerate ${{ matrix.resolve }} lockfile
         id: lockfile
-        env:
-          # We only need stderr, because generate-lockfiles puts the diff on stderr.
-          # Nothing else should be on stderr because Pants disables logging to stderr when
-          # it detects the stderr redirection. (NOTE: stdout should be empty.)
-          STDERR_LOG: ${{ runner.temp }}/pants-gen-lock.stderr.log
         run: |
-          pants generate-lockfiles '--resolve=${{ matrix.resolve }}' \
-            2> >(tee ${STDERR_LOG} >&2 )
-          {
-            echo 'DIFF<<LOCKFILEDIFF'
-            cat ${STDERR_LOG}
-            echo LOCKFILEDIFF
-          } >> ${GITHUB_OUTPUT}
+          mkdir -p ${OUTPUT_DIR}/
+          pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee ${STDERR_LOG} >&2 )
+          cp ${LOCKFILE} ${OUTPUT_DIR}/
 
       # TODO: create commit
 
