@@ -237,6 +237,31 @@ jobs:
         run: |
           sed -e "${SED_SCRIPT}" > ${STDERR_LOG}.txt
 
+      - name: Prepare Job Summary
+        run: |
+          (
+            echo '## ${{ matrix.resolve }} Lockfile Diff'
+            echo
+            echo '<picture>'
+            echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.svg">'
+            echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.png">'
+            echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.svg">'
+            echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.png">'
+            echo '  <img alt="Terminal screenshot of lockfile diff in color. The text from the image is included below."'
+            echo '    src="stderr.log.github.png">'
+            echo '</picture>'
+            echo
+            echo '<details>'
+            echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
+            echo
+            echo '```'
+            cat ${STDERR_LOG}.txt
+            echo '```'
+            echo
+            echo '</details>'
+            echo
+          ) >> ${GITHUB_STEP_SUMMARY}
+
       # TODO: create commit in a subsequent job to combine all of the updates in one commit
 
       - name: Upload lockfile diff files
