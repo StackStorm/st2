@@ -47,15 +47,15 @@ jobs:
               'repos/${{ github.repository }}/contents/pants.toml' \
               -f 'ref=${{ github.sha }}'
           )
-          LOCKFILES=$(yq -e -p toml '.python.resolves' -o json -I 0 <<< ${pants_toml})
+          LOCKFILES=$(yq -e -p toml '.python.resolves' -o json -I 0 <<< "${pants_toml}")
           if [[ "${{ inputs.resolves }}" != "" ]]; then
             JSON=$(jq -c '.|split(",")' <<< '"${{ inputs.resolves }}"')
           else
             # Pull pants.toml from the branch that the workflow runs from
-            JSON=$(yq -e -p toml '.python.resolves|keys()' -o json -I 0 <<< ${pants_toml})
+            JSON=$(yq -e -p toml '.python.resolves|keys()' -o json -I 0 <<< "${pants_toml}")
           fi
-          echo "JSON=${JSON}" | tee -a ${GITHUB_OUTPUT}
-          echo "LOCKFILES=${LOCKFILES}" | tee -a ${GITHUB_OUTPUT}
+          echo "JSON=${JSON}" | tee -a "${GITHUB_OUTPUT}"
+          echo "LOCKFILES=${LOCKFILES}" | tee -a "${GITHUB_OUTPUT}"
 
   pr:
     name: Preprocess input var - pr
