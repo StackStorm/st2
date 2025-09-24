@@ -216,6 +216,8 @@ jobs:
       - name: Install rsvg-convert for freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
         # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
+        env:
+          DEBIAN_FRONTEND: noninteractive # get rid of the progress bars
         run: |
           sudo apt-get install librsvg2-bin
 
@@ -227,6 +229,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download "v${VERSION}" \
+            -R "charmbracelet/freeze" \
             --pattern "freeze_*_${RUNNER_OS}_${GOARCH}.tar.gz" \
             --output "${RUNNER_TEMP}/freeze.tar.gz"
           tar xzf "${RUNNER_TEMP}/freeze.tar.gz" \
