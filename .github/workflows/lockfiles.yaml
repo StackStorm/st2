@@ -217,7 +217,7 @@ jobs:
         if: steps.lockfile.outputs.CHANGED == 'true'
         # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
         run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install librsvg2-bin < /dev/null # null stdin disables extra dpkg output
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Use-Pty=0 install librsvg2-bin
 
       - name: Install freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
@@ -235,9 +235,7 @@ jobs:
             --strip-components=1 \
             --wildcards \
             '*/freeze'
-          ls -l ~/.local/bin
-          chmod +x ~/.local/bin/freeze
-          ls -l ~/.local/bin
+          [[ -x ~/.local/bin/freeze ]] || chmod +x ~/.local/bin/freeze
 
       - name: Freeze lockfile diff as picture
         if: steps.lockfile.outputs.CHANGED == 'true'
