@@ -47,7 +47,7 @@ jobs:
           )
           LOCKFILES=$(yq -e -p toml '.python.resolves' -o json -I 0 <<< ${pants_toml})
           if [[ "${{ inputs.resolves }}" != "" ]]; then
-            JSON=$(jq '.|split(",")' <<< '"${{ inputs.resolves }}"')
+            JSON=$(jq -c '.|split(",")' <<< '"${{ inputs.resolves }}"')
           else
             # Pull pants.toml from the branch that the workflow runs from
             JSON=$(yq -e -p toml '.python.resolves|keys()' -o json -I 0 <<< ${pants_toml})
@@ -136,7 +136,7 @@ jobs:
               echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification!"
               exit 4
             fi
-            echo "Found Pull Request #${{ inputs.pr }} by @$(jq .author.login <<< ${PR})"
+            echo "Found Pull Request #${{ inputs.pr }} by @$(jq -r .author.login <<< ${PR})"
             echo "URL: $(jq -r .url <<< ${PR})"
           fi
           echo "JSON=${PR}" | tee -a ${GITHUB_OUTPUT}
@@ -350,7 +350,7 @@ jobs:
           echo "pants generate-lockfiles: ${RESOLVES_CSV}" > ${COMMIT_MSG}
           echo >> ${COMMIT_MSG}
           for resolve in ${RESOLVES}; do
-            LOCKFILE=$(jq '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
+            LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             cp "${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE})" "${LOCKFILE}"
             git add "${LOCKFILE}"
             STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
@@ -370,7 +370,7 @@ jobs:
           echo "# Lockfile Diffs" > ${PR_COMMENT}
           echo >> ${PR_COMMENT}
           for resolve in ${RESOLVES}; do
-            LOCKFILE=$(jq '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
+            LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
             if [ -e ${STDERR_LOG}.md ]; then
               cat ${STDERR_LOG}.md >> ${PR_COMMENT}
