@@ -231,7 +231,7 @@ jobs:
             --pattern "freeze_*_${RUNNER_OS}_${GOARCH}.tar.gz" \
             --output "${RUNNER_TEMP}/freeze.tar.gz"
           tar xzf "${RUNNER_TEMP}/freeze.tar.gz" \
-            -C ~/.local/bin/freeze \
+            -C ~/.local/bin \
             --strip-components=1 \
             --wildcards \
             '*/freeze'
