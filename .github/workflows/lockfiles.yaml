@@ -418,7 +418,7 @@ jobs:
 
       - name: Prepare PR comment
         env:
-          RUN_LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          RUN_LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           echo "# Lockfile Diffs" > "${PR_COMMENT}"
           echo >> "${PR_COMMENT}"
