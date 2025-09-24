@@ -233,6 +233,7 @@ jobs:
           tar xzf "${RUNNER_TEMP}/freeze.tar.gz" \
             -C ~/.local/bin/freeze \
             --strip-components=1 \
+            --wildcards \
             '*/freeze'
           ls -l ~/.local/bin
           chmod +x ~/.local/bin/freeze
