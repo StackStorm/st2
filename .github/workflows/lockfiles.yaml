@@ -452,7 +452,7 @@ jobs:
           --base "${{ needs.pr.outputs.PR_BASE_REF }}"
           --title "pants generate-lockfiles: ${RESOLVES_CSV}"
           --body-file "${PR_COMMENT}"
-          --reviewer "Maintainers"
+          --reviewer "${{ github.repository_owner }}/Maintainers"
           --assignee "${{ github.event.sender.login }}"
           --label "external dependency"
           --label "python3"
