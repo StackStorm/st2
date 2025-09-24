@@ -437,9 +437,11 @@ jobs:
 
       - name: Commit and push
         if: env.CHANGED == 'true'
+        # git push --force is for workflow re-runs, but only for new PRs.
         run: |
           git commit -F "${COMMIT_MSG}"
-          git push -u origin "${{ needs.pr.outputs.PR_REF }}"
+          git push${{ inputs.pr == 'new' && ' --force' || '' }} \
+            -u origin "${{ needs.pr.outputs.PR_REF }}"
 
       - name: Create new PR
         if: inputs.pr == 'new' && env.CHANGED == 'true'
