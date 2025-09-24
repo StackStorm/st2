@@ -357,6 +357,8 @@ jobs:
           done
 
       - name: Prepare PR comment
+        env:
+          RUN_LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
         run: |
           echo "# Lockfile Diffs" > ${PR_COMMENT}
           echo >> ${PR_COMMENT}
@@ -371,6 +373,7 @@ jobs:
               echo >> ${PR_COMMENT}
             fi
           done
+          echo ":robot: [GitHub Actions Workflow Run](${RUN_LINK})" >> ${PR_COMMENT}
 
       - name: Commit and push
         run: |
@@ -388,3 +391,12 @@ jobs:
           --assignee "${{ github.event.sender.login }}"
           --label "external dependency"
           --label "python3"
+
+      # TODO This updates an existing comment. Should it just add a new comment on re-run?
+      - name: Comment on existing PR
+        if: ${{ inputs.pr != 'new' }}
+        run: >
+          gh pr comment ${{ inputs.pr }}
+          --body-file "${PR_COMMENT}"
+          --edit-last
+          --create-if-none
