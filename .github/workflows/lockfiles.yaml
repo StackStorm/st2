@@ -293,8 +293,8 @@ jobs:
             echo
           ) | tee -a ${STDERR_LOG}.md >> ${GITHUB_STEP_SUMMARY}
           (
-            echo '[!NOTE]'
-            echo 'Diff base (git ref): *${{ needs.pr.outputs.PR_BASE_REF }}*'
+            echo '> [!NOTE]'
+            echo '> Diff base (git ref): *${{ needs.pr.outputs.PR_BASE_REF }}*'
             echo
           ) >> ${GITHUB_STEP_SUMMARY} # only add this note to the job summary
           if [ "${{ steps.lockfile.outputs.CHANGED }} == true" ]; then
