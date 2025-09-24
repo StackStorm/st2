@@ -317,6 +317,20 @@ jobs:
       RESOLVES_CSV: ${{ join(fromJSON(needs.resolves.ouptuts.JSON), ', ') }}
       LOCKFILES: ${{ needs.resolves.outputs.LOCKFILES }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
+          ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
+
+      - name: Create branch for new PR
+        if: ${{ inputs.pr == 'new' }}
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "${{ needs.pr.outputs.PR_REF }}" FETCH_HEAD
+
       - name: Download lockfiles and lockfile diff files
         uses: actions/download-artifact@v5
         with:
@@ -358,4 +372,7 @@ jobs:
             fi
           done
 
-      # TODO: create commit to combine all of the updates in one commit
+      - name: Commit and push
+        run: |
+          git commit -F "${COMMIT_MSG}"
+          git push -u origin "${{ needs.pr.outputs.PR_REF }}"
