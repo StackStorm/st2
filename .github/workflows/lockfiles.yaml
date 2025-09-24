@@ -215,6 +215,8 @@ jobs:
 
       - name: Install rsvg-convert and JetBrains Mono font for freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
         # But, rsvg-convert doesn't handle woff font freeze embeds in the svg, so install the font.
         run: |
