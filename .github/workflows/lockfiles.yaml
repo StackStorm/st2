@@ -208,10 +208,10 @@ jobs:
               echo "true"
             fi
           )
-          echo "CHANGED=${CHANGED}" | tee -a ${GITHUB_OUTPUT}
+          echo "CHANGED=${CHANGED}" | tee -a "${GITHUB_OUTPUT}"
           # The last job's outputs overwrite the outputs of other jobs in matrix.
           # So, matrix jobs should not use job outputs. Workaround: use artifacts.
-          echo "${CHANGED}" > "${OUTPUT_DIR}/$(basename ${LOCKFILE}).CHANGED"
+          echo "${CHANGED}" > "${OUTPUT_DIR}/$(basename "${LOCKFILE}").CHANGED"
 
       - name: Install rsvg-convert and JetBrains Mono font for freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
@@ -381,18 +381,17 @@ jobs:
         run: |
           echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> "${GITHUB_ENV}"
           echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> "${GITHUB_ENV}"
-          CHANGED="false"
           for resolve in ${RESOLVES}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             CHANGED_FILE="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename "${LOCKFILE}").CHANGED"
-            if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}")" == true ]; then
+            if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}" | tr -d '[:space:]')" == true ]; then
               CHANGED="true"
               echo "${LOCKFILE} was modified"
             else
               echo "${LOCKFILE} was NOT modified"
             fi
           done
-          echo "CHANGED=${CHANGED}" >> "${GITHUB_ENV}"
+          echo "CHANGED=${CHANGED:-false}" | tee -a "${GITHUB_ENV}"
 
       - name: Prepare commit
         if: env.CHANGED == 'true'
