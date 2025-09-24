@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        resolve: ${{ fromJSON(needs.resolves.ouptuts.JSON) }}
+        resolve: ${{ fromJSON(needs.resolves.outputs.JSON) }}
     env:
       LOCKFILE: ${{ fromJSON(needs.resolves.outputs.LOCKFILES)[matrix.resolve] }}
       # see also the 'Setup env' step
@@ -318,8 +318,8 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       # preserve the order of resolves from input (eg pants.toml has st2 first, before tools)
-      RESOLVES: ${{ join(fromJSON(needs.resolves.ouptuts.JSON), ''' ''') }}
-      RESOLVES_CSV: ${{ join(fromJSON(needs.resolves.ouptuts.JSON), ', ') }}
+      RESOLVES: ${{ join(fromJSON(needs.resolves.outputs.JSON), ''' ''') }}
+      RESOLVES_CSV: ${{ join(fromJSON(needs.resolves.outputs.JSON), ', ') }}
       LOCKFILES: ${{ needs.resolves.outputs.LOCKFILES }}
       # see also the 'Setup env' step
     steps:
