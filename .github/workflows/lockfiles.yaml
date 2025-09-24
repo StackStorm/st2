@@ -213,11 +213,22 @@ jobs:
           # So, matrix jobs should not use job outputs. Workaround: use artifacts.
           echo "${CHANGED}" > "${OUTPUT_DIR}/$(basename ${LOCKFILE}).CHANGED"
 
-      - name: Install rsvg-convert for freeze
+      - name: Install rsvg-convert and JetBrains Mono font for freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
         # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
+        # But, rsvg-convert doesn't handle woff font freeze embeds in the svg, so install the font.
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Use-Pty=0 install librsvg2-bin
+          # yes, this is not great
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/JetBrains/JetBrainsMono/master/install_manual.sh)"
+          # Font install based on: https://github.com/JetBrains/JetBrainsMono/blob/v2.304/install_manual.sh
+          gh release download "v2.304" \
+            -R "JetBrains/JetBrainsMono" \
+            --pattern "JetBrainsMono-*.zip" \
+            --output "${RUNNER_TEMP}/JetBrainsMono.zip"
+          mkdir -p ~/.local/share/fonts
+          unzip -o "${RUNNER_TEMP}/JetBrainsMono.zip" -d ~/.local/share/fonts
+          fc-cache -f
 
       - name: Install freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
