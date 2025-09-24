@@ -216,10 +216,8 @@ jobs:
       - name: Install rsvg-convert for freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
         # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
-        env:
-          DEBIAN_FRONTEND: noninteractive # get rid of the progress bars
         run: |
-          sudo apt-get install librsvg2-bin
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install librsvg2-bin
 
       - name: Install freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
