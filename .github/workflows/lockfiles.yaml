@@ -376,3 +376,15 @@ jobs:
         run: |
           git commit -F "${COMMIT_MSG}"
           git push -u origin "${{ needs.pr.outputs.PR_REF }}"
+
+      - name: Create new PR
+        if: ${{ inputs.pr == 'new' }}
+        run: >
+          gh pr create
+          --base "${{ needs.pr.outputs.PR_BASE_REF }}"
+          --title "pants generate-lockfiles: ${RESOLVES_CSV}"
+          --body-file "${PR_COMMENT}"
+          --reviewer "Maintainers"
+          --assignee "${{ github.event.sender.login }}"
+          --label "external dependency"
+          --label "python3"
