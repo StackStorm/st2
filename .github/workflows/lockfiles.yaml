@@ -221,13 +221,21 @@ jobs:
 
       - name: Install freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
-        uses: robinraju/release-downloader@v1
-        with:
-          repository: charmbracelet/freeze
-          tag: v0.2.2
-          fileName: freeze_*_${{ runner.os }}_${{ fromJSON('{"X86":"i386","X64":"x86_64","ARM":"arm","ARM64":"arm64"}')[runner.arch] }}.tar.gz
-          extract: true
-          out-file-path: dist # relative to github.workspace
+        env:
+          VERSION: '0.2.2'
+          GOARCH: ${{ fromJSON('{"X86":"i386","X64":"x86_64","ARM":"arm","ARM64":"arm64"}')[runner.arch] }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v${VERSION}" \
+            --pattern "freeze_*_${RUNNER_OS}_${GOARCH}.tar.gz" \
+            --output "${RUNNER_TEMP}/freeze.tar.gz"
+          tar xzf "${RUNNER_TEMP}/freeze.tar.gz" \
+            -C ~/.local/bin/freeze \
+            --strip-components=1 \
+            '*/freeze'
+          ls -l ~/.local/bin
+          chmod +x ~/.local/bin/freeze
+          ls -l ~/.local/bin
 
       - name: Freeze lockfile diff as picture
         if: steps.lockfile.outputs.CHANGED == 'true'
@@ -242,16 +250,13 @@ jobs:
             s/^\x1B\[4m \+$/\0\x1B[0m/     # append ansi reset on line above heading
             s/^== .* ==$/\x1B[4m\0\x1B[0m/ # add ansi underline to headling
             s/^\x1b\[0m$//                 # drop ansi reset after the heading
-          FREEZE: dist/freeze
         run: |
-          ls -l dist
-          chmod +x "${FREEZE}"
           for theme in github github-dark; do
             for ext in svg png; do
               # The diff output applies ansi underlines across multiple lines, but freeze formats
               # each line separately. So, use sed to repeat ansi chars per line.
               sed -e "${SED_SCRIPT}" ${STDERR_LOG} \
-              | "${FREEZE}" --config full --language ansi --theme ${theme} --output ${STDERR_LOG}.${theme}.${ext} -
+              | freeze --config full --language ansi --theme ${theme} --output ${STDERR_LOG}.${theme}.${ext} -
             done
           done
 
