@@ -99,7 +99,8 @@ jobs:
           if [[ "${{ inputs.pr }}" == new ]]; then
             echo "Planning new Pull Request metadata ..."
             PR=$(
-              yq -e -p yaml . -o json -I 0 <<-HEREYAML
+              yq -e -p yaml . -o json -I 0 \
+          <<HEREYAML
               id: ""
               number: "new"
               url: ""
@@ -118,7 +119,7 @@ jobs:
                 name: "${GITHUB_REPOSITORY#*/}"
               headRefName: "regen-lockfiles-${GITHUB_RUN_ID}"
               baseRefName: "${GITHUB_REF_NAME}"
-              HEREYAML
+          HEREYAML
             )
             CHECKOUT_REF="${GITHUB_REF}"
           else
@@ -126,27 +127,27 @@ jobs:
             echo "Searching for Pull Request #${{ inputs.pr }} ..."
             PR=$(gh pr view "${{ inputs.pr }}" --json "${PR_FIELDS}")
             pr_search_rc=$?
-            if [ ${pr_search_rc} > 0 ]; then
+            if [ ${pr_search_rc} -gt 0 ]; then
               echo "Pull Request #${{ inputs.pr }} not found!"
               exit 2
-            elif (jq -e .closed <<< ${PR} >/dev/null); then
+            elif (jq -e .closed <<< "${PR}" >/dev/null); then
               echo "Pull Request #${{ inputs.pr }} is closed!"
               exit 3
-            elif ! (jq -e .maintainerCanModify <<< ${PR} >/dev/null); then
+            elif ! (jq -e .maintainerCanModify <<< "${PR}" >/dev/null); then
               echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification!"
               exit 4
             fi
-            echo "Found Pull Request #${{ inputs.pr }} by @$(jq -r .author.login <<< ${PR})"
-            echo "URL: $(jq -r .url <<< ${PR})"
+            echo "Found Pull Request #${{ inputs.pr }} by @$(jq -r .author.login <<< "${PR}")"
+            echo "URL: $(jq -r .url <<< "${PR}")"
           fi
-          echo "JSON=${PR}" | tee -a ${GITHUB_OUTPUT}
-          echo "CHECKOUT_REF=${CHECKOUT_REF}" | tee -a ${GITHUB_OUTPUT}
-          PR_REPO=$(jq -r '.headRepositoryOwner.login + "/" + .headRepository.name' <<< ${PR})
-          PR_REF=$(jq -r '.headRefName' <<< ${PR})
-          PR_BASE_REF=$(jq -r '.baseRefName' <<< ${PR})
-          echo "PR_REPO=${PR_REPO}" | tee -a ${GITHUB_OUTPUT}
-          echo "PR_REF=${PR_REF}" | tee -a ${GITHUB_OUTPUT}
-          echo "PR_BASE_REF=${PR_BASE_REF}" | tee -a ${GITHUB_OUTPUT}
+          echo "JSON=${PR}" | tee -a "${GITHUB_OUTPUT}"
+          echo "CHECKOUT_REF=${CHECKOUT_REF}" | tee -a "${GITHUB_OUTPUT}"
+          PR_REPO=$(jq -r '.headRepositoryOwner.login + "/" + .headRepository.name' <<< "${PR}")
+          PR_REF=$(jq -r '.headRefName' <<< "${PR}")
+          PR_BASE_REF=$(jq -r '.baseRefName' <<< "${PR}")
+          echo "PR_REPO=${PR_REPO}" | tee -a "${GITHUB_OUTPUT}"
+          echo "PR_REF=${PR_REF}" | tee -a "${GITHUB_OUTPUT}"
+          echo "PR_BASE_REF=${PR_BASE_REF}" | tee -a "${GITHUB_OUTPUT}"
           echo "Pull from ${PR_REPO}:${PR_REF} into ${PR_BASE_REF}"
 
   regenerate:
