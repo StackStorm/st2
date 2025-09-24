@@ -383,7 +383,10 @@ jobs:
           echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> "${GITHUB_ENV}"
           for resolve in ${RESOLVES}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
-            CHANGED_FILE="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename "${LOCKFILE}").CHANGED"
+            ARTIFACT_DIR="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}"
+            # Add a symlink when actions/aritifact-download skips making subdir for only one artifact
+            [ "${resolve}" == "${RESOLVES}" ] && ln -s "." "${ARTIFACT_DIR}"
+            CHANGED_FILE="${ARTIFACT_DIR}/$(basename "${LOCKFILE}").CHANGED"
             if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}" | tr -d '[:space:]')" == true ]; then
               CHANGED="true"
               echo "${LOCKFILE} was modified"
