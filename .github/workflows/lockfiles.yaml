@@ -358,6 +358,7 @@ jobs:
           echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> ${GITHUB_ENV}
           CHANGED="false"
           for resolve in ${RESOLVES}; do
+            LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             CHANGED_FILE="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE}).CHANGED"
             if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}")" == true ]; then
               CHANGED="true"
