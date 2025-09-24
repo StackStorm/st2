@@ -164,8 +164,6 @@ jobs:
     env:
       LOCKFILE: ${{ fromJSON(needs.resolves.outputs.LOCKFILES)[matrix.resolve] }}
       # see also the 'Setup env' step
-    outputs:
-      CHANGED: ${{ steps.lockfile.outputs.CHANGED }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -206,6 +204,9 @@ jobs:
             fi
           )
           echo "CHANGED=${CHANGED}" | tee -a ${GITHUB_OUTPUT}
+          # The last job's outputs overwrite the outputs of other jobs in matrix.
+          # So, matrix jobs should not use job outputs. Workaround: use artifacts.
+          echo "${CHANGED}" > "${OUTPUT_DIR}/$(basename ${LOCKFILE}).CHANGED"
 
       - name: Install rsvg-convert for freeze
         if: steps.lockfile.outputs.CHANGED == 'true'
@@ -266,26 +267,29 @@ jobs:
           sed -e "${SED_SCRIPT}" > ${STDERR_LOG}.txt
 
       - name: Prepare Job Summary
-        if: steps.lockfile.outputs.CHANGED == 'true'
         run: |
           (
             echo '## ${{ matrix.resolve }} Lockfile Diff'
             echo
-            echo '<picture>'
-            echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.svg">'
-            echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.png">'
-            echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.svg">'
-            echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.png">'
-            echo '  <img alt="Terminal screenshot of lockfile diff in color. The text from the image is included below."'
-            echo '    src="stderr.log.github.png">'
-            echo '</picture>'
-            echo
-            echo '<details>'
-            echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
-            echo
-            echo '```'
-            cat ${STDERR_LOG}.txt
-            echo '```'
+            if [ "${{ steps.lockfile.outputs.CHANGED }} != true" ]; then
+              echo 'No changes required for ${{ env.LOCKFILE }}'
+            else
+              echo '<picture>'
+              echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.svg">'
+              echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.png">'
+              echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.svg">'
+              echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.png">'
+              echo '  <img alt="Terminal screenshot of lockfile diff in color. The text from the image is included below."'
+              echo '    src="stderr.log.github.png">'
+              echo '</picture>'
+              echo
+              echo '<details>'
+              echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
+              echo
+              echo '```'
+              cat ${STDERR_LOG}.txt
+              echo '```'
+            fi
             echo
           ) | tee -a ${STDERR_LOG}.md >> ${GITHUB_STEP_SUMMARY}
           (
@@ -293,10 +297,12 @@ jobs:
             echo 'Diff base (git ref): *${{ steps.pr.outputs.PR_BASE_REF }}* '
             echo
           ) >> ${GITHUB_STEP_SUMMARY} # only add this note to the job summary
-          (
-            echo '</details>'
-            echo
-          ) | tee -a ${STDERR_LOG}.md >> ${GITHUB_STEP_SUMMARY}
+          if [ "${{ steps.lockfile.outputs.CHANGED }} == true" ]; then
+            (
+              echo '</details>'
+              echo
+            ) | tee -a ${STDERR_LOG}.md >> ${GITHUB_STEP_SUMMARY}
+          fi
 
       - name: Upload lockfile and lockfile diff files
         uses: actions/upload-artifact@v4
@@ -330,14 +336,8 @@ jobs:
           submodules: 'true'
           ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
 
-      # This step exists because we cannot use the 'env' context in 'jobs.<job>.env.*'.
-      - name: Setup env
-        run: |
-          echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> ${GITHUB_ENV}
-          echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> ${GITHUB_ENV}
-
       - name: Create branch for new PR
-        if: ${{ inputs.pr == 'new' }}
+        if: inputs.pr == 'new'
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -350,7 +350,26 @@ jobs:
           path: ${{ env.OUTPUT_BASE_DIR }}
           merge-multiple: true # unpack in {path}/{artifact_name}/
 
+      # This step exists because we cannot use the 'env' context in 'jobs.<job>.env.*',
+      # and because we cannot rely on 'jobs.<job>.outputs.*' for matrix jobs.
+      - name: Setup env
+        run: |
+          echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> ${GITHUB_ENV}
+          echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> ${GITHUB_ENV}
+          CHANGED="false"
+          for resolve in ${RESOLVES}; do
+            CHANGED_FILE="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE}).CHANGED"
+            if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}")" == true ]; then
+              CHANGED="true"
+              echo "${LOCKFILE} was modified"
+            else
+              echo "${LOCKFILE} was NOT modified"
+            fi
+          done
+          echo "CHANGED=${CHANGED}" >> ${GITHUB_ENV}
+
       - name: Prepare commit
+        if: env.CHANGED == 'true'
         run: |
           echo "pants generate-lockfiles: ${RESOLVES_CSV}" > ${COMMIT_MSG}
           echo >> ${COMMIT_MSG}
@@ -388,12 +407,13 @@ jobs:
           echo ":robot: [GitHub Actions Workflow Run](${RUN_LINK})" >> ${PR_COMMENT}
 
       - name: Commit and push
+        if: env.CHANGED == 'true'
         run: |
           git commit -F "${COMMIT_MSG}"
           git push -u origin "${{ needs.pr.outputs.PR_REF }}"
 
       - name: Create new PR
-        if: ${{ inputs.pr == 'new' }}
+        if: inputs.pr == 'new' && env.CHANGED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
@@ -406,9 +426,8 @@ jobs:
           --label "external dependency"
           --label "python3"
 
-      # TODO This updates an existing comment. Should it just add a new comment on re-run?
-      - name: Comment on existing PR
-        if: ${{ inputs.pr != 'new' }}
+      - name: Update or Add Comment on existing PR
+        if: inputs.pr != 'new'
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
