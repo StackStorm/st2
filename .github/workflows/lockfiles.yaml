@@ -14,9 +14,6 @@ on:
         required: true
         type: string
 
-      # FIXME: Add a baseRef for use when creating a 'new' PR to target a release branch.
-      # FOr now, open the PR to alternate branches first, and then run this workflow.
-
 env:
   # logs and screenshots go in {OUTPUT_BASE_DIR}/lockfile-{resolve}/ (where "lockfile-{resolve}" is the artifact name)
   OUTPUT_BASE_DIR: dist/lockfiles # /dist/ is in .gitignore
@@ -161,11 +158,7 @@ jobs:
         resolve: ${{ fromJSON(needs.resolves.ouptuts.JSON) }}
     env:
       LOCKFILE: ${{ fromJSON(needs.resolves.outputs.LOCKFILES)[matrix.resolve] }}
-      # We only need stderr, because generate-lockfiles puts the diff on stderr.
-      # Nothing else should be on stderr because Pants disables logging to stderr when
-      # it detects the stderr redirection. (NOTE: stdout should be empty.)
-      OUTPUT_DIR: ${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}
-      STDERR_LOG: ${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}/stderr.log
+      # see also the 'Setup env' step
     outputs:
       CHANGED: ${{ steps.lockfile.outputs.CHANGED }}
     steps:
@@ -181,6 +174,15 @@ jobs:
         with:
           # To ignore a bad cache, bump the cache* integer.
           gha-cache-key: cache0-BUILD
+
+      # This step exists because we cannot use the 'env' context in 'jobs.<job>.env.*'.
+      - name: Setup env
+        # We only need stderr, because generate-lockfiles puts the diff on stderr.
+        # Nothing else should be on stderr because Pants disables logging to stderr when
+        # it detects the stderr redirection. (NOTE: stdout should be empty.)
+        run: |
+          echo "OUTPUT_DIR=${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}" >> ${GITHUB_ENV}
+          echo "STDERR_LOG=${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}/stderr.log" >> ${GITHUB_ENV}
 
       - name: Regenerate ${{ matrix.resolve }} lockfile
         id: lockfile
@@ -310,12 +312,11 @@ jobs:
     needs: [resolves, pr, regenerate]
     runs-on: ubuntu-22.04
     env:
-      COMMIT_MSG: ${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt
-      PR_COMMENT: ${{ env.OUTPUT_BASE_DIR }}/pr_comment.md
       # preserve the order of resolves from input (eg pants.toml has st2 first, before tools)
       RESOLVES: ${{ join(fromJSON(needs.resolves.ouptuts.JSON), ''' ''') }}
       RESOLVES_CSV: ${{ join(fromJSON(needs.resolves.ouptuts.JSON), ', ') }}
       LOCKFILES: ${{ needs.resolves.outputs.LOCKFILES }}
+      # see also the 'Setup env' step
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -323,6 +324,12 @@ jobs:
           # a test uses a submodule, and pants needs access to it to calculate deps.
           submodules: 'true'
           ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
+
+      # This step exists because we cannot use the 'env' context in 'jobs.<job>.env.*'.
+      - name: Setup env
+        run: |
+          echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> ${GITHUB_ENV}
+          echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> ${GITHUB_ENV}
 
       - name: Create branch for new PR
         if: ${{ inputs.pr == 'new' }}
