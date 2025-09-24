@@ -392,6 +392,7 @@ jobs:
             fi
           done
           echo "CHANGED=${CHANGED:-false}" | tee -a "${GITHUB_ENV}"
+          ls -l "${{ env.OUTPUT_BASE_DIR }}" "${{ env.OUTPUT_BASE_DIR }}"/*
 
       - name: Prepare commit
         if: env.CHANGED == 'true'
@@ -425,7 +426,7 @@ jobs:
               cat "${STDERR_LOG}.md" >> "${PR_COMMENT}"
             else
               echo "${STDERR_LOG}.md is missing"
-              echo "No changes to: `${LOCKFILE}`" >> "${PR_COMMENT}"
+              echo 'No changes to: `'"${LOCKFILE}"'`' >> "${PR_COMMENT}"
               echo >> "${PR_COMMENT}"
             fi
           done
