@@ -309,7 +309,6 @@ jobs:
         with:
           name: lockfile-${{ matrix.resolve }}
           path: ${{ env.OUTPUT_DIR }}
-        if: steps.lockfile.outputs.CHANGED == 'true'
 
       - name: Upload pants log
         uses: actions/upload-artifact@v4
