@@ -39,6 +39,8 @@ jobs:
 
       - name: Get resolves in JSON
         id: resolves
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           pants_toml=$(
             gh api -X GET \
@@ -84,6 +86,7 @@ jobs:
       - name: Get pr in JSON
         id: pr
         env:
+          GH_TOKEN: ${{ github.token }}
           PR_FIELDS: "\
             id,\
             number,\
@@ -390,6 +393,8 @@ jobs:
 
       - name: Create new PR
         if: ${{ inputs.pr == 'new' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: >
           gh pr create
           --base "${{ needs.pr.outputs.PR_BASE_REF }}"
@@ -403,6 +408,8 @@ jobs:
       # TODO This updates an existing comment. Should it just add a new comment on re-run?
       - name: Comment on existing PR
         if: ${{ inputs.pr != 'new' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: >
           gh pr comment ${{ inputs.pr }}
           --body-file "${PR_COMMENT}"
