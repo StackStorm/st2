@@ -197,12 +197,12 @@ jobs:
         env:
           PR_BASE_REF: ${{ needs.pr.outputs.PR_BASE_REF }}
         run: |
-          mkdir -p ${OUTPUT_DIR}/
-          git checkout ${{ env.PR_BASE_REF }} -- ${LOCKFILE}  # diff is for whole PR not just a commit.
-          pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee ${STDERR_LOG} >&2 )
-          cp ${LOCKFILE} ${OUTPUT_DIR}/
+          mkdir -p "${OUTPUT_DIR}/"
+          git checkout "${{ env.PR_BASE_REF }}" -- "${LOCKFILE}"  # diff is for whole PR not just a commit.
+          pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee "${STDERR_LOG}" >&2 )
+          cp "${LOCKFILE}" "${OUTPUT_DIR}/"
           CHANGED=$(
-            if git diff ${{ env.PR_BASE_REF }} --exit-code --quiet -- ${LOCKFILE}; then
+            if git diff "${{ env.PR_BASE_REF }}" --exit-code --quiet -- "${LOCKFILE}"; then
               echo "false"
             else
               echo "true"
@@ -266,8 +266,8 @@ jobs:
             for ext in svg png; do
               # The diff output applies ansi underlines across multiple lines, but freeze formats
               # each line separately. So, use sed to repeat ansi chars per line.
-              sed -e "${SED_SCRIPT}" ${STDERR_LOG} \
-              | freeze --config full --language ansi --theme ${theme} --output ${STDERR_LOG}.${theme}.${ext} -
+              sed -e "${SED_SCRIPT}" "${STDERR_LOG}" \
+              | freeze --config full --language ansi --theme "${theme}" --output "${STDERR_LOG}.${theme}.${ext}" -
             done
           done
 
@@ -289,14 +289,15 @@ jobs:
             /^\x1B\[0m$/d # drop blank line after heading (replaced with line of overline chars)
             s/\x1B\[[0-9]\+m//g # strip out ansi escapes
         run: |
-          sed -e "${SED_SCRIPT}" > ${STDERR_LOG}.txt
+          sed -e "${SED_SCRIPT}" "${STDERR_LOG}" | tee "${STDERR_LOG}.txt" | head -n5
+          echo ...
 
       - name: Prepare Job Summary
         run: |
           (
             echo '## ${{ matrix.resolve }} Lockfile Diff'
             echo
-            if [ "${{ steps.lockfile.outputs.CHANGED }} != true" ]; then
+            if [ "${{ steps.lockfile.outputs.CHANGED }}" != true ]; then
               echo 'No changes required for ${{ env.LOCKFILE }}'
             else
               echo '<picture>'
@@ -312,21 +313,21 @@ jobs:
               echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
               echo
               echo '```'
-              cat ${STDERR_LOG}.txt
+              cat "${STDERR_LOG}.txt"
               echo '```'
             fi
             echo
-          ) | tee -a ${STDERR_LOG}.md >> ${GITHUB_STEP_SUMMARY}
+          ) | tee -a "${STDERR_LOG}.md" >> "${GITHUB_STEP_SUMMARY}"
           (
             echo '> [!NOTE]'
             echo '> Diff base (git ref): *${{ needs.pr.outputs.PR_BASE_REF }}*'
             echo
-          ) >> ${GITHUB_STEP_SUMMARY} # only add this note to the job summary
-          if [ "${{ steps.lockfile.outputs.CHANGED }} == true" ]; then
+          ) >> "${GITHUB_STEP_SUMMARY}" # only add this note to the job summary
+          if [ "${{ steps.lockfile.outputs.CHANGED }}" == true ]; then
             (
               echo '</details>'
               echo
-            ) | tee -a ${STDERR_LOG}.md >> ${GITHUB_STEP_SUMMARY}
+            ) | tee -a "${STDERR_LOG}.md" >> "${GITHUB_STEP_SUMMARY}"
           fi
 
       - name: Upload lockfile and lockfile diff files
@@ -378,12 +379,12 @@ jobs:
       # and because we cannot rely on 'jobs.<job>.outputs.*' for matrix jobs.
       - name: Setup env
         run: |
-          echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> ${GITHUB_ENV}
-          echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> ${GITHUB_ENV}
+          echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> "${GITHUB_ENV}"
+          echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> "${GITHUB_ENV}"
           CHANGED="false"
           for resolve in ${RESOLVES}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
-            CHANGED_FILE="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE}).CHANGED"
+            CHANGED_FILE="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename "${LOCKFILE}").CHANGED"
             if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}")" == true ]; then
               CHANGED="true"
               echo "${LOCKFILE} was modified"
@@ -391,24 +392,24 @@ jobs:
               echo "${LOCKFILE} was NOT modified"
             fi
           done
-          echo "CHANGED=${CHANGED}" >> ${GITHUB_ENV}
+          echo "CHANGED=${CHANGED}" >> "${GITHUB_ENV}"
 
       - name: Prepare commit
         if: env.CHANGED == 'true'
         run: |
-          echo "pants generate-lockfiles: ${RESOLVES_CSV}" > ${COMMIT_MSG}
-          echo >> ${COMMIT_MSG}
+          echo "pants generate-lockfiles: ${RESOLVES_CSV}" > "${COMMIT_MSG}"
+          echo >> "${COMMIT_MSG}"
           for resolve in ${RESOLVES}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             cp "${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE})" "${LOCKFILE}"
             git add "${LOCKFILE}"
             STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
-            if [ -e ${STDERR_LOG}.txt ]; then
-              cat ${STDERR_LOG}.txt >> ${COMMIT_MSG}
+            if [ -e "${STDERR_LOG}.txt" ]; then
+              cat "${STDERR_LOG}.txt" >> "${COMMIT_MSG}"
             else
               echo "${STDERR_LOG}.txt is missing"
-              echo "No changes to: ${LOCKFILE}" >> ${COMMIT_MSG}
-              echo >> ${COMMIT_MSG}
+              echo "No changes to: ${LOCKFILE}" >> "${COMMIT_MSG}"
+              echo >> "${COMMIT_MSG}"
             fi
           done
 
@@ -416,20 +417,20 @@ jobs:
         env:
           RUN_LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
         run: |
-          echo "# Lockfile Diffs" > ${PR_COMMENT}
-          echo >> ${PR_COMMENT}
+          echo "# Lockfile Diffs" > "${PR_COMMENT}"
+          echo >> "${PR_COMMENT}"
           for resolve in ${RESOLVES}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
-            if [ -e ${STDERR_LOG}.md ]; then
-              cat ${STDERR_LOG}.md >> ${PR_COMMENT}
+            if [ -e "${STDERR_LOG}.md" ]; then
+              cat "${STDERR_LOG}.md" >> "${PR_COMMENT}"
             else
               echo "${STDERR_LOG}.md is missing"
-              echo "No changes to: `${LOCKFILE}`" >> ${PR_COMMENT}
-              echo >> ${PR_COMMENT}
+              echo "No changes to: `${LOCKFILE}`" >> "${PR_COMMENT}"
+              echo >> "${PR_COMMENT}"
             fi
           done
-          echo ":robot: [GitHub Actions Workflow Run](${RUN_LINK})" >> ${PR_COMMENT}
+          echo ":robot: [GitHub Actions Workflow Run](${RUN_LINK})" >> "${PR_COMMENT}"
 
       - name: Commit and push
         if: env.CHANGED == 'true'
@@ -456,7 +457,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
-          gh pr comment ${{ inputs.pr }}
+          gh pr comment "${{ inputs.pr }}"
           --body-file "${PR_COMMENT}"
           --edit-last
           --create-if-none
