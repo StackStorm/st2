@@ -274,7 +274,7 @@ jobs:
               # The diff output applies ansi underlines across multiple lines, but freeze formats
               # each line separately. So, use sed to repeat ansi chars per line.
               sed -e "${SED_SCRIPT}" "${STDERR_LOG}" \
-                | freeze --config full --language ansi --theme "${theme}" --width 640 \
+                | freeze --config full --language ansi --theme "${theme}" --width 720 \
                 --output "${STDERR_LOG}.${theme}.${ext}" -
             done
           done
@@ -308,20 +308,11 @@ jobs:
             if [ "${{ steps.lockfile.outputs.CHANGED }}" != true ]; then
               echo 'No changes required for ${{ env.LOCKFILE }}'
             else
-              echo '<picture>'
-              echo '  <!-- We do not have anywhere to serve images from, so they are embedded. -->'
-
-              echo '  <source media="(prefers-color-scheme: light)"'
-              echo -n '    srcset="data:image/png;base64,'
-              cat "${STDERR_LOG}.github.png" | base64 -w0
-              echo '">'
-
-              echo '  <img alt="Terminal screenshot of lockfile diff in color. The text from the image is included below."'
-              echo -n '    src="data:image/png;base64,'
+              # We do not have anywhere to serve images from, so they are embedded.
+              echo -n '![Terminal screenshot of lockfile diff in color. The text from the image is included below.]('
+              echo -n 'data:image/png;base64,'
               cat "${STDERR_LOG}.github-dark.png" | base64 -w0
-              echo '">'
-
-              echo '</picture>'
+              echo ')'
               echo
               echo '<details>'
               echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
