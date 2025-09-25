@@ -1,6 +1,11 @@
 ---
 name: Regenerate Lockfiles
 
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -452,10 +457,12 @@ jobs:
           --base "${{ needs.pr.outputs.PR_BASE_REF }}"
           --title "pants generate-lockfiles: ${RESOLVES_CSV}"
           --body-file "${PR_COMMENT}"
-          --reviewer "${{ github.repository_owner }}/Maintainers"
           --assignee "${{ github.event.sender.login }}"
           --label "external dependency"
           --label "python3"
+        # github.token cannot be given read access to organizations.teams,
+        # so, setting reviewer to a team would mean managing a PAT or similar.
+        #  --reviewer "${{ github.repository_owner }}/Maintainers"
 
       - name: Update or Add Comment on existing PR
         if: inputs.pr != 'new'
