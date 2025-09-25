@@ -202,6 +202,7 @@ jobs:
         env:
           PR_BASE_REF: ${{ needs.pr.outputs.PR_BASE_REF }}
           PANTS_STATS_LOG: 'False'
+          PANTS_LEVEL: warn # skip info-level log messages
         run: |
           mkdir -p "${OUTPUT_DIR}/"
           git checkout "${{ env.PR_BASE_REF }}" -- "${LOCKFILE}"  # diff is for whole PR not just a commit.
@@ -273,7 +274,8 @@ jobs:
               # The diff output applies ansi underlines across multiple lines, but freeze formats
               # each line separately. So, use sed to repeat ansi chars per line.
               sed -e "${SED_SCRIPT}" "${STDERR_LOG}" \
-              | freeze --config full --language ansi --theme "${theme}" --output "${STDERR_LOG}.${theme}.${ext}" -
+                | freeze --config full --language ansi --theme "${theme}" --width 640 \
+                --output "${STDERR_LOG}.${theme}.${ext}" -
             done
           done
 
@@ -407,7 +409,6 @@ jobs:
             fi
           done
           echo "CHANGED=${CHANGED:-false}" | tee -a "${GITHUB_ENV}"
-          ls -l "${{ env.OUTPUT_BASE_DIR }}" "${{ env.OUTPUT_BASE_DIR }}"/*
 
       - name: Prepare commit
         if: env.CHANGED == 'true'
