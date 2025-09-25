@@ -306,12 +306,23 @@ jobs:
               echo 'No changes required for ${{ env.LOCKFILE }}'
             else
               echo '<picture>'
-              echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.svg">'
-              echo '  <source media="(prefers-color-scheme: dark)" srcset="stderr.log.github-dark.png">'
-              echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.svg">'
-              echo '  <source media="(prefers-color-scheme: light)" srcset="stderr.log.github.png">'
+              echo '  <!-- We do not have anywhere to serve images from, so they are embedded. -->'
+
+              echo '  <source media="(prefers-color-scheme: dark)"'
+              echo -n '    srcset="data:image/png;base64,'
+              cat "${STDERR_LOG}.github-dark.png" | base64 -w0
+              echo '">'
+
+              echo '  <source media="(prefers-color-scheme: light)"'
+              echo -n '    srcset="data:image/png;base64,'
+              cat "${STDERR_LOG}.github.png" | base64 -w0
+              echo '">'
+
               echo '  <img alt="Terminal screenshot of lockfile diff in color. The text from the image is included below."'
-              echo '    src="stderr.log.github.png">'
+              echo -n '    src="data:image/png;base64,'
+              cat "${STDERR_LOG}.github-dark.png" | base64 -w0
+              echo '">'
+
               echo '</picture>'
               echo
               echo '<details>'
