@@ -201,6 +201,7 @@ jobs:
         id: lockfile
         env:
           PR_BASE_REF: ${{ needs.pr.outputs.PR_BASE_REF }}
+          PANTS_STATS_LOG: 'False'
         run: |
           mkdir -p "${OUTPUT_DIR}/"
           git checkout "${{ env.PR_BASE_REF }}" -- "${LOCKFILE}"  # diff is for whole PR not just a commit.
@@ -307,11 +308,6 @@ jobs:
             else
               echo '<picture>'
               echo '  <!-- We do not have anywhere to serve images from, so they are embedded. -->'
-
-              echo '  <source media="(prefers-color-scheme: dark)"'
-              echo -n '    srcset="data:image/png;base64,'
-              cat "${STDERR_LOG}.github-dark.png" | base64 -w0
-              echo '">'
 
               echo '  <source media="(prefers-color-scheme: light)"'
               echo -n '    srcset="data:image/png;base64,'
