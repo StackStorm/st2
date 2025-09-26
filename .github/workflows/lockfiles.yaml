@@ -25,10 +25,10 @@ env:
   OUTPUT_BASE_DIR: dist/lockfiles # /dist/ is in .gitignore
 
   # We upload the diff image(s) (terminal screenshot(s)) to S3 so we can use it in GitHub flavored markdown.
+  AWS_REGION: us-west-2 # Oregon
   AWS_ACCOUNT_ID: "053075847820"
   AWS_S3_BUCKET: st2-gha
   AWS_S3_BUCKET_ROOT: ${{ github.repository }}/runs/${{ github.run_id }}
-  AWS_REGION: us-west-2 # Oregon
 
 defaults:
   run:
@@ -287,7 +287,6 @@ jobs:
           done
 
       - name: Configure AWS Credentials
-        id: aws
         uses: aws-actions/configure-aws-credentials@v5.0.0
         with:
           aws-region: ${{ env.AWS_REGION }}
@@ -307,27 +306,25 @@ jobs:
                 }
               ]
             }
-          output-credentials: true
-          output-env-credentials: false
 
       - name: Upload lockfile diff picture to S3
         # GitHub flavored markdown does not accept data:image/png URIs for images.
         # And GitHub does not provide any convenient APIs for uploading image assets.
         # So, we upload to AWS and save the URI for in generated markdown below.
         if: steps.lockfile.outputs.CHANGED == 'true'
-        id: s3
-        uses: hkusu/s3-upload-action@v2.1.0
-        with:
-          aws-access-key-id: ${{ steps.aws.outputs.aws-access-key-id }}
-          aws-secret-access-key: ${{ steps.aws.outputs.aws-secret-access-key }}
-          aws-region: ${{ env.AWS_REGION }}
-          aws-bucket: ${{ env.AWS_S3_BUCKET }}
-          bucket-root: ${{ env.AWS_S3_BUCKET_ROOT }}
-          destination-dir: lockfile-${{ matrix.resolve }}
-          file-path: ${{ env.STDERR_LOG }}.github-dark.png
-          output-file-url: 'true'
-          content-type: image/png
-          public: 'true'
+        # NOTE: The packaged s3 actions are too old, incomplete, or do not allow setting content-type + tags.
+        env:
+          AWS_S3_PATH: ${{ env.AWS_S3_BUCKET_ROOT }}/lockfile-${{ matrix.resolve }}
+        run: |
+          aws s3 cp \
+            "${STDERR_LOG}.github-dark.png" \
+            "s3://${{ env.AWS_S3_BUCKET }}/${{ env.AWS_S3_PATH }}/" \
+            --content-type image/png
+          aws s3api put-object-tagging \
+            --expected-bucket-owner "${AWS_ACCOUNT_ID}" \
+            --bucket "${{ env.AWS_S3_BUCKET }}" \
+            --key "${{ env.AWS_S3_PATH }}/$(basename ${STDERR_LOG}.github-dark.png)" \
+            --tagging '{"Service": "GitHub Actions"}'
 
       - name: Prepare text-only lockfile diff for commit message
         if: steps.lockfile.outputs.CHANGED == 'true'
@@ -351,6 +348,8 @@ jobs:
           echo ...
 
       - name: Prepare Job Summary
+        env:
+          IMG_BASE_URI: 'https://${{ env.AWS_S3_BUCKET }}.s3.${{ env.AWS_REGION }}.amazonaws.com/${{ env.AWS_S3_BUCKET_ROOT }}/lockfile-${{ matrix.resolve }}'
         run: |
           (
             echo '## ${{ matrix.resolve }} Lockfile Diff'
@@ -359,7 +358,7 @@ jobs:
               echo 'No changes required for ${{ env.LOCKFILE }}'
             else
               echo -n '![Terminal screenshot of lockfile diff in color. The text from the image is included below.]'
-              echo '(${{ steps.s3.output.file-url }})'
+              echo "(${IMG_BASE_URI}/$(basename ${STDERR_LOG}.github-dark.png))"
               echo
               echo '<details>'
               echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
