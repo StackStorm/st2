@@ -451,10 +451,11 @@ jobs:
             git add "${LOCKFILE}"
             STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
             if [ -e "${STDERR_LOG}.txt" ]; then
+              echo "Adding ${STDERR_LOG}.txt to ${COMMIT_MSG}"
               cat "${STDERR_LOG}.txt" >> "${COMMIT_MSG}"
             else
               echo "${STDERR_LOG}.txt is missing"
-              echo "No changes to: ${LOCKFILE}" >> "${COMMIT_MSG}"
+              echo "No changes to: ${LOCKFILE}" | tee -a "${COMMIT_MSG}"
               echo >> "${COMMIT_MSG}"
             fi
           done
@@ -469,10 +470,11 @@ jobs:
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
             if [ -e "${STDERR_LOG}.md" ]; then
+              echo "Adding ${STDERR_LOG}.md to ${PR_COMMENT}"
               cat "${STDERR_LOG}.md" >> "${PR_COMMENT}"
             else
               echo "${STDERR_LOG}.md is missing"
-              echo 'No changes to: `'"${LOCKFILE}"'`' >> "${PR_COMMENT}"
+              echo 'No changes to: `'"${LOCKFILE}"'`' | tee -a "${PR_COMMENT}"
               echo >> "${PR_COMMENT}"
             fi
           done
