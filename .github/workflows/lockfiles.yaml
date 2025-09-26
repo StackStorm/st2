@@ -400,7 +400,7 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       # preserve the order of resolves from input (eg pants.toml has st2 first, before tools)
-      RESOLVES: ${{ join(fromJSON(needs.resolves.outputs.JSON), ''' ''') }}
+      RESOLVES: "'${{ join(fromJSON(needs.resolves.outputs.JSON), ''' ''') }}'"
       RESOLVES_CSV: ${{ join(fromJSON(needs.resolves.outputs.JSON), ', ') }}
       LOCKFILES: ${{ needs.resolves.outputs.LOCKFILES }}
       # see also the 'Setup env' step
@@ -432,11 +432,11 @@ jobs:
         run: |
           echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> "${GITHUB_ENV}"
           echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> "${GITHUB_ENV}"
-          for resolve in ${RESOLVES}; do
+          for resolve in ${{ env.RESOLVES }}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             ARTIFACT_DIR="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}"
             # Add a symlink when actions/aritifact-download skips making subdir for only one artifact
-            [ "${resolve}" == "${RESOLVES}" ] && ln -s "." "${ARTIFACT_DIR}"
+            [ "'${resolve}'" == "${RESOLVES}" ] && ln -s "." "${ARTIFACT_DIR}"
             CHANGED_FILE="${ARTIFACT_DIR}/$(basename "${LOCKFILE}").CHANGED"
             if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}" | tr -d '[:space:]')" == true ]; then
               CHANGED="true"
@@ -452,7 +452,7 @@ jobs:
         run: |
           echo "pants generate-lockfiles: ${RESOLVES_CSV}" > "${COMMIT_MSG}"
           echo >> "${COMMIT_MSG}"
-          for resolve in ${RESOLVES}; do
+          for resolve in ${{ env.RESOLVES }}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             cp "${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE})" "${LOCKFILE}"
             git add "${LOCKFILE}"
@@ -472,7 +472,7 @@ jobs:
         run: |
           echo "# Lockfile Diffs" > "${PR_COMMENT}"
           echo >> "${PR_COMMENT}"
-          for resolve in ${RESOLVES}; do
+          for resolve in ${{ env.RESOLVES }}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
             if [ -e "${STDERR_LOG}.md" ]; then
