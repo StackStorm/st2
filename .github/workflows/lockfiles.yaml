@@ -424,7 +424,7 @@ jobs:
         with:
           pattern: lockfile-* # lockfile-{resolve}
           path: ${{ env.OUTPUT_BASE_DIR }}
-          merge-multiple: true # unpack in {path}/{artifact_name}/
+          merge-multiple: false # unpack in {path}/{artifact_name}/
 
       # This step exists because we cannot use the 'env' context in 'jobs.<job>.env.*',
       # and because we cannot rely on 'jobs.<job>.outputs.*' for matrix jobs.
