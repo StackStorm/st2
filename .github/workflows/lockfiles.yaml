@@ -355,7 +355,7 @@ jobs:
             echo '## ${{ matrix.resolve }} Lockfile Diff'
             echo
             if [ "${{ steps.lockfile.outputs.CHANGED }}" != true ]; then
-              echo 'No changes required for ${{ env.LOCKFILE }}'
+              echo 'No changes required for ${{ env.LOCKFILE }} _(from ${{ needs.pr.outputs.PR_BASE_REF }})_'
             else
               echo -n '![Terminal screenshot of lockfile diff in color. The text from the image is included below.]'
               echo "(${IMG_BASE_URI}/$(basename ${STDERR_LOG}.github-dark.png))"
@@ -366,20 +366,13 @@ jobs:
               echo '```'
               cat "${STDERR_LOG}.txt"
               echo '```'
+              echo
+              echo '_(diff from ${{ needs.pr.outputs.PR_BASE_REF }})_'
+              echo
+              echo '</details>'
             fi
             echo
           ) | tee -a "${STDERR_LOG}.md" >> "${GITHUB_STEP_SUMMARY}"
-          (
-            echo '> [!NOTE]'
-            echo '> Diff base (git ref): *${{ needs.pr.outputs.PR_BASE_REF }}*'
-            echo
-          ) >> "${GITHUB_STEP_SUMMARY}" # only add this note to the job summary
-          if [ "${{ steps.lockfile.outputs.CHANGED }}" == true ]; then
-            (
-              echo '</details>'
-              echo
-            ) | tee -a "${STDERR_LOG}.md" >> "${GITHUB_STEP_SUMMARY}"
-          fi
 
       - name: Upload lockfile and lockfile diff files
         uses: actions/upload-artifact@v4
