@@ -452,6 +452,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
+          (
+          echo '## New PR'; echo;
           gh pr create
           --base "${{ needs.pr.outputs.PR_BASE_REF }}"
           --title "pants generate-lockfiles: ${RESOLVES_CSV}"
@@ -459,6 +461,7 @@ jobs:
           --assignee "${{ github.event.sender.login }}"
           --label "external dependency"
           --label "python3"
+          ) | tee -a "${GITHUB_STEP_SUMMARY}"
         # github.token cannot be given read access to organizations.teams,
         # so, setting reviewer to a team would mean managing a PAT or similar.
         #  --reviewer "${{ github.repository_owner }}/Maintainers"
@@ -468,7 +471,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
+          (
+          echo '## Add/Update PR Comment'; echo;
           gh pr comment "${{ inputs.pr }}"
           --body-file "${PR_COMMENT}"
           --edit-last
           --create-if-none
+          ) | tee -a "${GITHUB_STEP_SUMMARY}"
