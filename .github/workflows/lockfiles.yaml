@@ -4,6 +4,7 @@ name: Regenerate Lockfiles
 permissions:
   actions: read
   contents: write
+  id-token: write
   pull-requests: write
 
 on:
@@ -22,6 +23,12 @@ on:
 env:
   # logs and screenshots go in {OUTPUT_BASE_DIR}/lockfile-{resolve}/ (where "lockfile-{resolve}" is the artifact name)
   OUTPUT_BASE_DIR: dist/lockfiles # /dist/ is in .gitignore
+
+  # We upload the diff image(s) (terminal screenshot(s)) to S3 so we can use it in GitHub flavored markdown.
+  AWS_ACCOUNT_ID: "053075847820"
+  AWS_S3_BUCKET: st2-gha
+  AWS_S3_BUCKET_ROOT: ${{ github.repository }}/runs/${{ github.run_id }}
+  AWS_REGION: us-west-2 # Oregon
 
 defaults:
   run:
@@ -279,6 +286,49 @@ jobs:
             done
           done
 
+      - name: Configure AWS Credentials
+        id: aws
+        uses: aws-actions/configure-aws-credentials@v5.0.0
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-${{ github.run_id }}
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubActions@org=${{ github.repository_owner }},repo=${{ github.event.repository.name }}
+          allowed-account-ids: ${{ env.ACCOUNT_ID }}
+          # This should be the minimal set of permissions needed by this workflow.
+          inline-session-policy: >-
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "AllowPutObject",
+                  "Effect": "Allow",
+                  "Action": ["s3:PutObject", "s3:PutObjectTagging"],
+                  "Resource": ["arn:aws:s3:::${{ env.AWS_S3_BUCKET }}/${{ env.AWS_S3_BUCKET_ROOT }}/*"]
+                }
+              ]
+            }
+          output-credentials: true
+          output-env-credentials: false
+
+      - name: Upload lockfile diff picture to S3
+        # GitHub flavored markdown does not accept data:image/png URIs for images.
+        # And GitHub does not provide any convenient APIs for uploading image assets.
+        # So, we upload to AWS and save the URI for in generated markdown below.
+        if: steps.lockfile.outputs.CHANGED == 'true'
+        id: s3
+        uses: hkusu/s3-upload-action@v2.1.0
+        with:
+          aws-access-key-id: ${{ steps.aws.outputs.aws-access-key-id }}
+          aws-secret-access-key: ${{ steps.aws.outputs.aws-secret-access-key }}
+          aws-region: ${{ env.AWS_REGION }}
+          aws-bucket: ${{ env.AWS_S3_BUCKET }}
+          bucket-root: ${{ env.AWS_S3_BUCKET_ROOT }}
+          destination-dir: lockfile-${{ matrix.resolve }}
+          file-path: ${{ env.STDERR_LOG }}.github-dark.png
+          output-file-url: 'true'
+          content-type: image/png
+          public: 'true'
+
       - name: Prepare text-only lockfile diff for commit message
         if: steps.lockfile.outputs.CHANGED == 'true'
         env:
@@ -308,11 +358,8 @@ jobs:
             if [ "${{ steps.lockfile.outputs.CHANGED }}" != true ]; then
               echo 'No changes required for ${{ env.LOCKFILE }}'
             else
-              # We do not have anywhere to serve images from, so they are embedded.
-              echo -n '![Terminal screenshot of lockfile diff in color. The text from the image is included below.]('
-              echo -n 'data:image/png;base64,'
-              cat "${STDERR_LOG}.github-dark.png" | base64 -w0
-              echo ')'
+              echo -n '![Terminal screenshot of lockfile diff in color. The text from the image is included below.]'
+              echo '(${{ steps.s3.output.file-url }})'
               echo
               echo '<details>'
               echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
