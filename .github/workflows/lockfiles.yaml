@@ -445,6 +445,7 @@ jobs:
         run: |
           echo "pants generate-lockfiles: ${RESOLVES_CSV}" > "${COMMIT_MSG}"
           echo >> "${COMMIT_MSG}"
+          NO_CHANGES=""
           for resolve in ${{ env.RESOLVES }}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             cp "${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE})" "${LOCKFILE}"
@@ -455,10 +456,10 @@ jobs:
               cat "${STDERR_LOG}.txt" >> "${COMMIT_MSG}"
             else
               echo "${STDERR_LOG}.txt is missing"
-              echo "No changes to: ${LOCKFILE}" | tee -a "${COMMIT_MSG}"
-              echo >> "${COMMIT_MSG}"
+              NO_CHANGES="${NO_CHANGES}No changes to ${LOCKFILE}"$'\n\n'
             fi
           done
+          echo "${NO_CHANGES}" | tee -a "${COMMIT_MSG}"
 
       - name: Prepare PR comment
         env:
