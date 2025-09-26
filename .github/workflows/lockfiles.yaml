@@ -432,6 +432,8 @@ jobs:
         run: |
           echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> "${GITHUB_ENV}"
           echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> "${GITHUB_ENV}"
+          set -x
+          ls "${{ env.OUTPUT_BASE_DIR }}" "${{ env.OUTPUT_BASE_DIR }}/*/"
           for resolve in ${{ env.RESOLVES }}; do
             LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
             ARTIFACT_DIR="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}"
