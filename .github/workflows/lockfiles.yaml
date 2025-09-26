@@ -292,8 +292,8 @@ jobs:
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: GitHubActions-${{ github.run_id }}
-          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubActions@org=${{ github.repository_owner }},repo=${{ github.event.repository.name }}
-          allowed-account-ids: ${{ env.ACCOUNT_ID }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActions@org=${{ github.repository_owner }},repo=${{ github.event.repository.name }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
           # This should be the minimal set of permissions needed by this workflow.
           inline-session-policy: >-
             {
