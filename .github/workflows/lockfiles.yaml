@@ -342,7 +342,7 @@ jobs:
               g        # replace the original line with lines from the "hold" space
             }
             /^\x1B\[0m$/d # drop blank line after heading (replaced with line of overline chars)
-            s/\x1B\[[0-9]\+m//g # strip out ansi escapes
+            s/\x1B\[[0-9;]\+m//g # strip out ansi escapes
         run: |
           sed -e "${SED_SCRIPT}" "${STDERR_LOG}" | tee "${STDERR_LOG}.txt" | head -n5
           echo ...
