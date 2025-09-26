@@ -324,7 +324,7 @@ jobs:
             --expected-bucket-owner "${AWS_ACCOUNT_ID}" \
             --bucket "${{ env.AWS_S3_BUCKET }}" \
             --key "${{ env.AWS_S3_PATH }}/$(basename ${STDERR_LOG}.github-dark.png)" \
-            --tagging '{"Service": "GitHub Actions"}'
+            --tagging '{"TagSet":[{"Key":"Service","Value":"GitHub Actions"}]}'
 
       - name: Prepare text-only lockfile diff for commit message
         if: steps.lockfile.outputs.CHANGED == 'true'
