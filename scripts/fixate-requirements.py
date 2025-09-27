@@ -124,6 +124,33 @@ def locate_file(path, must_exist=False):
     return path
 
 
+def load_fixed_requirements(file_path):
+    fixed = load_requirements(locate_file(file_path, must_exist=True))
+
+    # Make sure there are no duplicate / conflicting definitions
+    fixedreq_hash = {}
+    for req in fixed:
+        if hasattr(req, "requirement"):
+            parsedreq = parse_req_from_line(req.requirement, req.line_source)
+            project_name = parsedreq.requirement.name
+
+            if not req.requirement:
+                continue
+        else:
+            project_name = req.name
+
+            if not req.req:
+                continue
+
+        if project_name in fixedreq_hash:
+            raise ValueError(
+                'Duplicate definition for dependency "%s"' % (project_name)
+            )
+
+        fixedreq_hash[project_name] = req
+    return fixedreq_hash
+
+
 def merge_source_requirements(sources):
     """
     Read requirements source files and merge it's content.
@@ -173,29 +200,8 @@ def write_requirements(
     skip = skip or []
 
     requirements = merge_source_requirements(sources)
-    fixed = load_requirements(locate_file(fixed_requirements, must_exist=True))
 
-    # Make sure there are no duplicate / conflicting definitions
-    fixedreq_hash = {}
-    for req in fixed:
-        if hasattr(req, "requirement"):
-            parsedreq = parse_req_from_line(req.requirement, req.line_source)
-            project_name = parsedreq.requirement.name
-
-            if not req.requirement:
-                continue
-        else:
-            project_name = req.name
-
-            if not req.req:
-                continue
-
-        if project_name in fixedreq_hash:
-            raise ValueError(
-                'Duplicate definition for dependency "%s"' % (project_name)
-            )
-
-        fixedreq_hash[project_name] = req
+    fixedreq_hash = load_fixed_requirements(fixed_requirements)
 
     lines_to_write = []
     links = set()
