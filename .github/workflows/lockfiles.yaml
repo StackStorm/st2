@@ -24,6 +24,17 @@ env:
   # logs and screenshots go in {OUTPUT_BASE_DIR}/lockfile-{resolve}/ (where "lockfile-{resolve}" is the artifact name)
   OUTPUT_BASE_DIR: dist/lockfiles # /dist/ is in .gitignore
 
+  # see https://api.github.com/users/github-actions[bot]
+  BOT_GHA_NAME: 'github-actions[bot]'
+  BOT_GHA_LOGIN: 'github-actions[bot]'
+  BOT_GHA_ID: '41898282'
+  BOT_GHA_EMAIL: '41898282+github-actions[bot]@users.noreply.github.com'
+  # see https://api.github.com/users/st2stanley
+  BOT_ST2_NAME: 'st2stanley[bot]'
+  BOT_ST2_LOGIN: 'st2stanley'
+  BOT_ST2_ID: '7807286'
+  BOT_ST2_EMAIL: '7807286+st2stanley@users.noreply.github.com'
+
   # We upload the diff image(s) (terminal screenshot(s)) to S3 so we can use it in GitHub flavored markdown.
   AWS_REGION: us-west-2 # Oregon
   AWS_ACCOUNT_ID: "053075847820"
@@ -126,11 +137,11 @@ jobs:
               number: "new"
               url: ""
               closed: false
-              author: # see https://api.github.com/users/github-actions[bot]
-                id: 41898282
+              author:
+                id: ${{ env.BOT_ST2_ID }}
                 is_bot: true
-                login: "github-actions[bot]"
-                name: "github-actions[bot]"
+                login: "${{ env.BOT_ST2_LOGIN }}"
+                name: "${{ env.BOT_ST2_NAME }}"
               maintainerCanModify: true
               headRepositoryOwner:
                 id: "${GITHUB_REPOSITORY_OWNER_ID}"
@@ -408,8 +419,10 @@ jobs:
       - name: Create branch for new PR
         if: inputs.pr == 'new'
         run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local author.name "${{ env.BOT_ST2_NAME }}"
+          git config --local author.email "${{ env.BOT_ST2_EMAIL }}"
+          git config --local committer.name "${{ env.BOT_GHA_NAME }}"
+          git config --local committer.email "${{ env.BOT_GHA_EMAIL }}"
           git checkout -b "${{ needs.pr.outputs.PR_REF }}" FETCH_HEAD
 
       - name: Download lockfiles and lockfile diff files
