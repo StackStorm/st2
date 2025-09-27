@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+# Copyright 2025 The StackStorm Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import copy
+import json
+from pathlib import Path
+
+from fixate_requirements import load_fixed_requirements, parse_req_from_line
+
+
+FIXED_REQUIREMENTS = "fixed-requirements.txt"
+TEST_REQUIREMENTS = "test-requirements.txt"
+
+_LOCKFILE = "lockfiles/{resolve}.lock"
+TOOL_RESOLVES = ("st2", "bandit", "flake8", "pylint", "black")
+# irrelevant resolves: "pants-plugins", "twine"
+LOCKFILES = tuple(_LOCKFILE.format(tool) for tool in TOOL_RESOLVES)
+
+
+def strip_comments_from_pex_json_lockfile(lockfile_bytes: bytes) -> bytes:
+    """
+    Copied from code by Pants Project Contributors (Apache 2.0 licensed):
+    https://github.com/pantsbuild/pants/blob/release_2.25.0/src/python/pants/backend/python/util_rules/pex_requirements.py#L119-L127
+
+    TODO: delete this once we getrid of the legacy fixate requirements files.
+    """
+    return b"\n".join(                                                    line for line in lockfile_bytes.splitlines() if not line.lstrip().startswith(b"//")                                             )
+
+
+def _update(old_req, name, version):
+    parsedreq = parse_req_from_line(req.requirement, req.line_source)
+    assert parsedreq.requirement.name == name
+    specs = tuple(parsedreq.requirement.specifier)
+    if len(specs) != 1:
+        return False
+    spec = specs[0]
+    if spec.operator == '==' and spec.version != version:
+        # only change pins; ignore any version range
+        new_spec = spec.__class__(f"=={version}", spec.prereleases or None)
+        new_specs = specs.__class__([new_spec], specs.prereleases or None)
+        new_req = copy.deepcopy(parsedreq.requirement)
+        new_req.specifier = new_specs
+        # = dataclasses.replace(parsedreq, requirement=new_req)
+        
+        return str(new_req)
+    return False
+
+
+def plan_update(old_reqs, name, version, reqs_updates):
+    if name in old_reqs:
+        old_req = old_reqs[name]
+        updated_line = _update(old_req, name, version)
+        if updated_line is not None:
+            reqs_updates[name] = updated_line
+
+
+def do_updates(path, reqs_updates):
+    lines = path.read_text().splitlines()
+    for name, updated_line in reqs_updates.items():
+        line_source = fixed_reqs[name].line_source
+        # line_source fmt is "line <number> of <file_path>"
+        _, line_number, _ = line_source.split(maxsplits=2)
+        line_index = line_number - 1
+        lines[line_index] = updated_line
+    path.write_text("\n".join(lines) + "\n")
+
+
+def main():
+    fixed_path = Path(FIXED_REQUIREMENTS).resolve()
+    test_path = Path(TEST_REQUIREMENTS).resolve()
+    fixed_reqs = load_fxed_requirements(FIXED_REQUIREMENTS)
+    test_reqs = load_fxed_requirements(TEST_REQUIREMENTS)
+
+    fixed_reqs_updates = {}
+    test_reqs_updates = {}
+
+    handled = []
+    for lockfile in LOCKFILES:
+        lockfile_bytes = strip_comments_from_pex_json_lockfile(
+            Path(lockfile).read_bytes()
+        )
+        pex_lock = json.loads(lockfile_bytes.decode("utf-8"))
+        locked_requirements = pex_lock["locked_resolves"][0]["locked_requirements"]
+        locked_reqs_name_version_map = {
+            req["project_name"]: req["version"]
+            for req in locked_requirements
+        }
+        for name, version in locked_reqs_name_version_map.items():
+            if name in handled:
+                continue
+            plan_update(fixed_reqs, name, version, fixed_reqs_updates)
+            plan_update(test_reqs, name, version, test_reqs_updates)
+            handled.append(name)
+
+    do_updates(fixed_path, fixed_reqs_updates)
+    do_updates(test_path, test_reqs_updates)
+
+
+if __name__ == "__main__":
+    main()
