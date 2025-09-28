@@ -37,18 +37,20 @@ def strip_comments_from_pex_json_lockfile(lockfile_bytes: bytes) -> bytes:
     TODO: delete this once we getrid of the legacy fixate requirements files.
     """
     return b"\n".join(
-        line for line in lockfile_bytes.splitlines() if not line.lstrip().startswith(b"//")
+        line
+        for line in lockfile_bytes.splitlines()
+        if not line.lstrip().startswith(b"//")
     )
 
 
 def _update(old_req, name, version):
     parsedreq = parse_req_from_line(old_req.requirement, old_req.line_source)
     assert parsedreq.requirement.name == name
-    specs = tuple(parsedreq.requirement.specifier)
+    specs = parsedreq.requirement.specifier
     if len(specs) != 1:
         return False
-    spec = specs[0]
-    if spec.operator == '==' and spec.version != version:
+    spec = tuple(specs)[0]
+    if spec.operator == "==" and spec.version != version:
         # only change pins; ignore any version range
         new_spec = spec.__class__(f"=={version}", spec.prereleases or None)
         new_specs = specs.__class__([new_spec], specs.prereleases or None)
@@ -94,8 +96,7 @@ def main():
         pex_lock = json.loads(lockfile_bytes.decode("utf-8"))
         locked_requirements = pex_lock["locked_resolves"][0]["locked_requirements"]
         locked_reqs_name_version_map = {
-            req["project_name"]: req["version"]
-            for req in locked_requirements
+            req["project_name"]: req["version"] for req in locked_requirements
         }
         for name, version in locked_reqs_name_version_map.items():
             if name in handled:
