@@ -36,11 +36,13 @@ def strip_comments_from_pex_json_lockfile(lockfile_bytes: bytes) -> bytes:
 
     TODO: delete this once we getrid of the legacy fixate requirements files.
     """
-    return b"\n".join(                                                    line for line in lockfile_bytes.splitlines() if not line.lstrip().startswith(b"//")                                             )
+    return b"\n".join(
+        line for line in lockfile_bytes.splitlines() if not line.lstrip().startswith(b"//")
+    )
 
 
 def _update(old_req, name, version):
-    parsedreq = parse_req_from_line(req.requirement, req.line_source)
+    parsedreq = parse_req_from_line(old_req.requirement, old_req.line_source)
     assert parsedreq.requirement.name == name
     specs = tuple(parsedreq.requirement.specifier)
     if len(specs) != 1:
@@ -52,8 +54,6 @@ def _update(old_req, name, version):
         new_specs = specs.__class__([new_spec], specs.prereleases or None)
         new_req = copy.deepcopy(parsedreq.requirement)
         new_req.specifier = new_specs
-        # = dataclasses.replace(parsedreq, requirement=new_req)
-        
         return str(new_req)
     return False
 
@@ -66,10 +66,10 @@ def plan_update(old_reqs, name, version, reqs_updates):
             reqs_updates[name] = updated_line
 
 
-def do_updates(path, reqs_updates):
+def do_updates(path, old_reqs, reqs_updates):
     lines = path.read_text().splitlines()
     for name, updated_line in reqs_updates.items():
-        line_source = fixed_reqs[name].line_source
+        line_source = old_reqs[name].line_source
         # line_source fmt is "line <number> of <file_path>"
         _, line_number, _ = line_source.split(maxsplits=2)
         line_index = line_number - 1
@@ -80,8 +80,8 @@ def do_updates(path, reqs_updates):
 def main():
     fixed_path = Path(FIXED_REQUIREMENTS).resolve()
     test_path = Path(TEST_REQUIREMENTS).resolve()
-    fixed_reqs = load_fxed_requirements(FIXED_REQUIREMENTS)
-    test_reqs = load_fxed_requirements(TEST_REQUIREMENTS)
+    fixed_reqs = load_fixed_requirements(FIXED_REQUIREMENTS)
+    test_reqs = load_fixed_requirements(TEST_REQUIREMENTS)
 
     fixed_reqs_updates = {}
     test_reqs_updates = {}
@@ -104,8 +104,8 @@ def main():
             plan_update(test_reqs, name, version, test_reqs_updates)
             handled.append(name)
 
-    do_updates(fixed_path, fixed_reqs_updates)
-    do_updates(test_path, test_reqs_updates)
+    do_updates(fixed_path, fixed_reqs, fixed_reqs_updates)
+    do_updates(test_path, test_reqs, test_reqs_updates)
 
 
 if __name__ == "__main__":
