@@ -225,6 +225,15 @@ def main(args):
         mod.register_opts(ignore_errors=True)
         _read_current_config(opt_groups)
         _clear_config()
+        if config == "st2auth.config":
+            from st2auth import (
+                backends as auth_backends,
+            )  # late import to let config get set up first.
+
+            available_backends = auth_backends.get_available_backends()
+            assert (
+                len(available_backends) == 3
+            ), f"Expected 3 available auth backends, got {len(available_backends)}: {available_backends}"
     _read_groups(opt_groups)
 
 
