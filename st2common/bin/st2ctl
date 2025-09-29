@@ -69,6 +69,24 @@ function must_be_root() {
     fi
 }
 
+# -- Detect whether running inside a Docker container --
+function running_in_docker() {
+    [ -f /.dockerenv ] && return 0
+    return 1
+}
+
+# Tell the user to use Docker commands instead of st2ctl
+function suggest_docker_usage() {
+    echo -e "\e[31mError: “st2ctl $1” is not supported inside Docker.\e[0m"
+    echo ""
+    echo "Please manage StackStorm services with Docker commands, e.g.:"
+    echo "  docker ps"
+    echo "  docker-compose restart st2api"
+    echo "  docker-compose logs -f st2stream"
+    exit 1
+}
+
+
 function not_running_in_k8s() {
     if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
         echo -e "\e[31mError: \"st2ctl status\" is not supported under Kubernetes, please use Kubernetes tools such as \"kubectl\" to view the StackStorm services in this cluster. \e[0m\n"
@@ -212,6 +230,15 @@ function getpids() {
     fi
   done
 }
+
+# If in Docker, refuse any of the VM‐style commands
+if running_in_docker; then
+    case "$1" in
+        status)
+            suggest_docker_usage "$1"
+            ;;
+    esac
+fi
 
 
 case ${1} in
