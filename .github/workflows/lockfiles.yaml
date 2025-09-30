@@ -519,6 +519,13 @@ jobs:
           done
           echo ":robot: [GitHub Actions Workflow Run](${RUN_LINK})" >> "${PR_COMMENT}"
 
+      - name: Initialize Pants and its GHA caches
+        if: env.CHANGED == 'true'
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-BUILD
+
       - name: LEGACY - copy lockfile updates into legacy requirements files
         if: env.CHANGED == 'true'
         run: |
