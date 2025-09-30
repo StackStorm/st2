@@ -239,8 +239,8 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # display errors on stderr to facilitate debugging
-    log_level = logging.DEBUG
+    # display warnings+errors on stderr to facilitate debugging
+    log_level = logging.WARNING
     logging.basicConfig(
         format="%(asctime)s %(levelname)s [-] %(message)s", level=log_level
     )
