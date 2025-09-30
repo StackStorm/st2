@@ -494,6 +494,12 @@ jobs:
           done
           echo ":robot: [GitHub Actions Workflow Run](${RUN_LINK})" >> "${PR_COMMENT}"
 
+      - name: LEGACY - copy lockfile updates into legacy requirements files
+        if: env.CHANGED == 'true'
+        run: |
+          pants run scripts/lockfiles_to_reqs.py
+          git add *requirements.txt st2*/requirements.txt contrib/runners/*/requirements.txt
+
       - name: Commit and push
         if: env.CHANGED == 'true'
         # git push --force is for workflow re-runs, but only for new PRs.
