@@ -447,8 +447,7 @@ jobs:
           git config --local committer.name "${{ env.BOT_GHA_NAME }}"
           git config --local committer.email "${{ env.BOT_GHA_EMAIL }}"
 
-      - name: Create branch for new PR
-        if: inputs.pr == 'new'
+      - name: Create local branch for PR
         run: |
           git checkout -b "${{ needs.pr.outputs.PR_REF }}" FETCH_HEAD
 
