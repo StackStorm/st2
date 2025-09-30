@@ -122,6 +122,7 @@ jobs:
             url,\
             closed,\
             author,\
+            isCrossRepository,\
             maintainerCanModify,\
             headRepositoryOwner,\
             headRepository,\
@@ -148,6 +149,7 @@ jobs:
                 is_bot: true
                 login: "${{ env.BOT_ST2_LOGIN }}"
                 name: "${{ env.BOT_ST2_NAME }}"
+              isCrossRepository: false
               maintainerCanModify: true
               headRepositoryOwner:
                 id: "${GITHUB_REPOSITORY_OWNER_ID}"
@@ -172,7 +174,7 @@ jobs:
             echo "Found Pull Request #${NEW_PR_NUMBER} by @$(jq -r .author.login <<< "${PR}")"
             echo "URL: $(jq -r .url <<< "${PR}")"
           else
-            CHECKOUT_REF="refs/pull/${{ inputs.pr }}/merge"
+            CHECKOUT_REF="refs/pull/${{ inputs.pr }}/head" # use /head not /merge!
             echo "Searching for Pull Request #${{ inputs.pr }} ..."
             PR=$(gh pr view "${{ inputs.pr }}" --repo "${GITHUB_REPOSITORY}" --json "${PR_FIELDS}")
             pr_search_rc=$?
@@ -539,7 +541,8 @@ jobs:
         run: |
           git commit -F "${COMMIT_MSG}"
           git push${{ inputs.pr == 'new' && ' --force' || '' }} \
-            origin "HEAD:${{ needs.pr.outputs.PR_REF }}"
+            "${GITHUB_SERVER_URL}/${{ needs.pr.outputs.PR_REPO }}" \
+            "HEAD:${{ needs.pr.outputs.PR_REF }}"
 
       - name: Create new PR
         if: inputs.pr == 'new' && fromJSON(needs.pr.outputs.JSON).number == 'new' && env.CHANGED == 'true'
