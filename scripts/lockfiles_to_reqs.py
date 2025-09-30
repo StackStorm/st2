@@ -15,9 +15,13 @@
 
 import copy
 import json
+import logging
 from pathlib import Path
 
 from fixate_requirements import load_fixed_requirements, parse_req_from_line
+
+
+LOG = logging.getLogger(__name__)
 
 
 FIXED_REQUIREMENTS = "fixed-requirements.txt"
@@ -47,25 +51,41 @@ def _update(old_req, name, version):
     parsedreq = parse_req_from_line(old_req.requirement, old_req.line_source)
     assert parsedreq.requirement.name == name
     specs = parsedreq.requirement.specifier
-    if len(specs) != 1:
-        return False
+    if len(specs) == 0:
+        # name-only dep. Nothing to do. Skipping.
+        return None
+    elif len(specs) > 1:
+        LOG.warning(
+            "Cannot automatically update comma separated version specifier: %s", specs
+        )
+        return None
     spec = tuple(specs)[0]
-    if spec.operator == "==" and spec.version != version:
-        # only change pins; ignore any version range
-        new_spec = spec.__class__(f"=={version}", spec.prereleases or None)
-        new_specs = specs.__class__([new_spec], specs.prereleases or None)
-        new_req = copy.deepcopy(parsedreq.requirement)
-        new_req.specifier = new_specs
-        return str(new_req)
-    return False
+    if spec.version != version:
+        if spec.operator != "==":
+            LOG.warning(
+                "Cannot safely auto-change version specifier of %s from %s%s to ==%s",
+                name,
+                spec.operator,
+                spec.version,
+                version,
+            )
+        else:
+            # only change pins; ignore any version range
+            new_spec = spec.__class__(f"=={version}", spec.prereleases or None)
+            new_specs = specs.__class__([new_spec], specs.prereleases or None)
+            new_req = copy.deepcopy(parsedreq.requirement)
+            new_req.specifier = new_specs
+            return str(new_req)
+    return None
 
 
 def plan_update(old_reqs, name, version, reqs_updates):
-    if name in old_reqs:
-        old_req = old_reqs[name]
-        updated_line = _update(old_req, name, version)
-        if updated_line is not None:
-            reqs_updates[name] = updated_line
+    if name not in old_reqs:
+        return
+    old_req = old_reqs[name]
+    updated_line = _update(old_req, name, version)
+    if updated_line is not None:
+        reqs_updates[name] = updated_line
 
 
 def do_updates(path, old_reqs, reqs_updates):
@@ -88,6 +108,7 @@ def main():
     fixed_reqs_updates = {}
     test_reqs_updates = {}
 
+    LOG.info("Looking for verion changes")
     handled = []
     for lockfile in LOCKFILES:
         lockfile_bytes = strip_comments_from_pex_json_lockfile(
@@ -100,14 +121,30 @@ def main():
         }
         for name, version in locked_reqs_name_version_map.items():
             if name in handled:
+                # st2.lock goes first so we can just ignore duplicates from tool lockfiles.
                 continue
             plan_update(fixed_reqs, name, version, fixed_reqs_updates)
             plan_update(test_reqs, name, version, test_reqs_updates)
             handled.append(name)
 
-    do_updates(fixed_path, fixed_reqs, fixed_reqs_updates)
-    do_updates(test_path, test_reqs, test_reqs_updates)
+    if not fixed_reqs_updates:
+        LOG.info("No updates required in %s", fixed_path)
+    else:
+        LOG.info("Updating %s", fixed_path)
+        do_updates(fixed_path, fixed_reqs, fixed_reqs_updates)
+
+    if not test_reqs_updates:
+        LOG.info("No updates required in %s", test_path)
+    else:
+        LOG.info("Updating %s", test_path)
+        do_updates(test_path, test_reqs, test_reqs_updates)
+
+    LOG.info("DONE")
 
 
 if __name__ == "__main__":
+    log_level = logging.INFO
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s [-] %(message)s", level=log_level
+    )
     main()
