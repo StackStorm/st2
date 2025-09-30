@@ -18,7 +18,7 @@ import json
 import logging
 from pathlib import Path
 
-from fixate_requirements import load_fixed_requirements, parse_req_from_line
+from fixate_requirements import load_fixed_requirements, parse_req_from_line, write_requirements
 
 
 LOG = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ def do_updates(path, old_reqs, reqs_updates):
     path.write_text("\n".join(lines) + "\n")
 
 
-def main():
+def copy_locked_versions_into_legacy_requirements_files():
     fixed_path = Path(FIXED_REQUIREMENTS).resolve()
     test_path = Path(TEST_REQUIREMENTS).resolve()
     fixed_reqs = load_fixed_requirements(FIXED_REQUIREMENTS)
@@ -128,18 +128,45 @@ def main():
             handled.append(name)
 
     if not fixed_reqs_updates:
-        LOG.info("No updates required in %s", fixed_path)
+        LOG.info("No updates required in %s", FIXED_REQUIREMENTS)
     else:
-        LOG.info("Updating %s", fixed_path)
+        LOG.info("Updating %s", FIXED_REQUIREMENTS)
         do_updates(fixed_path, fixed_reqs, fixed_reqs_updates)
 
     if not test_reqs_updates:
-        LOG.info("No updates required in %s", test_path)
+        LOG.info("No updates required in %s", TEST_REQUIREMENTS)
     else:
-        LOG.info("Updating %s", test_path)
+        LOG.info("Updating %s", TEST_REQUIREMENTS)
         do_updates(test_path, test_reqs, test_reqs_updates)
 
-    LOG.info("DONE")
+    LOG.info("Done updating %s and %s", FIXED_REQUIREMENTS, TEST_REQUIREMENTS)
+
+
+def fixate_legacy_requirements_files():  # based on .requirements Makefile target
+    skip=["virtualenv", "virtualenv-osx"]
+
+    workspace = Path(".")
+    sources = list(workspace.glob("st2*/in-requirements.txt"))
+    sources.extend(list(workspace.glob("contrib/runners/*/in-requirements.txt")))
+
+    output = "requirements.txt"
+    LOG.info("Updating (fixating) %s files with requirements from %s", output, FIXED_REQUIREMENTS)
+    write_requirements(
+        sources=[str(source) for source in sources],
+        fixed_requirements=FIXED_REQUIREMENTS,
+        output_file=output,
+        skip=skip,
+    )
+
+    for source in sources:
+        output = str(source.with_name("requirements.txt"))
+        write_requirements(
+            sources=[str(source)],
+            fixed_requirements=FIXED_REQUIREMENTS,
+            output_file=output,
+            skip=skip,
+        )
+    LOG.info("Done updating (fixating) requirements.txt files")
 
 
 if __name__ == "__main__":
@@ -147,4 +174,5 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s %(levelname)s [-] %(message)s", level=log_level
     )
-    main()
+    copy_locked_versions_into_legacy_requirements_files()
+    fixate_legacy_requirements_files()
