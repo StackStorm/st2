@@ -246,7 +246,9 @@ jobs:
           mkdir -p "${OUTPUT_DIR}/"
           git fetch --depth=1 origin "${{ env.PR_BASE_REF }}"
           git checkout "origin/${{ env.PR_BASE_REF }}" -- "${LOCKFILE}"  # diff is for whole PR not just a commit.
+          set -x
           pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee "${STDERR_LOG}" >&2 )
+          { set +x; } 2>/dev/null
           cp "${LOCKFILE}" "${OUTPUT_DIR}/"
           CHANGED=$(
             if git diff "origin/${{ env.PR_BASE_REF }}" --exit-code --quiet -- "${LOCKFILE}"; then
