@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 import collections
 import importlib
+import logging
 import six
 import sys
 import traceback
@@ -238,4 +239,9 @@ def main(args):
 
 
 if __name__ == "__main__":
+    # display errors on stderr to facilitate debugging
+    log_level = logging.DEBUG
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s [-] %(message)s", level=log_level
+    )
     main(sys.argv)
