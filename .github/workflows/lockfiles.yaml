@@ -540,7 +540,7 @@ jobs:
         run: |
           git commit -F "${COMMIT_MSG}"
           git push${{ inputs.pr == 'new' && ' --force' || '' }} \
-            -u origin "${{ needs.pr.outputs.PR_REF }}"
+            origin "HEAD:${{ needs.pr.outputs.PR_REF }}"
 
       - name: Create new PR
         if: inputs.pr == 'new' && fromJSON(needs.pr.outputs.JSON).number == 'new' && env.CHANGED == 'true'
