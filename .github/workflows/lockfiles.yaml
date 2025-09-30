@@ -184,7 +184,8 @@ jobs:
               echo "Pull Request #${{ inputs.pr }} is closed!"
               echo "JSON=${PR}"
               exit 3
-            elif ! (jq -e .maintainerCanModify <<< "${PR}" >/dev/null); then
+            elif [[ "$(jq -r .headRepositoryOwner.login <<< "${PR}")" != "${GITHUB_REPOSITORY_OWNER}" ]] \
+            && ! jq -e .maintainerCanModify <<< "${PR}" >/dev/null; then
               echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification!"
               echo "JSON=${PR}"
               exit 4
