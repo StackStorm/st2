@@ -127,8 +127,12 @@ jobs:
             headRepository,\
             headRefName,\
             baseRefName"
+          NEW_PR_REF: "regen-lockfiles-${{ github.run_id }}"
         run: |
-          if [[ "${{ inputs.pr }}" == new ]]; then
+          NEW_PR_NUMBER="$(gh pr list --json number --head "${NEW_PR_REF}" --state open)"
+          pr_list_rc = $?
+          if [[ "${{ inputs.pr }}" == new ]] && [ ${pr_list_rc} -gt 0 ]; then
+            CHECKOUT_REF="${GITHUB_REF}"
             echo "Planning new Pull Request metadata ..."
             PR=$(
               yq -e -p yaml . -o json -I 0 \
@@ -149,11 +153,22 @@ jobs:
               headRepository:
                 id: "${GITHUB_REPOSITORY_ID}"
                 name: "${GITHUB_REPOSITORY#*/}"
-              headRefName: "regen-lockfiles-${GITHUB_RUN_ID}"
+              headRefName: "${NEW_PR_REF}"
               baseRefName: "${GITHUB_REF_NAME}"
           HEREYAML
             )
-            CHECKOUT_REF="${GITHUB_REF}"
+          elif [[ "${{ inputs.pr }}" == new ]] && [ ${pr_list_rc} -eq 0 ]; then
+            CHECKOUT_REF="${GITHUB_REF}" # will be force pushed
+            echo "Planning new Pull Request metadata (PR #${NEW_PR_NUMBER} - workflow re-run ${GITHUB_RUN_ATTEMPT})..."
+            PR=$(gh pr view "${NEW_PR_NUMBER}" --json "${PR_FIELDS}")
+            pr_search_rc=$?
+            if [ ${pr_search_rc} -gt 0 ]; then
+              echo "Error looking up PR from prior workflow run."
+              echo "JSON=${PR}"
+              exit 2
+            fi
+            echo "Found Pull Request #${NEW_PR_NUMBER} by @$(jq -r .author.login <<< "${PR}")"
+            echo "URL: $(jq -r .url <<< "${PR}")"
           else
             CHECKOUT_REF="refs/pull/${{ inputs.pr }}/merge"
             echo "Searching for Pull Request #${{ inputs.pr }} ..."
@@ -161,12 +176,15 @@ jobs:
             pr_search_rc=$?
             if [ ${pr_search_rc} -gt 0 ]; then
               echo "Pull Request #${{ inputs.pr }} not found!"
+              echo "JSON=${PR}"
               exit 2
             elif (jq -e .closed <<< "${PR}" >/dev/null); then
               echo "Pull Request #${{ inputs.pr }} is closed!"
+              echo "JSON=${PR}"
               exit 3
             elif ! (jq -e .maintainerCanModify <<< "${PR}" >/dev/null); then
               echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification!"
+              echo "JSON=${PR}"
               exit 4
             fi
             echo "Found Pull Request #${{ inputs.pr }} by @$(jq -r .author.login <<< "${PR}")"
@@ -416,13 +434,16 @@ jobs:
           submodules: 'true'
           ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
 
-      - name: Create branch for new PR
-        if: inputs.pr == 'new'
+      - name: Configure git author, committer
         run: |
           git config --local author.name "${{ env.BOT_ST2_NAME }}"
           git config --local author.email "${{ env.BOT_ST2_EMAIL }}"
           git config --local committer.name "${{ env.BOT_GHA_NAME }}"
           git config --local committer.email "${{ env.BOT_GHA_EMAIL }}"
+
+      - name: Create branch for new PR
+        if: inputs.pr == 'new'
+        run: |
           git checkout -b "${{ needs.pr.outputs.PR_REF }}" FETCH_HEAD
 
       - name: Download lockfiles and lockfile diff files
@@ -500,7 +521,7 @@ jobs:
           pants run scripts/lockfiles_to_reqs.py
           git add *requirements.txt st2*/requirements.txt contrib/runners/*/requirements.txt
 
-      - name: Commit and push
+      - name: Commit and ${{ inputs.pr == 'new' && 'force-' || '' }}push
         if: env.CHANGED == 'true'
         # git push --force is for workflow re-runs, but only for new PRs.
         run: |
@@ -509,7 +530,7 @@ jobs:
             -u origin "${{ needs.pr.outputs.PR_REF }}"
 
       - name: Create new PR
-        if: inputs.pr == 'new' && env.CHANGED == 'true'
+        if: inputs.pr == 'new' && fromJSON(needs.pr.outputs.JSON).number == 'new' && env.CHANGED == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: >
@@ -526,6 +547,17 @@ jobs:
         # github.token cannot be given read access to organizations.teams,
         # so, setting reviewer to a team would mean managing a PAT or similar.
         #  --reviewer "${{ github.repository_owner }}/Maintainers"
+
+      - name: Update new PR (workflow re-run ${{ github.run_attempt }})
+        if: inputs.pr == 'new' && fromJSON(needs.pr.outputs.JSON).number != 'new' && env.CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          (
+          echo '## New PR Update'; echo;
+          gh pr edit "${{ fromJSON(needs.pr.outputs.JSON).number }}"
+          --body-file "${PR_COMMENT}"
+          ) | tee -a "${GITHUB_STEP_SUMMARY}"
 
       - name: Update or Add Comment on existing PR
         if: inputs.pr != 'new'
