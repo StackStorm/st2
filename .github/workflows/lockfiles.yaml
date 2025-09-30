@@ -131,10 +131,10 @@ jobs:
           NEW_PR_REF: "regen-lockfiles-${{ github.run_id }}"
         run: |
           if [[ "${{ inputs.pr }}" == new ]]; then
-            NEW_PR_NUMBER="$(gh pr list --json number --repo "${GITHUB_REPOSITORY}" --head "${NEW_PR_REF}" --state open)"
-            pr_list_rc = $?
+            NEW_PR_NUMBER="$(gh pr list --repo "${GITHUB_REPOSITORY}" --head "${NEW_PR_REF}" --state open \
+              --json number --jq 'if .|length == 0 then "" else .[].number end')"
           fi
-          if [[ "${{ inputs.pr }}" == new ]] && [ ${pr_list_rc} -gt 0 ]; then
+          if [[ "${{ inputs.pr }}" == new ]] && [[ "${NEW_PR_NUMBER}" == "" ]]; then
             CHECKOUT_REF="${GITHUB_REF}"
             echo "Planning new Pull Request metadata ..."
             PR=$(
@@ -161,7 +161,7 @@ jobs:
               baseRefName: "${GITHUB_REF_NAME}"
           HEREYAML
             )
-          elif [[ "${{ inputs.pr }}" == new ]] && [ ${pr_list_rc} -eq 0 ]; then
+          elif [[ "${{ inputs.pr }}" == new ]] && [[ "${NEW_PR_NUMBER}" != "" ]]; then
             CHECKOUT_REF="${GITHUB_REF}" # will be force pushed
             echo "Planning new Pull Request metadata (PR #${NEW_PR_NUMBER} - workflow re-run ${GITHUB_RUN_ATTEMPT})..."
             PR=$(gh pr view "${NEW_PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --json "${PR_FIELDS}")
