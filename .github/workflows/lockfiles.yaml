@@ -244,7 +244,7 @@ jobs:
           PANTS_LEVEL: warn # skip info-level log messages
         run: |
           mkdir -p "${OUTPUT_DIR}/"
-          git remote -v
+          git fetch --depth=1 origin "${{ env.PR_BASE_REF }}"
           git checkout "origin/${{ env.PR_BASE_REF }}" -- "${LOCKFILE}"  # diff is for whole PR not just a commit.
           pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee "${STDERR_LOG}" >&2 )
           cp "${LOCKFILE}" "${OUTPUT_DIR}/"
