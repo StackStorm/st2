@@ -26,7 +26,7 @@ TEST_REQUIREMENTS = "test-requirements.txt"
 _LOCKFILE = "lockfiles/{resolve}.lock"
 TOOL_RESOLVES = ("st2", "bandit", "flake8", "pylint", "black")
 # irrelevant resolves: "pants-plugins", "twine"
-LOCKFILES = tuple(_LOCKFILE.format(tool) for tool in TOOL_RESOLVES)
+LOCKFILES = tuple(_LOCKFILE.format(resolve=tool) for tool in TOOL_RESOLVES)
 
 
 def strip_comments_from_pex_json_lockfile(lockfile_bytes: bytes) -> bytes:
@@ -73,8 +73,8 @@ def do_updates(path, old_reqs, reqs_updates):
     for name, updated_line in reqs_updates.items():
         line_source = old_reqs[name].line_source
         # line_source fmt is "line <number> of <file_path>"
-        _, line_number, _ = line_source.split(maxsplits=2)
-        line_index = line_number - 1
+        _, line_number, _ = line_source.split(maxsplit=2)
+        line_index = int(line_number) - 1
         lines[line_index] = updated_line
     path.write_text("\n".join(lines) + "\n")
 
