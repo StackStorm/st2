@@ -129,8 +129,10 @@ jobs:
             baseRefName"
           NEW_PR_REF: "regen-lockfiles-${{ github.run_id }}"
         run: |
-          NEW_PR_NUMBER="$(gh pr list --json number --head "${NEW_PR_REF}" --state open)"
-          pr_list_rc = $?
+          if [[ "${{ inputs.pr }}" == new ]]; then
+            NEW_PR_NUMBER="$(gh pr list --json number --repo "${GITHUB_REPOSITORY}" --head "${NEW_PR_REF}" --state open)"
+            pr_list_rc = $?
+          fi
           if [[ "${{ inputs.pr }}" == new ]] && [ ${pr_list_rc} -gt 0 ]; then
             CHECKOUT_REF="${GITHUB_REF}"
             echo "Planning new Pull Request metadata ..."
@@ -160,7 +162,7 @@ jobs:
           elif [[ "${{ inputs.pr }}" == new ]] && [ ${pr_list_rc} -eq 0 ]; then
             CHECKOUT_REF="${GITHUB_REF}" # will be force pushed
             echo "Planning new Pull Request metadata (PR #${NEW_PR_NUMBER} - workflow re-run ${GITHUB_RUN_ATTEMPT})..."
-            PR=$(gh pr view "${NEW_PR_NUMBER}" --json "${PR_FIELDS}")
+            PR=$(gh pr view "${NEW_PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --json "${PR_FIELDS}")
             pr_search_rc=$?
             if [ ${pr_search_rc} -gt 0 ]; then
               echo "Error looking up PR from prior workflow run."
@@ -172,7 +174,7 @@ jobs:
           else
             CHECKOUT_REF="refs/pull/${{ inputs.pr }}/merge"
             echo "Searching for Pull Request #${{ inputs.pr }} ..."
-            PR=$(gh pr view "${{ inputs.pr }}" --json "${PR_FIELDS}")
+            PR=$(gh pr view "${{ inputs.pr }}" --repo "${GITHUB_REPOSITORY}" --json "${PR_FIELDS}")
             pr_search_rc=$?
             if [ ${pr_search_rc} -gt 0 ]; then
               echo "Pull Request #${{ inputs.pr }} not found!"
