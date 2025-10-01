@@ -30,6 +30,7 @@ LOG = logging.getLogger(__name__)
 
 FIXED_REQUIREMENTS = "fixed-requirements.txt"
 TEST_REQUIREMENTS = "test-requirements.txt"
+MAKEFILE = "Makefile"
 
 _LOCKFILE = "lockfiles/{resolve}.lock"
 TOOL_RESOLVES = ("st2", "bandit", "flake8", "pylint", "black")
@@ -103,14 +104,50 @@ def do_updates(path, old_reqs, reqs_updates):
     path.write_text("\n".join(lines) + "\n")
 
 
+def load_makefile_reqs(path):
+    lines = path.read_text().splitlines()
+    line_prefixes = {"pip": "PIP_VERSION ?= ", "setuptools": "SETUPTOOLS_VERSION ?= "}
+    requirements = {"pip": None, "setuptools": None}
+    for index, line in enumerate(lines):
+        for name, prefix in line_prefixes.items():
+            if line.startswith(prefix):
+                version = line[len(prefix) :].strip()
+                requirements[name] = (index, prefix, version)
+        if None not in requirements.values():
+            break
+    return requirements
+
+
+def plan_makefile_update(old_reqs, name, version, reqs_updates):
+    if name not in old_reqs:
+        # this shouldn't happen
+        return
+    index, prefix, old_version = old_reqs[name]
+    if old_version != version:
+        reqs_updates[name] = (index, f"{prefix}{version}")
+
+
+def do_makefile_updates(path, reqs_updates):
+    lines = path.read_text().splitlines()
+    for name, info in reqs_updates.items():
+        index, line = info
+        lines[index] = line
+    path.write_text("\n".join(lines) + "\n")
+
+
 def copy_locked_versions_into_legacy_requirements_files():
     fixed_path = Path(FIXED_REQUIREMENTS).resolve()
     test_path = Path(TEST_REQUIREMENTS).resolve()
+    makefile_path = Path(MAKEFILE).resolve()
+
     fixed_reqs = load_fixed_requirements(FIXED_REQUIREMENTS)
     test_reqs = load_fixed_requirements(TEST_REQUIREMENTS)
+    makefile_reqs = load_makefile_reqs(makefile_path)
+    locked_in_makefile = ("pip", "setuptools")
 
     fixed_reqs_updates = {}
     test_reqs_updates = {}
+    makefile_reqs_updates = {}
 
     LOG.info("Looking for verion changes")
     handled = []
@@ -129,6 +166,10 @@ def copy_locked_versions_into_legacy_requirements_files():
                 continue
             plan_update(fixed_reqs, name, version, fixed_reqs_updates)
             plan_update(test_reqs, name, version, test_reqs_updates)
+            if name in locked_in_makefile:
+                plan_makefile_update(
+                    makefile_reqs, name, version, makefile_reqs_updates
+                )
             handled.append(name)
 
     if not fixed_reqs_updates:
@@ -142,6 +183,12 @@ def copy_locked_versions_into_legacy_requirements_files():
     else:
         LOG.info("Updating %s", TEST_REQUIREMENTS)
         do_updates(test_path, test_reqs, test_reqs_updates)
+
+    if not makefile_reqs_updates:
+        LOG.info("No updates required in %s", MAKEFILE)
+    else:
+        LOG.info("Updating %s", MAKEFILE)
+        do_makefile_updates(makefile_path, makefile_reqs_updates)
 
     LOG.info("Done updating %s and %s", FIXED_REQUIREMENTS, TEST_REQUIREMENTS)
 
