@@ -18,7 +18,11 @@ import json
 import logging
 from pathlib import Path
 
-from fixate_requirements import load_fixed_requirements, parse_req_from_line, write_requirements
+from fixate_requirements import (
+    load_fixed_requirements,
+    parse_req_from_line,
+    write_requirements,
+)
 
 
 LOG = logging.getLogger(__name__)
@@ -143,14 +147,18 @@ def copy_locked_versions_into_legacy_requirements_files():
 
 
 def fixate_legacy_requirements_files():  # based on .requirements Makefile target
-    skip=["virtualenv", "virtualenv-osx"]
+    skip = ["virtualenv", "virtualenv-osx"]
 
     workspace = Path(".")
     sources = list(workspace.glob("st2*/in-requirements.txt"))
     sources.extend(list(workspace.glob("contrib/runners/*/in-requirements.txt")))
 
     output = "requirements.txt"
-    LOG.info("Updating (fixating) %s files with requirements from %s", output, FIXED_REQUIREMENTS)
+    LOG.info(
+        "Updating (fixating) %s files with requirements from %s",
+        output,
+        FIXED_REQUIREMENTS,
+    )
     write_requirements(
         sources=[str(source) for source in sources],
         fixed_requirements=FIXED_REQUIREMENTS,
