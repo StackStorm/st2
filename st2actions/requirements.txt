@@ -20,7 +20,7 @@ pyinotify==0.9.6 ; platform_system=="Linux"
 pyparsing==3.1.4
 python-dateutil==2.9.0.post0
 python-json-logger
-pyyaml==6.0.2
+pyyaml==6.0.3
 requests==2.32.4
 setuptools<78
 six==1.17.0

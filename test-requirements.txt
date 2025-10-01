@@ -15,7 +15,7 @@ black==22.3.0
 pre-commit==3.5.0
 bandit==1.7.10
 isort>=4.2.5
-mock==5.1.0
+mock==5.2.0
 tabulate
 # 4.5.0 required for Jinja-3.1.3 support but >5.0 required by rstcheck and lower than 7.2 which drops py3.8 support
 sphinx>=5.0.0,<7.2.0
@@ -23,12 +23,12 @@ sphinx-autobuild
 # pin alabaster (sphinx dependency) or pip installs one that is not compatible
 alabaster<0.7.14
 # Required by st2client tests
-pyyaml==6.0.2
+pyyaml==6.0.3
 # Constrain pygments required by editor to align with st2 core version
 pygments==2.19.2
 RandomWords
 gunicorn==23.0.0
-psutil==7.0.0
+psutil==7.1.0
 webtest==3.0.1
 # Bump to latest to meet sphinx requirements.
 rstcheck==6.2.1
