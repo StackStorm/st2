@@ -55,7 +55,6 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
           - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
@@ -117,7 +116,7 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.10', version: '3.10.16'}
     services:
       mongo:
         image: mongo:7.0
@@ -231,13 +230,6 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/virtualenv/bin/st2 /usr/local/bin/st2
           ln -s ${GITHUB_WORKSPACE}/st2common/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
 
-      - name: Install st2client
-        timeout-minutes: 5
-        run: |
-          cd ./st2client
-          pip3 install --upgrade pip
-          python3 setup.py develop
-
       - name: Run self-verification script
         env:
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
@@ -272,7 +264,6 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
           - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
@@ -408,7 +399,7 @@ jobs:
         # NOTE: We only generate and submit coverage report for master and version branches and
         # only when the build succeeds (default on GitHub Actions, this was not the case on Travis
         # so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.10')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
         env:
@@ -427,7 +418,6 @@ jobs:
         # NOTE: To speed-up the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
           - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
@@ -577,7 +567,7 @@ jobs:
 
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.10')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
         env:

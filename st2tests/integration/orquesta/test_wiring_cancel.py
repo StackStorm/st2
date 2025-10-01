@@ -139,7 +139,7 @@ class CancellationWiringTest(
         subwf_ex = self._wait_for_state(subwf_ex, ac_const.LIVEACTION_STATUS_CANCELING)
 
         # Assert main workflow is canceling.
-        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELING)
+        ex = self._wait_for_state(ex, ac_const.LIVEACTION_STATUS_CANCELED)
 
         # Delete the temporary file.
         os.remove(path)
