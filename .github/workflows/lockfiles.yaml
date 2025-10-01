@@ -442,25 +442,24 @@ jobs:
           submodules: 'true'
           ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
 
-      - name: Configure git author, committer
+      - name: Configure git author, committer, remote
+        env:
+          PR_IS_CROSS_REPOSITORY: ${{ fromJSON(needs.pr.outputs.JSON).isCrossRepository }}
+          PR_REMOTE: "origin"
         run: |
           git config --local author.name "${{ env.BOT_ST2_NAME }}"
           git config --local author.email "${{ env.BOT_ST2_EMAIL }}"
           git config --local committer.name "${{ env.BOT_GHA_NAME }}"
           git config --local committer.email "${{ env.BOT_GHA_EMAIL }}"
-
-      - name: Create local branch for PR
-        env:
-          PR_IS_CROSS_REPOSITORY: ${{ fromJSON(needs.pr.outputs.JSON).isCrossRepository }}
-          PR_REMOTE: "origin"
-          PR_REF: ${{ needs.pr.outputs.PR_REF }}
-        run: |
           if [[ "${PR_IS_CROSS_REPOSITORY}" == "true" ]]; then
             PR_REMOTE="fork"
             git remote add "${PR_REMOTE}" "${GITHUB_SERVER_URL}/${{ needs.pr.outputs.PR_REPO }}"
           fi
           echo "PR_REMOTE=${PR_REMOTE}" >> "${GITHUB_ENV}"
-          git checkout -b "${PR_REF}" --track "${PR_REMOTE}/${PR_REF}"
+
+      - name: Create local branch for PR
+        run: |
+          git checkout -b "${{ needs.pr.outputs.PR_REF }}"
 
       - name: Download lockfiles and lockfile diff files
         uses: actions/download-artifact@v5
@@ -549,7 +548,7 @@ jobs:
         # git push --force is for workflow re-runs, but only for new PRs.
         run: |
           git commit -F "${COMMIT_MSG}"
-          git push${{ inputs.pr == 'new' && ' --force' || '' }} "${PR_REMOTE}" "${{ needs.pr.outputs.PR_REF }}"
+          git push${{ inputs.pr == 'new' && ' --force' || '' }} -u "${PR_REMOTE}" "${{ needs.pr.outputs.PR_REF }}"
 
       - name: Create new PR
         if: inputs.pr == 'new' && fromJSON(needs.pr.outputs.JSON).number == 'new' && env.CHANGED == 'true'
