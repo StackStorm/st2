@@ -16,7 +16,7 @@ jsonschema==3.2.0
 orjson==3.10.15
 prettytable==3.11.0
 prompt-toolkit==3.0.52
-pyOpenSSL
+pyOpenSSL<25.2
 pygments==2.19.2
 pysocks
 python-dateutil==2.9.0.post0
