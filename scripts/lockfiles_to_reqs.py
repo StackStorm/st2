@@ -38,7 +38,7 @@ def strip_comments_from_pex_json_lockfile(lockfile_bytes: bytes) -> bytes:
     Copied from code by Pants Project Contributors (Apache 2.0 licensed):
     https://github.com/pantsbuild/pants/blob/release_2.25.0/src/python/pants/backend/python/util_rules/pex_requirements.py#L119-L127
 
-    TODO: delete this once we getrid of the legacy fixate requirements files.
+    TODO: delete this once we get rid of the legacy fixate requirements files.
     """
     return b"\n".join(
         line

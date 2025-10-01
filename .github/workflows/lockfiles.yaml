@@ -347,7 +347,7 @@ jobs:
       - name: Upload lockfile diff picture to S3
         # GitHub flavored markdown does not accept data:image/png URIs for images.
         # And GitHub does not provide any convenient APIs for uploading image assets.
-        # So, we upload to AWS and save the URI for in generated markdown below.
+        # So, we upload to AWS and save the URI for use in generated markdown below.
         if: steps.lockfile.outputs.CHANGED == 'true'
         # NOTE: The packaged s3 actions are too old, incomplete, or do not allow setting content-type + tags.
         env:
