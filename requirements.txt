@@ -10,7 +10,7 @@ amqp==5.3.1
 apscheduler==3.11.0
 argcomplete==3.6.2
 backports.zoneinfo[tzdata]; python_version<"3.9"
-bcrypt==4.3.0
+bcrypt==5.0.0
 cffi==1.17.1
 chardet==5.2.0
 ciso8601
@@ -24,7 +24,7 @@ gitdb==4.0.12
 gitpython==3.1.45
 greenlet==3.1.1
 gunicorn==23.0.0
-importlib-metadata==7.1.0
+importlib-metadata==8.5.0
 jinja2==3.1.6
 jsonpath-rw==1.4.0
 jsonschema==3.2.0
@@ -39,10 +39,10 @@ orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2c
 oslo.config==9.6.0
 oslo.utils==7.3.0
 paramiko==3.5.1
-prettytable==3.10.2
+prettytable==3.11.0
 prompt-toolkit==3.0.52
-psutil==7.0.0
-pyOpenSSL
+psutil==7.1.0
+pyOpenSSL<25.2
 pygments==2.19.2
 pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==4.6.3
@@ -55,7 +55,7 @@ python-json-logger
 python-statsd==2.1.0
 pytz==2025.2
 pywinrm==0.5.0
-pyyaml==6.0.2
+pyyaml==6.0.3
 redis==6.1.1
 requests==2.32.4
 retrying==1.4.2

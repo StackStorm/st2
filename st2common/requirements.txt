@@ -30,11 +30,11 @@ orjson==3.10.15
 orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
 oslo.config==9.6.0
 paramiko==3.5.1
-pyOpenSSL
+pyOpenSSL<25.2
 pymongo==4.6.3
 python-dateutil==2.9.0.post0
 python-statsd==2.1.0
-pyyaml==6.0.2
+pyyaml==6.0.3
 redis==6.1.1
 requests==2.32.4
 retrying==1.4.2

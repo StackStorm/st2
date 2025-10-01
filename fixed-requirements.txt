@@ -39,8 +39,9 @@ pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==4.6.3
 pyparsing==3.1.4
 zstandard==0.23.0
-# pyOpenSSL 23.1.0 supports cryptography up to 40.0.x
-#pyOpenSSL==23.1.0
+# pyOpenSSL is a candidate for removal and is not in lockfiles/st2.lock since it is not used.
+# pyOpenSSL 25.1.0 supports cryptography>=41.0.5,<46
+pyOpenSSL<25.2
 # 202403: switch from python-editor to editor for py3.10 support
 editor==1.6.6
 # editor dependency, required here for inclusion in st2client setup.py
@@ -48,7 +49,7 @@ pygments==2.19.2
 python-keyczar==0.716
 pytz==2025.2
 pywinrm==0.5.0
-pyyaml==6.0.2
+pyyaml==6.0.3
 redis==6.1.1
 requests==2.32.4
 # urllib3 is a transitive dep
@@ -59,8 +60,8 @@ semver==3.0.4
 six==1.17.0
 argparse==1.4.0
 argcomplete==3.6.2
-prettytable==3.10.2
-importlib-metadata==7.1.0
+prettytable==3.11.0
+importlib-metadata==8.5.0
 # 20250909 virtualenv 20.34.0 requires typing-extension>=4.13.2
 typing-extensions>=4.13.2; python_version < "3.11"
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.
@@ -79,11 +80,11 @@ webob==1.8.9
 webtest==3.0.1
 zake==0.2.2
 # test requirements below
-bcrypt==4.3.0
+bcrypt==5.0.0
 jinja2==3.1.6
 mock==5.2.0
 pytest==7.0.1
-psutil==7.0.0
+psutil==7.1.0
 python-dateutil==2.9.0.post0
 python-statsd==2.1.0
 orjson==3.10.15
