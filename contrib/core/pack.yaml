@@ -1,7 +1,7 @@
 ---
 name : core
 description : Basic core actions.
-version : 1.0.1
+version: 3.9.0
 python_versions:
   - "2"
   - "3"
