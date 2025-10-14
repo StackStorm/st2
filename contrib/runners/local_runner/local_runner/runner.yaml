@@ -45,8 +45,11 @@
         anyOf:
           - type: "object"
           - type: "string"
-          - type: "array"
+          - type: "integer"
           - type: "number"
+          - type: "boolean"
+          - type: "array"
+          - type: "null"
       stderr:
         type: string
       return_code:
@@ -104,8 +107,11 @@
         anyOf:
           - type: "object"
           - type: "string"
-          - type: "array"
+          - type: "integer"
           - type: "number"
+          - type: "boolean"
+          - type: "array"
+          - type: "null"
       stderr:
         type: string
       return_code:
