@@ -419,15 +419,8 @@ def validate(
     :type use_default: ``bool``
     """
     instance = fast_deepcopy_dict(instance)
-    schema_type = None
-    if isinstance(schema, dict):
-        schema_type = schema.get("type", None)
-
+    schema_type = schema.get("type", None)
     instance_is_dict = isinstance(instance, dict)
-
-    if isinstance(schema, dict) and ("type" in schema or "$schema" in schema):
-        jsonschema.validate(instance=instance, schema=schema, *args, **kwargs)
-        return instance
 
     if use_default and allow_default_none:
         schema = modify_schema_allow_default_none(schema=schema)
