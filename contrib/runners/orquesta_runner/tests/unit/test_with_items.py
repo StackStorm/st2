@@ -56,13 +56,13 @@ PACKS = [TEST_PACK_PATH, CORE_PACK_PATH]
 
 RUNNER_RESULT_RUNNING = (
     action_constants.LIVEACTION_STATUS_RUNNING,
-    {"stdout": "..."},
+    {"stdout": "...", "stderr": ""},
     {},
 )
 
 RUNNER_RESULT_SUCCEEDED = (
     action_constants.LIVEACTION_STATUS_SUCCEEDED,
-    {"stdout": "..."},
+    {"stdout": "...", "stderr": "", "succeeded": True, "failed": False},
     {},
 )
 

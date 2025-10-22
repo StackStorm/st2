@@ -377,7 +377,7 @@ black: requirements .black-check
 		echo "==========================================================="; \
 		echo "Running black on" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --diff --check --config pyproject.toml $$component/ || exit 1; \
 		if [ -d "$$component/bin" ]; then \
 			. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
 		fi \
@@ -387,7 +387,7 @@ black: requirements .black-check
 		echo "==========================================================="; \
 		echo "Running black on" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate ; black --check --config pyproject.toml $$component/ || exit 1; \
+		. $(VIRTUALENV_DIR)/bin/activate ; black --diff --check --config pyproject.toml $$component/ || exit 1; \
 		if [ -d "$$component/bin" ]; then \
 			. $(VIRTUALENV_DIR)/bin/activate ; black $$(grep -rl '^#!/.*python' $$component/bin) || exit 1; \
 		fi \
