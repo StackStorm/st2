@@ -18,7 +18,6 @@ from __future__ import absolute_import
 
 import os
 import re
-import sys
 
 # // NOTE: After you update this script, please run:
 # //
@@ -40,12 +39,6 @@ import sys
 #       for subpackages.
 #       At the very least we can vendorize some of their code instead of reimplementing
 #       each piece of their code every time our parsing breaks.
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    text_type = str
-else:
-    text_type = unicode  # noqa  # pylint: disable=E0602
 
 GET_PIP = "curl https://bootstrap.pypa.io/get-pip.py | python"
 

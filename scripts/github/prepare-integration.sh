@@ -27,7 +27,7 @@ echo ""
 
 # install st2 client
 if [ ! -x "${VIRTUALENV_DIR}/bin/st2" ] || ! st2 --version >/dev/null 2>&1; then
-    python ./st2client/setup.py develop
+    pip install -e  ./st2client/
 fi
 st2 --version
 
