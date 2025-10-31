@@ -1753,7 +1753,7 @@ paths:
           in: query
           description: Number of packs to get
           type: integer
-          default: 100
+          default: 500
         - name: offset
           in: query
           description: Number of packs to offset
@@ -3870,7 +3870,7 @@ paths:
           in: query
           description: Number of trigger types to get
           type: integer
-          default: 100
+          default: 500
         - name: offset
           in: query
           description: Number of trigger types to offset
