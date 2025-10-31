@@ -1,0 +1,23 @@
+# Everything listed in pants.toml [evironments-preview.names] should be defined here.
+# Relevant docs:
+# - https://www.pantsbuild.org/stable/docs/using-pants/environments
+# - https://www.pantsbuild.org/stable/reference/targets/experimental_workspace_environment
+# - https://www.pantsbuild.org/stable/reference/targets/local_environment
+# - https://www.pantsbuild.org/stable/reference/targets/docker_environment
+
+# This file MUST NOT use any macros.
+
+experimental_workspace_environment(
+    name="in_repo_workspace",
+    description=(
+        """
+        This allows shell_command and similar to run in the repo, instead of in a sandbox.
+        Only use this environment for commands or goals that are idempotent.
+        Ideally, such commands do NOT change anything in the repo.
+
+        If you need to capture output, note that output gets captured from a temporary
+        sandbox, not from the repo root. So, you may need to copy output files into
+        the sandbox with something like `cp path/to/file {chroot}/path/to/file`.
+        """
+    ),
+)

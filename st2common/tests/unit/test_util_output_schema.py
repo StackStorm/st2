@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import copy
-import unittest2
+import unittest
 
 from st2common.util import output_schema
 
@@ -186,7 +186,7 @@ MALFORMED_ACTION_OUTPUT_SCHEMA_2 = {
 }
 
 
-class OutputSchemaTestCase(unittest2.TestCase):
+class OutputSchemaTestCase(unittest.TestCase):
     def test_valid_schema(self):
         result, status = output_schema.validate_output(
             copy.deepcopy(RUNNER_OUTPUT_SCHEMA),

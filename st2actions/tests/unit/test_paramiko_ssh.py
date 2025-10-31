@@ -19,7 +19,7 @@ import os
 
 import mock
 import paramiko
-import unittest2
+import unittest
 from oslo_config import cfg
 from mock import call, patch, Mock, MagicMock
 from six.moves import StringIO
@@ -29,12 +29,15 @@ from st2common.runners.paramiko_ssh import ParamikoSSHClient
 from st2tests.fixturesloader import get_resources_base_path
 import st2tests.config as tests_config
 
-tests_config.parse_args()
-
 __all__ = ["ParamikoSSHClientTestCase"]
 
 
-class ParamikoSSHClientTestCase(unittest2.TestCase):
+class ParamikoSSHClientTestCase(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tests_config.parse_args()
+
     @patch("paramiko.SSHClient", Mock)
     def setUp(self):
         """
@@ -180,7 +183,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
 
         client = ParamikoSSHClient(**conn_params)
 
-        self.assertRaisesRegexp(ValueError, expected_msg, client.connect)
+        self.assertRaisesRegex(ValueError, expected_msg, client.connect)
 
     @patch("paramiko.SSHClient", Mock)
     @patch.object(
@@ -230,7 +233,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         mock = ParamikoSSHClient(**conn_params)
 
         expected_msg = "Invalid or unsupported key type"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             paramiko.ssh_exception.SSHException, expected_msg, mock.connect
         )
 
@@ -247,7 +250,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
 
         expected_msg = "passphrase should accompany private key material"
         client = ParamikoSSHClient(**conn_params)
-        self.assertRaisesRegexp(ValueError, expected_msg, client.connect)
+        self.assertRaisesRegex(ValueError, expected_msg, client.connect)
 
     @patch("paramiko.SSHClient", Mock)
     def test_passphrase_not_provided_for_encrypted_key_file(self):
@@ -330,7 +333,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         expected_msg = "passphrase should accompany private key material"
         client = ParamikoSSHClient(**conn_params)
 
-        self.assertRaisesRegexp(ValueError, expected_msg, client.connect)
+        self.assertRaisesRegex(ValueError, expected_msg, client.connect)
 
     @patch("paramiko.SSHClient", Mock)
     @patch.object(
@@ -351,7 +354,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
         mock = ParamikoSSHClient(**conn_params)
 
         expected_msg = "Invalid passphrase or invalid/unsupported key type"
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             paramiko.ssh_exception.SSHException, expected_msg, mock.connect
         )
 
@@ -375,7 +378,7 @@ class ParamikoSSHClientTestCase(unittest2.TestCase):
             conn_params["key_material"] = key_material
             mock = ParamikoSSHClient(**conn_params)
 
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 paramiko.ssh_exception.SSHException, expected_msg, mock.connect
             )
 

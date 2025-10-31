@@ -15,7 +15,7 @@ on:
       # also version tags, which include bugfix releases (eg: v3.4.0)
       - v[0-9]+.[0-9]+.[0-9]+
   pull_request:
-    type: [opened, reopened, edited]
+    types: [opened, reopened, synchronize]
     branches:
       # Only for PRs targeting those branches
       - master
@@ -32,7 +32,7 @@ jobs:
   # same file set which has already passed, etc.
   pre_job:
     name: Skip Duplicate Jobs Pre Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -47,34 +47,30 @@ jobs:
     # NOTE: We always want to run job on master since we run some additional checks there (code
     # coverage, etc)
     # if: ${{ needs.pre_job.outputs.should_skip != 'true' || github.ref == 'refs/heads/master' }}
-    name: '${{ matrix.name }} - Python ${{ matrix.python-version-short }}'
-    runs-on: ubuntu-20.04
+    name: '${{ matrix.make.name }} - Python ${{ matrix.python.version-short }}'
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
-        include:
+        python:
+          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.9', version: '3.9.21'}
+          - {version-short: '3.10', version: '3.10.16'}
+          - {version-short: '3.11', version: '3.11.11'}
+        make:
           - name: 'Integration Tests (Orquesta)'
             task: 'ci-orquesta'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version: '3.6.13'
-            python-version-short: '3.6'
-          - name: 'Integration Tests (Orquesta)'
-            task: 'ci-orquesta'
-            nosetests_node_total: 1
-            nosetests_node_index: 0
-            python-version-short: '3.8'
-            python-version: '3.8.10'
+            shard: {k: 0, n: 1}
     services:
       mongo:
-        image: mongo:4.4
+        image: mongo:7.0
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:3.13-management
         options: >-
           --name rabbitmq
         ports:
@@ -82,27 +78,23 @@ jobs:
           - 5672:5672/tcp   # AMQP standard port
           - 15672:15672/tcp # Management: HTTP, CLI
 
-      # Used for the coordination backend for integration tests
-      # NOTE: To speed things up, we only start redis for integration tests
-      # where it's needed
-      # redis:
-      #   # Docker Hub image
-      #   image: redis
-      #   # Set health checks to wait until redis has started
-      #   options: >-
-      #     --name "redis"
-      #     --health-cmd "redis-cli ping"
-      #     --health-interval 10s
-      #     --health-timeout 5s
-      #     --health-retries 5
-      #   ports:
-      #     - 6379:6379/tcp
+      redis:
+        # Docker Hub image
+        image: redis:8.0
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     env:
-      TASK: '${{ matrix.task }}'
-
-      NODE_TOTAL: '${{ matrix.nosetests_node_total }}'
-      NODE_INDEX: '${{ matrix.nosetests_node_index }}'
+      TASK: '${{ matrix.make.task }}'
+      NODE_TOTAL: '${{ matrix.make.shard.n }}'
+      NODE_INDEX: '${{ matrix.make.shard.k }}'
 
       # We need to explicitly specify terminal width otherwise some CLI tests fail on container
       # environments where small terminal size is used.
@@ -124,45 +116,16 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Custom Environment Setup
         run: |
           ./scripts/github/setup-environment.sh
-      - name: 'Set up Python (${{ matrix.python-version }})'
-        uses: actions/setup-python@v2
+      - name: 'Set up Python (${{ matrix.python.version }}) and Cache Deps'
+        uses: ./.github/actions/setup-python
         with:
-          python-version: '${{ matrix.python-version }}'
-      - name: Cache Python Dependencies
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.cache/pip
-            virtualenv
-            ~/virtualenv
-          # TODO: maybe make the virtualenv a partial cache to exclude st2*?
-          # !virtualenv/lib/python*/site-packages/st2*
-          # !virtualenv/bin/st2*
-          key: ${{ runner.os }}-v4-python-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'test-requirements.txt') }}
-          # Don't use alternative key as if requirements.txt has altered we
-          # don't want to retrieve previous cache
-          #restore-keys: |
-          #  ${{ runner.os }}-v4-python-${{ matrix.python }}-
-      - name: Cache APT Dependencies
-        id: cache-apt-deps
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/apt_cache
-          key: ${{ runner.os }}-apt-v7-${{ hashFiles('scripts/github/apt-packages.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-apt-v7-
-      - name: Install APT Depedencies
-        env:
-          CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
-        run: |
-          # install dev dependencies for Python YAML and LDAP packages
-          # https://github.com/StackStorm/st2-auth-ldap
-          ./scripts/github/install-apt-packages-use-cache.sh
+          python-version: '${{ matrix.python.version }}'
+      - name: Cache and Install APT Dependencies
+        uses: ./.github/actions/apt-packages
       - name: Install virtualenv
         run: |
           ./scripts/github/install-virtualenv.sh
@@ -177,11 +140,6 @@ jobs:
           cp conf/st2.dev.conf "${ST2_CONF}" ; sed -i -e "s/stanley/${ST2_CI_USER}/" "${ST2_CONF}"
 
           sudo -E ./scripts/ci/add-itest-user-key.sh
-      - name: Run Redis Service Container
-        timeout-minutes: 2
-        run: |
-          docker run --rm --detach -p 127.0.0.1:6379:6379/tcp --name redis redis:latest
-          until [ "$(docker inspect -f {{.State.Running}} redis)" == "true" ]; do sleep 0.1; done
       - name: Permissions Workaround
         run: |
           echo "$ST2_CI_REPO_PATH"
@@ -190,7 +148,7 @@ jobs:
         run: |
           ./scripts/ci/print-versions.sh
       - name: make
-        timeout-minutes: 31
+        timeout-minutes: 41
         env:
           MAX_ATTEMPTS: 3
           RETRY_DELAY: 5
@@ -212,38 +170,25 @@ jobs:
           set -e
           echo "Failed after ${MAX_ATTEMPTS} attempts, failing the job."
           exit 1
-      - name: Upload StackStorm services Logs
-        #if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: logs
-          path: logs/
-      - name: Codecov
-        # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && env.ENABLE_COVERAGE == 'yes' }}"
-        run: |
-          ./scripts/ci/submit-codecov-coverage.sh
       - name: Compress Service Logs Before upload
         if: ${{ failure() }}
         run: |
+          ./tools/launchdev.sh stop # stop st2 before collecting logs
           tar cvzpf logs.tar.gz logs/*
       - name: Upload StackStorm services Logs
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: logs
+          name: logs-py${{ matrix.python.version }}
           path: logs.tar.gz
           retention-days: 7
-      - name: Stop Redis Service Container
-        if: "${{ always() }}"
-        run: docker rm --force redis || true
 
   slack-notification:
     name: Slack notification for failed master builds
     if: always()
     needs:
       - integration-tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Workflow conclusion
         # this step creates an environment variable WORKFLOW_CONCLUSION and is the most reliable way to check the status of previous jobs

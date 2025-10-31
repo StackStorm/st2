@@ -1,6 +1,6 @@
 __defaults__(
     all=dict(
-        resolve="pylint_plugins",
+        resolve="pylint",
     )
 )
 
@@ -8,6 +8,7 @@ python_sources()
 
 python_tests(
     name="tests",
+    tags=["unit"],
     dependencies=[
         "./fixtures",
         "!//conftest.py:test_utils",
@@ -17,10 +18,8 @@ python_tests(
 python_requirement(
     name="pylint",
     requirements=[
-        # This must be the same as [pylint].version in pants.toml
-        "pylint~=2.8.2",
-        # other requirements in [pylint].extra_requirements in pants.toml
-        "setuptools",
+        "pylint~=3.1.0",
+        "setuptools",  # includes pkg_resources
     ],
 )
 

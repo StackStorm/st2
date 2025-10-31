@@ -9,10 +9,15 @@ sudo cp scripts/github/rabbitmq.conf /home/runner/rabbitmq_conf/custom.conf
 # The code is checked out after the container is already up, so we don't mount them.
 # We copy those certs into the dir that is mounted to /bitnami/conf
 sudo cp -r st2tests/st2tests/fixtures/ssl_certs /home/runner/rabbitmq_conf/
+
+# Make sure configuration files are accessible to the rabbitmq user.
+docker exec rabbitmq bash -c 'chown -R rabbitmq:rabbitmq /etc/rabbitmq/conf.d'
+
 # refresh rabbitmq config - based on ENTRYPOINT logic
-docker exec rabbitmq bash -c 'cat /bitnami/conf/custom.conf >> /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf'
+#~ docker exec rabbitmq bash -c 'cat /bitnami/conf/custom.conf >> /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf'
+
 # sleep to prevent interleaved output in GHA logs
-docker exec rabbitmq cat /opt/bitnami/rabbitmq/etc/rabbitmq/rabbitmq.conf && sleep 0.1
+docker exec rabbitmq cat /etc/rabbitmq/conf.d/custom.conf && sleep 0.1
 echo
 echo restarting rabbitmq container
 docker restart rabbitmq
@@ -20,11 +25,14 @@ docker restart rabbitmq
 # TODO: Add timeout for just in case (config error or similar)
 # shellcheck disable=SC1083
 until [ "$(docker inspect -f {{.State.Running}} rabbitmq)" == "true" ]; do sleep 0.1; done
+# rabbitmq:3.13 image doesn't have rabbitmq_management plugin enable by default.
+docker exec rabbitmq rabbitmq-plugins enable rabbitmq_management
+
 echo enabled RabbitMQ plugins:
 # print plugins list to: (1) ease debugging, (2) pause till rabbitmq is really running
 docker exec rabbitmq rabbitmq-plugins list -e
 echo
-sudo wget http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
+sudo wget --no-verbose http://guest:guest@localhost:15672/cli/rabbitmqadmin -O /usr/local/bin/rabbitmqadmin
 sudo chmod +x /usr/local/bin/rabbitmqadmin
 # print logs from stdout (RABBITMQ_LOGS=-)
 docker logs --tail=100 rabbitmq

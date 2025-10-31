@@ -3,6 +3,6 @@ description: Debug utilities for StackStorm
 ref: debug
 author: StackStorm Authors
 email: info@stackstorm.com
-version: "0.0.1"
+version: "0.0.2"
 python_versions:
   - "3"

@@ -20,6 +20,10 @@ import mock
 import shutil
 import tempfile
 import hashlib
+import sys
+
+# TODO: Move keywords directly to hashlib.md5 call as part of dropping py3.8.
+hashlib_kwargs = {} if sys.version_info[0:2] < (3, 9) else {"usedforsecurity": False}
 
 from st2common.util.monkey_patch import use_select_poll_workaround
 
@@ -154,12 +158,14 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download(self):
         action = self.get_action_instance()
         result = action.run(packs=["test"], abs_repo_base=self.repo_base)
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         self.assertEqual(result, {"test": "Success."})
         self.clone_from.assert_called_once_with(
             PACK_INDEX["test"]["repo_url"],
-            os.path.join(os.path.expanduser("~"), temp_dir),
+            os.path.join(os.path.expanduser("~"), ".st2packs", temp_dir),
         )
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, "test/pack.yaml")))
 
@@ -175,18 +181,22 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             abs_repo_base=self.repo_base,
         )
         temp_dirs = [
-            hashlib.md5(PACK_INDEX["test2"]["repo_url"].encode()).hexdigest(),
-            hashlib.md5(PACK_INDEX["test4"]["repo_url"].encode()).hexdigest(),
+            hashlib.md5(
+                PACK_INDEX["test2"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
+            hashlib.md5(
+                PACK_INDEX["test4"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
         ]
 
         self.assertEqual(result, {"test2": "Success.", "test4": "Success."})
         self.clone_from.assert_any_call(
             PACK_INDEX["test2"]["repo_url"],
-            os.path.join(os.path.expanduser("~"), temp_dirs[0]),
+            os.path.join(os.path.expanduser("~"), ".st2packs", temp_dirs[0]),
         )
         self.clone_from.assert_any_call(
             PACK_INDEX["test4"]["repo_url"],
-            os.path.join(os.path.expanduser("~"), temp_dirs[1]),
+            os.path.join(os.path.expanduser("~"), ".st2packs", temp_dirs[1]),
         )
         self.assertEqual(self.clone_from.call_count, 2)
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, "test2/pack.yaml")))
@@ -205,18 +215,22 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         action = self.get_action_instance()
         result = action.run(packs=["test", "test2"], abs_repo_base=self.repo_base)
         temp_dirs = [
-            hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest(),
-            hashlib.md5(PACK_INDEX["test2"]["repo_url"].encode()).hexdigest(),
+            hashlib.md5(
+                PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
+            hashlib.md5(
+                PACK_INDEX["test2"]["repo_url"].encode(), **hashlib_kwargs
+            ).hexdigest(),  # nosec. remove nosec after py3.8 drop
         ]
 
         self.assertEqual(result, {"test": "Success.", "test2": "Success."})
         self.clone_from.assert_any_call(
             PACK_INDEX["test"]["repo_url"],
-            os.path.join(os.path.expanduser("~"), temp_dirs[0]),
+            os.path.join(os.path.expanduser("~"), ".st2packs", temp_dirs[0]),
         )
         self.clone_from.assert_any_call(
             PACK_INDEX["test2"]["repo_url"],
-            os.path.join(os.path.expanduser("~"), temp_dirs[1]),
+            os.path.join(os.path.expanduser("~"), ".st2packs", temp_dirs[1]),
         )
         self.assertEqual(self.clone_from.call_count, 2)
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, "test/pack.yaml")))
@@ -243,7 +257,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
     def test_run_pack_lock_is_already_acquired(self):
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         original_acquire = LockFile.acquire
 
@@ -260,7 +276,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
                 fp.write("")
 
             expected_msg = "Timeout waiting to acquire lock for"
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 LockTimeout,
                 expected_msg,
                 action.run,
@@ -274,7 +290,9 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_lock_is_already_acquired_force_flag(self):
         # Lock is already acquired but force is true so it should be deleted and released
         action = self.get_action_instance()
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         original_acquire = LockFile.acquire
 
@@ -328,7 +346,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             "is not a valid version, hash, tag or branch.*?"
             "Available versions are: 1.0.0, 2.0.0."
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action.run,
@@ -351,7 +369,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             'Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
             'current version is "2.2.0"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action.run,
@@ -364,7 +382,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             'Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
             'current version is "2.3.0"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action.run,
@@ -377,7 +395,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             'Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
             'current version is "1.5.9"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action.run,
@@ -390,7 +408,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
             'Pack "test3" requires StackStorm ">=1.6.0, <2.2.0", but '
             'current version is "1.5.0"'
         )
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action.run,
@@ -470,7 +488,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
                 r'Pack "test3" requires Python 2.x, but current Python version is '
                 '"3.5.2"'
             )
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 ValueError,
                 expected_msg,
                 action.run,
@@ -497,7 +515,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
                 r'Pack "test3" requires Python 3.x, but current Python version is '
                 '"2.7.2"'
             )
-            self.assertRaisesRegexp(
+            self.assertRaisesRegex(
                 ValueError,
                 expected_msg,
                 action.run,
@@ -657,7 +675,7 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
 
         # 1. Local directory doesn't exist
         expected_msg = r'Local pack directory ".*" doesn\'t exist'
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             action.run,
@@ -682,12 +700,14 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
     def test_run_pack_download_with_tag(self):
         action = self.get_action_instance()
         result = action.run(packs=["test"], abs_repo_base=self.repo_base)
-        temp_dir = hashlib.md5(PACK_INDEX["test"]["repo_url"].encode()).hexdigest()
+        temp_dir = hashlib.md5(
+            PACK_INDEX["test"]["repo_url"].encode(), **hashlib_kwargs
+        ).hexdigest()  # nosec. remove nosec after py3.8 drop
 
         self.assertEqual(result, {"test": "Success."})
         self.clone_from.assert_called_once_with(
             PACK_INDEX["test"]["repo_url"],
-            os.path.join(os.path.expanduser("~"), temp_dir),
+            os.path.join(os.path.expanduser("~"), ".st2packs", temp_dir),
         )
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, "test/pack.yaml")))
 

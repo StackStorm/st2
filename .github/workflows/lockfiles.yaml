@@ -1,0 +1,594 @@
+---
+name: Regenerate Lockfiles
+
+permissions:
+  actions: read
+  contents: write
+  id-token: write
+  pull-requests: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      resolves:
+        description: Regenerate lockfiles only for the resolves in this comma-separated list, or for all resolves if this is empty.
+        required: false
+        type: string
+        default: ""
+      pr:
+        description: Push regenerated lockfiles to the branch of this PR (Use 'new' to open a new PR).
+        required: true
+        type: string
+
+env:
+  # logs and screenshots go in {OUTPUT_BASE_DIR}/lockfile-{resolve}/ (where "lockfile-{resolve}" is the artifact name)
+  OUTPUT_BASE_DIR: dist/lockfiles # /dist/ is in .gitignore
+
+  # see https://api.github.com/users/github-actions[bot]
+  BOT_GHA_NAME: 'github-actions[bot]'
+  BOT_GHA_LOGIN: 'github-actions[bot]'
+  BOT_GHA_ID: '41898282'
+  BOT_GHA_EMAIL: '41898282+github-actions[bot]@users.noreply.github.com'
+  # see https://api.github.com/users/st2stanley
+  BOT_ST2_NAME: 'st2stanley[bot]'
+  BOT_ST2_LOGIN: 'st2stanley'
+  BOT_ST2_ID: '7807286'
+  BOT_ST2_EMAIL: '7807286+st2stanley@users.noreply.github.com'
+
+  # We upload the diff image(s) (terminal screenshot(s)) to S3 so we can use it in GitHub flavored markdown.
+  AWS_REGION: us-west-2 # Oregon
+  AWS_ACCOUNT_ID: "053075847820"
+  AWS_S3_BUCKET: st2-gha
+  AWS_S3_BUCKET_ROOT: ${{ github.repository }}/runs/${{ github.run_id }}
+
+defaults:
+  run:
+    shell: bash
+    #working-directory: # defaults to ${{ github.workspace }}
+
+jobs:
+  resolves:
+    name: Preprocess input var - resolves
+    runs-on: ubuntu-22.04
+    outputs:
+      JSON: ${{ steps.resolves.outputs.JSON }}
+      LOCKFILES: ${{ steps.resolves.outputs.LOCKFILES }}
+    steps:
+      - name: Validate input var - resolves
+        run: |
+          if [[ "${{ inputs.resolves }}" =~ ^([a-z0-9-]+(,[a-z0-9-]+)*|)$ ]]; then
+            echo "VALID INPUT: resolves"
+            exit 0
+          else
+            echo "INVALID INPUT: resolves"
+            echo "resolves must be a comma separated list of resolve names, or an empty string"
+            exit 1
+          fi
+
+      - name: Get resolves in JSON
+        id: resolves
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pants_toml=$(
+            gh api -X GET \
+              'repos/${{ github.repository }}/contents/pants.toml' \
+              -f 'ref=${{ github.sha }}' \
+              --jq $'.content' | base64 -d
+          )
+          LOCKFILES=$(yq -e -p toml '.python.resolves' -o json -I 0 <<< "${pants_toml}")
+          if [[ "${{ inputs.resolves }}" != "" ]]; then
+            JSON=$(jq -c '.|split(",")' <<< '"${{ inputs.resolves }}"')
+          else
+            # Pull pants.toml from the branch that the workflow runs from
+            JSON=$(yq -e -p toml '.python.resolves|keys' -o json -I 0 <<< "${pants_toml}")
+          fi
+          echo "JSON=${JSON}" | tee -a "${GITHUB_OUTPUT}"
+          echo "LOCKFILES=${LOCKFILES}" | tee -a "${GITHUB_OUTPUT}"
+
+  pr:
+    name: Preprocess input var - pr
+    runs-on: ubuntu-22.04
+    outputs:
+      JSON: ${{ steps.pr.outputs.JSON }}
+      CHECKOUT_REF: ${{ steps.pr.outputs.CHECKOUT_REF }}
+      PR_REPO: ${{ steps.pr.outputs.PR_REPO }}
+      PR_REF: ${{ steps.pr.outputs.PR_REF }}
+      PR_BASE_REF: ${{ steps.pr.outputs.PR_BASE_REF }}
+    steps:
+      - name: Validate input var - pr
+        run: |
+          if [ "${{ inputs.pr }}" = new ]; then
+            echo "VALID INPUT: pr"
+            echo "The next step will collect some data for PR creation."
+            exit 0
+          elif [[ "${{ inputs.pr }}" =~ ^[0-9]+$ ]]; then
+            echo "VALID INPUT: pr"
+            echo "The next step will validate that PR #${{ inputs.pr }} exists."
+            exit 0
+          else
+            echo "INVALID INPUT: pr"
+            echo "pr must be a PR number, or the magic string 'new'."
+            exit 1
+          fi
+
+      - name: Get pr in JSON
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_FIELDS: "\
+            id,\
+            number,\
+            url,\
+            closed,\
+            author,\
+            isCrossRepository,\
+            maintainerCanModify,\
+            headRepositoryOwner,\
+            headRepository,\
+            headRefName,\
+            baseRefName"
+          NEW_PR_REF: "regen-lockfiles-${{ github.run_id }}"
+        run: |
+          if [[ "${{ inputs.pr }}" == new ]]; then
+            NEW_PR_NUMBER="$(gh pr list --repo "${GITHUB_REPOSITORY}" --head "${NEW_PR_REF}" --state open \
+              --json number --jq 'if .|length == 0 then "" else .[].number end')"
+          fi
+          if [[ "${{ inputs.pr }}" == new ]] && [[ "${NEW_PR_NUMBER}" == "" ]]; then
+            CHECKOUT_REF="${GITHUB_REF}"
+            echo "Planning new Pull Request metadata ..."
+            PR=$(
+              yq -e -p yaml . -o json -I 0 \
+          <<HEREYAML
+              id: ""
+              number: "new"
+              url: ""
+              closed: false
+              author:
+                id: ${{ env.BOT_ST2_ID }}
+                is_bot: true
+                login: "${{ env.BOT_ST2_LOGIN }}"
+                name: "${{ env.BOT_ST2_NAME }}"
+              isCrossRepository: false
+              maintainerCanModify: true
+              headRepositoryOwner:
+                id: "${GITHUB_REPOSITORY_OWNER_ID}"
+                login: "${GITHUB_REPOSITORY_OWNER}"
+              headRepository:
+                id: "${GITHUB_REPOSITORY_ID}"
+                name: "${GITHUB_REPOSITORY#*/}"
+              headRefName: "${NEW_PR_REF}"
+              baseRefName: "${GITHUB_REF_NAME}"
+          HEREYAML
+            )
+          elif [[ "${{ inputs.pr }}" == new ]] && [[ "${NEW_PR_NUMBER}" != "" ]]; then
+            CHECKOUT_REF="${GITHUB_REF}" # will be force pushed
+            echo "Planning new Pull Request metadata (PR #${NEW_PR_NUMBER} - workflow re-run ${GITHUB_RUN_ATTEMPT})..."
+            PR=$(gh pr view "${NEW_PR_NUMBER}" --repo "${GITHUB_REPOSITORY}" --json "${PR_FIELDS}")
+            pr_search_rc=$?
+            if [ ${pr_search_rc} -gt 0 ]; then
+              echo "Error looking up PR from prior workflow run."
+              echo "JSON=${PR}"
+              exit 2
+            fi
+            echo "Found Pull Request #${NEW_PR_NUMBER} by @$(jq -r .author.login <<< "${PR}")"
+            echo "URL: $(jq -r .url <<< "${PR}")"
+          else
+            CHECKOUT_REF="refs/pull/${{ inputs.pr }}/head" # use /head not /merge!
+            echo "Searching for Pull Request #${{ inputs.pr }} ..."
+            PR=$(gh pr view "${{ inputs.pr }}" --repo "${GITHUB_REPOSITORY}" --json "${PR_FIELDS}")
+            pr_search_rc=$?
+            if [ ${pr_search_rc} -gt 0 ]; then
+              echo "Pull Request #${{ inputs.pr }} not found!"
+              echo "JSON=${PR}"
+              exit 2
+            elif (jq -e .closed <<< "${PR}" >/dev/null); then
+              echo "Pull Request #${{ inputs.pr }} is closed!"
+              echo "JSON=${PR}"
+              exit 3
+            elif [[ "$(jq -r .headRepositoryOwner.login <<< "${PR}")" != "${GITHUB_REPOSITORY_OWNER}" ]] \
+            && ! jq -e .maintainerCanModify <<< "${PR}" >/dev/null; then
+              echo "Pull Request #${{ inputs.pr }} does not allow maintainer modification!"
+              echo "JSON=${PR}"
+              exit 4
+            fi
+            echo "Found Pull Request #${{ inputs.pr }} by @$(jq -r .author.login <<< "${PR}")"
+            echo "URL: $(jq -r .url <<< "${PR}")"
+          fi
+          echo "JSON=${PR}" | tee -a "${GITHUB_OUTPUT}"
+          echo "CHECKOUT_REF=${CHECKOUT_REF}" | tee -a "${GITHUB_OUTPUT}"
+          PR_REPO=$(jq -r '.headRepositoryOwner.login + "/" + .headRepository.name' <<< "${PR}")
+          PR_REF=$(jq -r '.headRefName' <<< "${PR}")
+          PR_BASE_REF=$(jq -r '.baseRefName' <<< "${PR}")
+          echo "PR_REPO=${PR_REPO}" | tee -a "${GITHUB_OUTPUT}"
+          echo "PR_REF=${PR_REF}" | tee -a "${GITHUB_OUTPUT}"
+          echo "PR_BASE_REF=${PR_BASE_REF}" | tee -a "${GITHUB_OUTPUT}"
+          echo "Pull from ${PR_REPO}:${PR_REF} into ${PR_BASE_REF}"
+
+  regenerate:
+    name: Regenerate ${{ matrix.resolve }} lockfile
+    needs: [resolves, pr]
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        resolve: ${{ fromJSON(needs.resolves.outputs.JSON) }}
+    env:
+      LOCKFILE: ${{ fromJSON(needs.resolves.outputs.LOCKFILES)[matrix.resolve] }}
+      # see also the 'Setup env' step
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
+          ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
+
+      - name: Initialize Pants and its GHA caches
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-BUILD
+
+      # This step exists because we cannot use the 'env' context in 'jobs.<job>.env.*'.
+      - name: Setup env
+        # We only need stderr, because generate-lockfiles puts the diff on stderr.
+        # Nothing else should be on stderr because Pants disables logging to stderr when
+        # it detects the stderr redirection. (NOTE: stdout should be empty.)
+        run: |
+          echo "OUTPUT_DIR=${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}" >> ${GITHUB_ENV}
+          echo "STDERR_LOG=${{ env.OUTPUT_BASE_DIR }}/lockfile-${{ matrix.resolve }}/stderr.log" >> ${GITHUB_ENV}
+
+      - name: Regenerate ${{ matrix.resolve }} lockfile
+        id: lockfile
+        env:
+          PR_BASE_REF: ${{ needs.pr.outputs.PR_BASE_REF }}
+          PANTS_STATS_LOG: 'False'
+          PANTS_LEVEL: warn # skip info-level log messages
+        run: |
+          mkdir -p "${OUTPUT_DIR}/"
+          git fetch --depth=1 origin "${{ env.PR_BASE_REF }}"
+          git checkout "origin/${{ env.PR_BASE_REF }}" -- "${LOCKFILE}"  # diff is for whole PR not just a commit.
+          set -x
+          pants generate-lockfiles '--resolve=${{ matrix.resolve }}' 2> >(tee "${STDERR_LOG}" >&2 )
+          { set +x; } 2>/dev/null
+          cp "${LOCKFILE}" "${OUTPUT_DIR}/"
+          CHANGED=$(
+            if git diff "origin/${{ env.PR_BASE_REF }}" --exit-code --quiet -- "${LOCKFILE}"; then
+              echo "false"
+            else
+              echo "true"
+            fi
+          )
+          echo "CHANGED=${CHANGED}" | tee -a "${GITHUB_OUTPUT}"
+          # The last job's outputs overwrite the outputs of other jobs in matrix.
+          # So, matrix jobs should not use job outputs. Workaround: use artifacts.
+          echo "${CHANGED}" > "${OUTPUT_DIR}/$(basename "${LOCKFILE}").CHANGED"
+
+      - name: Install rsvg-convert and JetBrains Mono font for freeze
+        if: steps.lockfile.outputs.CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # rsvg-convert doesn't cause a panic like the resvg lib freeze uses, and it's faster.
+        # But, rsvg-convert doesn't handle woff font freeze embeds in the svg, so install the font.
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Use-Pty=0 install librsvg2-bin
+          # Font install based on: https://github.com/JetBrains/JetBrainsMono/blob/v2.304/install_manual.sh
+          gh release download "v2.304" \
+            -R "JetBrains/JetBrainsMono" \
+            --pattern "JetBrainsMono-*.zip" \
+            --output "${RUNNER_TEMP}/JetBrainsMono.zip"
+          mkdir -p ~/.local/share/fonts
+          unzip -o "${RUNNER_TEMP}/JetBrainsMono.zip" -d ~/.local/share/fonts
+          fc-cache -f
+
+      - name: Install freeze
+        if: steps.lockfile.outputs.CHANGED == 'true'
+        env:
+          VERSION: '0.2.2'
+          GOARCH: ${{ fromJSON('{"X86":"i386","X64":"x86_64","ARM":"arm","ARM64":"arm64"}')[runner.arch] }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "v${VERSION}" \
+            -R "charmbracelet/freeze" \
+            --pattern "freeze_*_${RUNNER_OS}_${GOARCH}.tar.gz" \
+            --output "${RUNNER_TEMP}/freeze.tar.gz"
+          tar xzf "${RUNNER_TEMP}/freeze.tar.gz" \
+            -C ~/.local/bin \
+            --strip-components=1 \
+            --wildcards \
+            '*/freeze'
+          [[ -x ~/.local/bin/freeze ]] || chmod +x ~/.local/bin/freeze
+
+      - name: Freeze lockfile diff as picture
+        if: steps.lockfile.outputs.CHANGED == 'true'
+        # For samples of the themes freeze can use when generating a "terminal screenshot", see:
+        #   - "charm" theme (default): https://github.com/charmbracelet/freeze
+        #   - all other themes: https://xyproto.github.io/splash/docs/
+        env:
+          # Freeze processes the output line-by-line, so the ansi escape sequences
+          # that span multiple lines only apply to the first line.
+          # This sed script repeats those ansi escape sequences on each line.
+          SED_SCRIPT: |
+            s/^\x1B\[4m \+$/\0\x1B[0m/     # append ansi reset on line above heading
+            s/^== .* ==$/\x1B[4m\0\x1B[0m/ # add ansi underline to headling
+            s/^\x1b\[0m$//                 # drop ansi reset after the heading
+        run: |
+          for theme in github github-dark; do
+            for ext in svg png; do
+              # The diff output applies ansi underlines across multiple lines, but freeze formats
+              # each line separately. So, use sed to repeat ansi chars per line.
+              sed -e "${SED_SCRIPT}" "${STDERR_LOG}" \
+                | freeze --config full --language ansi --theme "${theme}" --width 720 \
+                --output "${STDERR_LOG}.${theme}.${ext}" -
+            done
+          done
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v5.0.0
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: GitHubActions-${{ github.run_id }}
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/GitHubActions@org=${{ github.repository_owner }},repo=${{ github.event.repository.name }}
+          allowed-account-ids: ${{ env.AWS_ACCOUNT_ID }}
+          # This should be the minimal set of permissions needed by this workflow.
+          inline-session-policy: >-
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "AllowPutObject",
+                  "Effect": "Allow",
+                  "Action": ["s3:PutObject", "s3:PutObjectTagging"],
+                  "Resource": ["arn:aws:s3:::${{ env.AWS_S3_BUCKET }}/${{ env.AWS_S3_BUCKET_ROOT }}/*"]
+                }
+              ]
+            }
+
+      - name: Upload lockfile diff picture to S3
+        # GitHub flavored markdown does not accept data:image/png URIs for images.
+        # And GitHub does not provide any convenient APIs for uploading image assets.
+        # So, we upload to AWS and save the URI for use in generated markdown below.
+        if: steps.lockfile.outputs.CHANGED == 'true'
+        # NOTE: The packaged s3 actions are too old, incomplete, or do not allow setting content-type + tags.
+        env:
+          AWS_S3_PATH: ${{ env.AWS_S3_BUCKET_ROOT }}/lockfile-${{ matrix.resolve }}
+        run: |
+          aws s3 cp \
+            "${STDERR_LOG}.github-dark.png" \
+            "s3://${{ env.AWS_S3_BUCKET }}/${{ env.AWS_S3_PATH }}/" \
+            --content-type image/png
+          aws s3api put-object-tagging \
+            --expected-bucket-owner "${AWS_ACCOUNT_ID}" \
+            --bucket "${{ env.AWS_S3_BUCKET }}" \
+            --key "${{ env.AWS_S3_PATH }}/$(basename ${STDERR_LOG}.github-dark.png)" \
+            --tagging '{"TagSet":[{"Key":"Service","Value":"GitHub Actions"}]}'
+
+      - name: Prepare text-only lockfile diff for commit message
+        if: steps.lockfile.outputs.CHANGED == 'true'
+        env:
+          # This sed script replaces ansi escape chars with unicode for use in the commit msg.
+          SED_SCRIPT: |
+            /^\x1B\[4m\( \+\)\(\x1B\[0m\)\?$/{ # line above headings (spaces with ansi underline)
+              s/ /_/g; # use underline char instead of space
+            }
+            # the next one adds a line of overline chars to replace the ansi overline
+            /^== .* ==$/{ # heading text line (the matched line goes in pattern space)
+              h;       # save copy of heading line in "hold" space
+              s/./‾/g; # make an line of overline chars to replace the heading's ansi underline
+              H;       # update "hold" space: append newline and line of overline chars
+              g        # replace the original line with lines from the "hold" space
+            }
+            /^\x1B\[0m$/d # drop blank line after heading (replaced with line of overline chars)
+            s/\x1B\[[0-9;]\+m//g # strip out ansi escapes
+        run: |
+          sed -e "${SED_SCRIPT}" "${STDERR_LOG}" | tee "${STDERR_LOG}.txt" | head -n5
+          echo ...
+
+      - name: Prepare Job Summary
+        env:
+          IMG_BASE_URI: 'https://${{ env.AWS_S3_BUCKET }}.s3.${{ env.AWS_REGION }}.amazonaws.com/${{ env.AWS_S3_BUCKET_ROOT }}/lockfile-${{ matrix.resolve }}'
+        run: |
+          (
+            echo '## ${{ matrix.resolve }} Lockfile Diff'
+            echo
+            if [ "${{ steps.lockfile.outputs.CHANGED }}" != true ]; then
+              echo 'No changes required for ${{ env.LOCKFILE }} _(from ${{ needs.pr.outputs.PR_BASE_REF }})_'
+            else
+              echo -n '![Terminal screenshot of lockfile diff in color. The text from the image is included below.]'
+              echo "(${IMG_BASE_URI}/$(basename ${STDERR_LOG}.github-dark.png))"
+              echo
+              echo '<details>'
+              echo '  <summary>Lockfile diff: ${{ env.LOCKFILE }} (plain text)</summary>'
+              echo
+              echo '```'
+              cat "${STDERR_LOG}.txt"
+              echo '```'
+              echo
+              echo '_(diff from ${{ needs.pr.outputs.PR_BASE_REF }})_'
+              echo
+              echo '</details>'
+            fi
+            echo
+          ) | tee -a "${STDERR_LOG}.md" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload lockfile and lockfile diff files
+        uses: actions/upload-artifact@v4
+        with:
+          name: lockfile-${{ matrix.resolve }}
+          path: ${{ env.OUTPUT_DIR }}
+
+      - name: Upload pants log
+        uses: actions/upload-artifact@v4
+        with:
+          name: pants-log-${{ matrix.resolve }}
+          path: .pants.d/pants.log
+        if: always()  # We want the log even on failures.
+
+  commit:
+    name: Commit regenerated ${{ matrix.resolve }} lockfile(s)
+    needs: [resolves, pr, regenerate]
+    runs-on: ubuntu-22.04
+    env:
+      # preserve the order of resolves from input (eg pants.toml has st2 first, before tools)
+      RESOLVES: "'${{ join(fromJSON(needs.resolves.outputs.JSON), ''' ''') }}'"
+      RESOLVES_CSV: ${{ join(fromJSON(needs.resolves.outputs.JSON), ', ') }}
+      LOCKFILES: ${{ needs.resolves.outputs.LOCKFILES }}
+      # see also the 'Setup env' step
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # a test uses a submodule, and pants needs access to it to calculate deps.
+          submodules: 'true'
+          ref: ${{ needs.pr.outputs.CHECKOUT_REF }}
+
+      - name: Configure git author, committer, remote
+        env:
+          PR_IS_CROSS_REPOSITORY: ${{ fromJSON(needs.pr.outputs.JSON).isCrossRepository }}
+          PR_REMOTE: "origin"
+        run: |
+          git config --local author.name "${{ env.BOT_ST2_NAME }}"
+          git config --local author.email "${{ env.BOT_ST2_EMAIL }}"
+          git config --local committer.name "${{ env.BOT_GHA_NAME }}"
+          git config --local committer.email "${{ env.BOT_GHA_EMAIL }}"
+          if [[ "${PR_IS_CROSS_REPOSITORY}" == "true" ]]; then
+            PR_REMOTE="fork"
+            git remote add "${PR_REMOTE}" "${GITHUB_SERVER_URL}/${{ needs.pr.outputs.PR_REPO }}"
+          fi
+          echo "PR_REMOTE=${PR_REMOTE}" >> "${GITHUB_ENV}"
+
+      - name: Create local branch for PR
+        run: |
+          git checkout -b "${{ needs.pr.outputs.PR_REF }}"
+
+      - name: Download lockfiles and lockfile diff files
+        uses: actions/download-artifact@v5
+        with:
+          pattern: lockfile-* # lockfile-{resolve}
+          path: ${{ env.OUTPUT_BASE_DIR }}
+          merge-multiple: false # unpack in {path}/{artifact_name}/
+
+      # This step exists because we cannot use the 'env' context in 'jobs.<job>.env.*',
+      # and because we cannot rely on 'jobs.<job>.outputs.*' for matrix jobs.
+      - name: Setup env
+        run: |
+          echo "COMMIT_MSG=${{ env.OUTPUT_BASE_DIR }}/commit_msg.txt" >> "${GITHUB_ENV}"
+          echo "PR_COMMENT=${{ env.OUTPUT_BASE_DIR }}/pr_comment.md" >> "${GITHUB_ENV}"
+          for resolve in ${{ env.RESOLVES }}; do
+            LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
+            ARTIFACT_DIR="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}"
+            # Add a symlink when actions/aritifact-download skips making subdir for only one artifact
+            [ "'${resolve}'" == "${RESOLVES}" ] && ln -s "." "${ARTIFACT_DIR}"
+            CHANGED_FILE="${ARTIFACT_DIR}/$(basename "${LOCKFILE}").CHANGED"
+            if [ -e "${CHANGED_FILE}" ] && [ "$(cat "${CHANGED_FILE}" | tr -d '[:space:]')" == true ]; then
+              CHANGED="true"
+              echo "${LOCKFILE} was modified"
+            else
+              echo "${LOCKFILE} was NOT modified"
+            fi
+          done
+          echo "CHANGED=${CHANGED:-false}" | tee -a "${GITHUB_ENV}"
+
+      - name: Prepare commit
+        if: env.CHANGED == 'true'
+        run: |
+          echo "pants generate-lockfiles: ${RESOLVES_CSV}" > "${COMMIT_MSG}"
+          echo >> "${COMMIT_MSG}"
+          NO_CHANGES=""
+          for resolve in ${{ env.RESOLVES }}; do
+            LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
+            cp "${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/$(basename ${LOCKFILE})" "${LOCKFILE}"
+            git add "${LOCKFILE}"
+            STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
+            if [ -e "${STDERR_LOG}.txt" ]; then
+              echo "Adding ${STDERR_LOG}.txt to ${COMMIT_MSG}"
+              cat "${STDERR_LOG}.txt" >> "${COMMIT_MSG}"
+            else
+              echo "${STDERR_LOG}.txt is missing"
+              NO_CHANGES="${NO_CHANGES}No changes to ${LOCKFILE}"$'\n\n'
+            fi
+          done
+          echo "${NO_CHANGES}" | tee -a "${COMMIT_MSG}"
+
+      - name: Prepare PR comment
+        env:
+          RUN_LINK: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          echo "# Lockfile Diffs" > "${PR_COMMENT}"
+          echo >> "${PR_COMMENT}"
+          for resolve in ${{ env.RESOLVES }}; do
+            LOCKFILE=$(jq -r '.["'"${resolve}"'"]' <<< "${LOCKFILES}")
+            STDERR_LOG="${{ env.OUTPUT_BASE_DIR }}/lockfile-${resolve}/stderr.log"
+            if [ -e "${STDERR_LOG}.md" ]; then
+              echo "Adding ${STDERR_LOG}.md to ${PR_COMMENT}"
+              cat "${STDERR_LOG}.md" >> "${PR_COMMENT}"
+            else
+              echo "${STDERR_LOG}.md is missing"
+              echo 'No changes to: `'"${LOCKFILE}"'`' | tee -a "${PR_COMMENT}"
+              echo >> "${PR_COMMENT}"
+            fi
+          done
+          echo ":robot: [GitHub Actions Workflow Run](${RUN_LINK})" >> "${PR_COMMENT}"
+
+      - name: Initialize Pants and its GHA caches
+        if: env.CHANGED == 'true'
+        uses: ./.github/actions/init-pants
+        with:
+          # To ignore a bad cache, bump the cache* integer.
+          gha-cache-key: cache0-BUILD
+
+      - name: LEGACY - copy lockfile updates into legacy requirements files
+        if: env.CHANGED == 'true'
+        run: |
+          pants run scripts/lockfiles_to_reqs.py
+          git add *requirements.txt st2*/requirements.txt contrib/runners/*/requirements.txt
+
+      - name: Commit and ${{ inputs.pr == 'new' && 'force-' || '' }}push
+        if: env.CHANGED == 'true'
+        # git push --force is for workflow re-runs, but only for new PRs.
+        run: |
+          git commit -F "${COMMIT_MSG}"
+          git push${{ inputs.pr == 'new' && ' --force' || '' }} -u "${PR_REMOTE}" "${{ needs.pr.outputs.PR_REF }}"
+
+      - name: Create new PR
+        if: inputs.pr == 'new' && fromJSON(needs.pr.outputs.JSON).number == 'new' && env.CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          (
+          echo '## New PR'; echo;
+          gh pr create
+          --base "${{ needs.pr.outputs.PR_BASE_REF }}"
+          --title "pants generate-lockfiles: ${RESOLVES_CSV}"
+          --body-file "${PR_COMMENT}"
+          --assignee "${{ github.event.sender.login }}"
+          --label "external dependency"
+          --label "python3"
+          ) | tee -a "${GITHUB_STEP_SUMMARY}"
+        # github.token cannot be given read access to organizations.teams,
+        # so, setting reviewer to a team would mean managing a PAT or similar.
+        #  --reviewer "${{ github.repository_owner }}/Maintainers"
+
+      - name: Update new PR (workflow re-run ${{ github.run_attempt }})
+        if: inputs.pr == 'new' && fromJSON(needs.pr.outputs.JSON).number != 'new' && env.CHANGED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          (
+          echo '## New PR Update'; echo;
+          gh pr edit "${{ fromJSON(needs.pr.outputs.JSON).number }}"
+          --body-file "${PR_COMMENT}"
+          ) | tee -a "${GITHUB_STEP_SUMMARY}"
+
+      - name: Update or Add Comment on existing PR
+        if: inputs.pr != 'new'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          (
+          echo '## Add/Update PR Comment'; echo;
+          gh pr comment "${{ inputs.pr }}"
+          --body-file "${PR_COMMENT}"
+          --edit-last
+          --create-if-none
+          ) | tee -a "${GITHUB_STEP_SUMMARY}"

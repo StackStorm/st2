@@ -18,17 +18,15 @@ from __future__ import absolute_import
 import eventlet
 import mock
 
+# This import must be early for import-time side-effects.
 import st2tests
 
 from orquesta import statuses as wf_statuses
 from oslo_config import cfg
 from tooz import coordination
+from tooz.drivers.redis import RedisDriver
 
-# XXX: actionsensor import depends on config being setup.
 import st2tests.config as tests_config
-
-tests_config.parse_args()
-
 from st2actions.workflows import workflows
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -95,7 +93,41 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         for pack in PACKS:
             actions_registrar.register_from_pack(pack)
 
+    @staticmethod
+    def reset_config(
+        graceful_shutdown=None,  # default is True (st2common.config)
+        exit_still_active_check=None,  # default is 300 (st2common.config)
+        still_active_check_interval=None,  # default is 2 (st2common.config)
+        service_registry=None,  # default is False (st2common.config)
+    ):
+        tests_config.reset()
+        tests_config.parse_args()
+        if graceful_shutdown is not None:
+            cfg.CONF.set_override(
+                name="graceful_shutdown",
+                override=graceful_shutdown,
+                group="actionrunner",
+            )
+        if exit_still_active_check is not None:
+            cfg.CONF.set_override(
+                name="exit_still_active_check",
+                override=exit_still_active_check,
+                group="workflow_engine",
+            )
+        if still_active_check_interval is not None:
+            cfg.CONF.set_override(
+                name="still_active_check_interval",
+                override=still_active_check_interval,
+                group="workflow_engine",
+            )
+        if service_registry is not None:
+            cfg.CONF.set_override(
+                name="service_registry", override=service_registry, group="coordination"
+            )
+
     def test_process(self):
+        self.reset_config()
+
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -146,8 +178,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
-    @mock.patch.object(coordination_service.NoOpDriver, "get_lock")
+    @mock.patch.object(RedisDriver, "get_lock")
     def test_process_error_handling(self, mock_get_lock):
+        self.reset_config(service_registry=True)
+
         expected_errors = [
             {
                 "message": "Execution failed. See result for details.",
@@ -161,7 +195,6 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
                 "route": 0,
             },
         ]
-
         mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
@@ -182,8 +215,6 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             task_execution=str(t1_ex_db.id)
         )[0]
         mock_get_lock.side_effect = [
-            coordination.ToozConnectionError("foobar"),
-            coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
@@ -204,7 +235,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_lock",
     )
     @mock.patch.object(
@@ -213,9 +244,12 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         mock.MagicMock(side_effect=Exception("Unexpected error.")),
     )
     def test_process_error_handling_has_error(self, mock_get_lock):
+        self.reset_config()
+
         mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
         # Assert action execution is running.
@@ -240,7 +274,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             coordination.ToozConnectionError("foobar"),
             coordination.ToozConnectionError("foobar"),
         ]
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             Exception, "Unexpected error.", workflows.get_engine().process, t1_ac_ex_db
         )
 
@@ -266,15 +300,14 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
-    @mock.patch.object(
-        coordination_service.NoOpDriver,
-        "get_members",
-        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("")),
-    )
     def test_workflow_engine_shutdown(self):
-        cfg.CONF.set_override(
-            name="service_registry", override=True, group="coordination"
+        self.reset_config(
+            graceful_shutdown=True,
+            exit_still_active_check=4,
+            still_active_check_interval=1,
+            service_registry=True,
         )
+
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -287,11 +320,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
-
         eventlet.spawn(workflow_engine.shutdown)
 
         # Sleep for few seconds to ensure execution transitions to pausing.
-        eventlet.sleep(5)
+        eventlet.sleep(8)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -329,14 +361,15 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("member-1")),
+        mock.MagicMock(
+            return_value=coordination_service.NoOpAsyncResult(("member-1",))
+        ),
     )
     def test_workflow_engine_shutdown_with_multiple_members(self):
-        cfg.CONF.set_override(
-            name="service_registry", override=True, group="coordination"
-        )
+        self.reset_config(service_registry=True)
+
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -377,9 +410,8 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
     def test_workflow_engine_shutdown_with_service_registry_disabled(self):
-        cfg.CONF.set_override(
-            name="service_registry", override=False, group="coordination"
-        )
+        self.reset_config(service_registry=False)
+
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -403,17 +435,13 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_lock",
         mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
     )
     def test_workflow_engine_shutdown_first_then_start(self):
-        cfg.CONF.set_override(
-            name="service_registry", override=True, group="coordination"
-        )
-        cfg.CONF.set_override(
-            name="exit_still_active_check", override=0, group="workflow_engine"
-        )
+        self.reset_config(service_registry=True, exit_still_active_check=0)
+
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -460,17 +488,13 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )
 
     @mock.patch.object(
-        coordination_service.NoOpDriver,
+        RedisDriver,
         "get_lock",
         mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
     )
     def test_workflow_engine_start_first_then_shutdown(self):
-        cfg.CONF.set_override(
-            name="service_registry", override=True, group="coordination"
-        )
-        cfg.CONF.set_override(
-            name="exit_still_active_check", override=0, group="workflow_engine"
-        )
+        self.reset_config(service_registry=True, exit_still_active_check=0)
+
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
@@ -484,14 +508,14 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
 
+        RedisDriver.get_members = mock.MagicMock(
+            return_value=coordination_service.NoOpAsyncResult(("member-1",))
+        )
+
         workflow_engine._delay = 0
         # Initiate start first
         eventlet.spawn(workflow_engine.start, True)
         eventlet.spawn_after(1, workflow_engine.shutdown)
-
-        coordination_service.NoOpDriver.get_members = mock.MagicMock(
-            return_value=coordination_service.NoOpAsyncResult("member-1")
-        )
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
 

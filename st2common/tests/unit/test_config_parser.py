@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from unittest2 import TestCase
+from unittest import TestCase
 
 from st2common.util.config_parser import ContentPackConfigParser
 import st2tests.config as tests_config

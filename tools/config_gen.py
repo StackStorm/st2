@@ -17,18 +17,19 @@
 from __future__ import absolute_import
 import collections
 import importlib
+import logging
 import six
 import sys
 import traceback
 
+from collections import OrderedDict
 from oslo_config import cfg
 
 
 CONFIGS = [
-    # this is duplicated in tools/BUILD
-    # TODO: replace this with a heuristic that searches for config.py
-    #       maybe with an exclude list (eg st2tests.config st2client)
-    #       grep -rl 'def register_opts(ignore_errors=False):' st2*
+    # pants uses these strings to infer dependencies. Compare this list
+    # with the output of this command to make sure everything is present:
+    #   grep -rl 'def register_opts(ignore_errors=False):' st2*
     "st2actions.config",
     "st2actions.scheduler.config",
     "st2actions.notifier.config",
@@ -76,7 +77,7 @@ AUTH_OPTIONS = {
 STATIC_OPTION_VALUES = {
     "actionrunner": {
         "virtualenv_binary": "/usr/bin/virtualenv",
-        "python_binary": "/usr/bin/python",
+        "python_binary": "/usr/bin/python3",
     },
     "webui": {"webui_base_url": "https://localhost"},
 }
@@ -164,32 +165,50 @@ def _print_options(opt_group, options):
         if opt.name in SKIP_OPTIONS:
             continue
 
+        opt_default = opt.default if opt.sample_default is None else opt.sample_default
+
         # Special case for options which could change during this script run
         static_option_value = STATIC_OPTION_VALUES.get(opt_group.name, {}).get(
             opt.name, None
         )
         if static_option_value:
-            opt.default = static_option_value
+            assert (
+                opt_default == static_option_value
+            ), f"opt_default={opt_default} != static_option_value={static_option_value}"
 
         # Special handling for list options
         if isinstance(opt, cfg.ListOpt):
-            if opt.default:
-                value = ",".join(opt.default)
+            if opt_default:
+                value = ",".join(opt_default)
             else:
                 value = ""
 
             value += " # comma separated list allowed here."
-        elif isinstance(opt.default, dict):
+        elif isinstance(opt_default, dict):
             # this is for [sensorcontainer].partition_provider which
             # is a generic cfg.Opt(type=types.Dict(value_type=types.String())
-            value = " ".join([f"{k}:{v}" for k, v in opt.default.items()])
+            value = " ".join([f"{k}:{v}" for k, v in opt_default.items()])
         else:
-            value = opt.default
+            value = opt_default
 
         print(("# %s" % opt.help).strip())
 
+        for deprecated_opt in opt.deprecated_opts:
+            deprecated_opt: cfg.DeprecatedOpt
+            alias = (
+                deprecated_opt.name
+                if deprecated_opt.group is None
+                else f"{deprecated_opt.group}.{deprecated_opt.name}"
+            )
+            print(f"# This option has a deprecated alias: {alias}")
+
+        if opt.deprecated_for_removal:
+            print(
+                f"# DEPRECATED FOR REMOVAL since {opt.deprecated_since}: {opt.deprecated_reason}".strip()
+            )
+
         if isinstance(opt, cfg.StrOpt) and opt.type.choices:
-            if isinstance(opt.type.choices, list):
+            if isinstance(opt.type.choices, OrderedDict):
                 valid_values = ", ".join([str(x) for x in opt.type.choices])
             else:
                 valid_values = opt.type.choices
@@ -207,8 +226,22 @@ def main(args):
         mod.register_opts(ignore_errors=True)
         _read_current_config(opt_groups)
         _clear_config()
+        if config == "st2auth.config":
+            from st2auth import (
+                backends as auth_backends,
+            )  # late import to let config get set up first.
+
+            available_backends = auth_backends.get_available_backends()
+            assert (
+                len(available_backends) == 3
+            ), f"Expected 3 available auth backends, got {len(available_backends)}: {available_backends}"
     _read_groups(opt_groups)
 
 
 if __name__ == "__main__":
+    # display warnings+errors on stderr to facilitate debugging
+    log_level = logging.WARNING
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s [-] %(message)s", level=log_level
+    )
     main(sys.argv)

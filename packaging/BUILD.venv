@@ -1,0 +1,97 @@
+# rules on what packaging can depend on
+__dependencies_rules__(
+    (
+        # All python sources in this directory
+        "<python_*>[/*]",
+        (
+            # may depend on 3rd party dependencies,
+            "//reqs#*",
+            # and on anything in this diretory,
+            "/**",
+            # but nothing else (eg not st2common, st2*, runners, ...).
+            "!*",
+        ),
+    ),
+    # other targets (not python in this directory) may depend on anything.
+    ("*", "*"),
+)
+
+python_sources()
+
+# We use st2-py*.pex to quickly build a venv (like /opt/stackstorm/st2)
+# that includes all requirements and our wheels.
+
+
+def _pex_py3(minor: str, constraint: str = ""):
+    """Parametrize :st2.pex for a given python minor version."""
+    if not constraint:
+        constraint = f"CPython==3.{minor}.*"
+    return parametrize(
+        f"py3{minor}",
+        output_path=f"${{spec_path_normalized}}/st2-py3{minor}.pex",
+        interpreter_constraints=[constraint],
+    )
+
+
+pex_binary(
+    name="st2.pex",
+    dependencies=[
+        # this should depend on all python_distribution targets
+        "//st2actions",
+        "//st2api",
+        "//st2auth",
+        "//st2client",
+        "//st2common",
+        "//st2reactor",
+        "//st2stream",
+        "//st2tests",
+        "//contrib/runners/action_chain_runner",
+        "//contrib/runners/announcement_runner",
+        "//contrib/runners/http_runner",
+        "//contrib/runners/inquirer_runner",
+        "//contrib/runners/local_runner",
+        "//contrib/runners/noop_runner",
+        "//contrib/runners/orquesta_runner",
+        "//contrib/runners/python_runner",
+        "//contrib/runners/remote_runner",
+        "//contrib/runners/winrm_runner",
+    ],
+    executable="build_st2_venv.py",  # included by dependency inferrence
+    execution_mode="venv",
+    layout="zipapp",  # zipapp creates a single file, loose and packed create directories
+    sh_boot=True,  # faster startup time (only relevant for unpacking the pex)
+    include_tools=True,  # include pex.tools to populate a venv from the pex
+    # TODO: To improve docker layer caching, we could break this into 2 pexes
+    #       one w/ include_requirements=False and the other w/ include_requirements=True.
+    include_requirements=True,  # include third party requirements
+    include_sources=False,  # already includes our wheels, skipping wheel-owned sources
+    venv_hermetic_scripts=False,  # do not add -sE to script shebangs
+    # 1 parametrize group per python minor version in [DEFAULT].st2_interpreter_constraints in pants.toml
+    **_pex_py3("8", constraint="CPython>=3.8.1,<3.9"),
+    **_pex_py3("9"),
+    **_pex_py3("10"),
+    **_pex_py3("11"),
+)
+
+
+def _venv_py3(minor: str):
+    """Parametrize :st2_venv for a given python minor version."""
+    return parametrize(
+        f"py3{minor}",
+        dependencies=[f":st2.pex@parametrize=py3{minor}"],
+        src=f"st2-py3{minor}.pex",  # relative to this BUILD file
+        dst=f"/opt/stackstorm/install/st2-py3{minor}.pex",
+    )
+
+
+nfpm_content_file(
+    name="st2_venv",
+    description="Pex file that system packages can use to generate /opt/stackstorm/st2",
+    file_owner="root",
+    file_group="root",
+    file_mode="rwxr-x---",
+    **_venv_py3("8"),
+    **_venv_py3("9"),
+    **_venv_py3("10"),
+    **_venv_py3("11"),
+)

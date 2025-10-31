@@ -24,7 +24,7 @@ import retrying
 import shutil
 import six
 import tempfile
-import unittest2
+import unittest
 
 from st2client import client as st2
 from st2client import models
@@ -59,7 +59,7 @@ class WorkflowControlTestCaseMixin(object):
                 os.remove(temp_file_path)
 
 
-class TestWorkflowExecution(unittest2.TestCase):
+class TestWorkflowExecution(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.st2client = st2.Client(base_url="http://127.0.0.1")

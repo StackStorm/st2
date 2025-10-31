@@ -13,19 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This import must be first for import-time side-effects.
+from st2tests.base import CleanDbTestCase
+
 import eventlet
 import mock
 import pymongo
 import uuid
 
-from st2tests import config as test_config
-
-test_config.parse_args()
-
 from st2actions.scheduler import handler
 from st2common.models.db import execution_queue as ex_q_db
 from st2common.persistence import execution_queue as ex_q_db_access
-from st2tests.base import CleanDbTestCase
 
 
 __all__ = ["SchedulerHandlerRetryTestCase"]

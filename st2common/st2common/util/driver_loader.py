@@ -25,7 +25,7 @@ __all__ = ["get_available_backends", "get_backend_driver", "get_backend_instance
 
 LOG = logging.getLogger(__name__)
 
-BACKENDS_NAMESPACE = "st2common.rbac.backend"
+BACKENDS_NAMESPACE = "st2common.rbac.backend"  # pants: no-infer-dep
 
 
 def get_available_backends(namespace, invoke_on_load=False):

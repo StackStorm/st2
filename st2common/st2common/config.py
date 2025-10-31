@@ -19,6 +19,7 @@ import socket
 import sys
 
 from oslo_config import cfg
+from oslo_config.sources._environment import EnvironmentConfigurationSource
 
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
@@ -143,8 +144,10 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "system_runners_base_path",
             default=system_runners_base_path,
-            help="Path to the directory which contains system runners. "
-            "NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0",
+            help="Path to the directory which contains system runners.",
+            deprecated_for_removal=True,
+            deprecated_reason="Option unused since StackStorm v3.0.0",
+            deprecated_since="3.0.0",
         ),
         cfg.StrOpt(
             "packs_base_paths",
@@ -154,8 +157,10 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "runners_base_paths",
             default=None,
-            help="Paths which will be searched for runners. "
-            "NOTE: This option has been deprecated and it's unused since StackStorm v3.0.0",
+            help="Paths which will be searched for runners.",
+            deprecated_for_removal=True,
+            deprecated_reason="Option unused since StackStorm v3.0.0",
+            deprecated_since="3.0.0",
         ),
         cfg.ListOpt(
             "index_url",
@@ -172,6 +177,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "webui_base_url",
             default="https://%s" % socket.getfqdn(),
+            sample_default="https://localhost",
             help="Base https URL to access st2 Web UI. This is used to construct history URLs "
             "that are sent out when chatops is used to kick off executions.",
         )
@@ -184,7 +190,7 @@ def register_opts(ignore_errors=False):
         cfg.IntOpt("port", default=27017, help="port of db server"),
         cfg.StrOpt("db_name", default="st2", help="name of database"),
         cfg.StrOpt("username", help="username for db login"),
-        cfg.StrOpt("password", help="password for db login"),
+        cfg.StrOpt("password", help="password for db login", secret=True),
         cfg.IntOpt(
             "connection_timeout",
             default=3 * 1000,
@@ -206,35 +212,108 @@ def register_opts(ignore_errors=False):
             help="Backoff multiplier (seconds).",
         ),
         cfg.BoolOpt(
-            "ssl", default=False, help="Create the connection to mongodb using SSL"
+            "tls",
+            deprecated_name="ssl",
+            default=False,
+            help="Create the connection to mongodb using TLS.",
+        ),
+        cfg.StrOpt(
+            "tls_certificate_key_file",
+            default=None,
+            help=(
+                "Client certificate used to identify the local connection against MongoDB. "
+                "The certificate file must contain one or both of private key and certificate. "
+                "Supplying separate files for private key (ssl_keyfile) and certificate (ssl_certfile) "
+                "is no longer supported. "
+                "If encrypted, pass the password or passphrase in tls_certificate_key_file_password."
+            ),
+        ),
+        cfg.StrOpt(
+            "tls_certificate_key_file_password",
+            default=None,
+            help=(
+                "The password or passphrase to decrypt the file in tls_certificate_key_file. "
+                "Only set this if tls_certificate_key_file is encrypted."
+            ),
+            secret=True,
         ),
         cfg.StrOpt(
             "ssl_keyfile",
             default=None,
             help="Private keyfile used to identify the local connection against MongoDB.",
+            deprecated_for_removal=True,
+            deprecated_reason=(
+                "Use tls_certificate_key_file with a path to a file containing "
+                "the concatenation of the files from ssl_keyfile and ssl_certfile. "
+                "This option is ignored by pymongo."
+            ),
+            deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
             "ssl_certfile",
             default=None,
             help="Certificate file used to identify the localconnection",
+            deprecated_for_removal=True,
+            deprecated_reason=(
+                "Use tls_certificate_key_file with a path to a file containing "
+                "the concatenation of the files from ssl_keyfile and ssl_certfile. "
+                "This option is ignored by pymongo. "
+            ),
+            deprecated_since="3.9.0",
+        ),
+        cfg.BoolOpt(
+            "tls_allow_invalid_certificates",
+            default=None,
+            sample_default=False,
+            help=(
+                "Specifies whether MongoDB is allowed to pass an invalid certificate. "
+                "This defaults to False to have security by default. "
+                "Only temporarily set to True if you need to debug the connection."
+            ),
         ),
         cfg.StrOpt(
             "ssl_cert_reqs",
             default=None,
-            choices="none, optional, required",
-            help="Specifies whether a certificate is required from the other side of the "
-            "connection, and whether it will be validated if provided",
+            choices=["none", "optional", "required"],
+            help=(
+                "Specifies whether a certificate is required from the other side of the "
+                "connection, and whether it will be validated if provided"
+            ),
+            deprecated_for_removal=True,
+            deprecated_reason=(
+                "Use tls_allow_invalid_certificates with the following: "
+                "The 'optional' and 'required' values are equivalent to tls_allow_invalid_certificates=False. "
+                "The 'none' value is equivalent to tls_allow_invalid_certificates=True. "
+                "This option is a needlessly more complex version of tls_allow_invalid_certificates."
+            ),
+            deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
-            "ssl_ca_certs",
+            "tls_ca_file",
+            deprecated_name="ssl_ca_certs",
             default=None,
-            help="ca_certs file contains a set of concatenated CA certificates, which are "
-            "used to validate certificates passed from MongoDB.",
+            help=(
+                "ca_certs file contains a set of concatenated CA certificates, which are "
+                "used to validate certificates passed from MongoDB."
+            ),
+        ),
+        cfg.BoolOpt(
+            "tls_allow_invalid_hostnames",
+            default=None,
+            sample_default=False,
+            help=(
+                "If True and `tlsAllowInvalidCertificates` is True, disables hostname verification. "
+                "This defaults to False to have security by default. "
+                "Only temporarily set to True if you need to debug the connection."
+            ),
         ),
         cfg.BoolOpt(
             "ssl_match_hostname",
             default=True,
             help="If True and `ssl_cert_reqs` is not None, enables hostname verification",
+            deprecated_for_removal=True,
+            deprecated_reason="Use tls_allow_invalid_hostnames with the opposite value from this option.",
+            deprecated_since="3.9.0",
         ),
         cfg.StrOpt(
             "authentication_mechanism",
@@ -303,7 +382,7 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "ssl_cert_reqs",
             default=None,
-            choices="none, optional, required",
+            choices=["none", "optional", "required"],
             help="Specifies whether a certificate is required from the other side of the "
             "connection, and whether it will be validated if provided.",
         ),
@@ -324,6 +403,11 @@ def register_opts(ignore_errors=False):
             choices=["zstd", "lzma", "bz2", "gzip", None],
             help="Compression algorithm to use for compressing the payloads which are sent over "
             "the message bus. Defaults to no compression.",
+        ),
+        cfg.StrOpt(
+            "prefix",
+            default="st2",
+            help="Prefix for all exchange and queue names.",
         ),
     ]
 
@@ -367,6 +451,12 @@ def register_opts(ignore_errors=False):
             "allow_origin",
             default=["http://127.0.0.1:3000"],
             help="List of origins allowed for api, auth and stream",
+        ),
+        cfg.IntOpt(
+            "max_page_size",
+            default=100,
+            help="Maximum limit (page size) argument which can be specified by the "
+            "user in a query string.",
         ),
         cfg.BoolOpt(
             "mask_secrets",
@@ -454,11 +544,13 @@ def register_opts(ignore_errors=False):
         cfg.StrOpt(
             "python_binary",
             default=default_python_bin_path,
+            sample_default="/usr/bin/python3",
             help="Python binary which will be used by Python actions.",
         ),
         cfg.StrOpt(
             "virtualenv_binary",
             default=default_virtualenv_bin_path,
+            sample_default="/usr/bin/virtualenv",
             help="Virtualenv binary which should be used to create pack virtualenvs.",
         ),
         cfg.StrOpt(
@@ -814,7 +906,20 @@ def register_opts(ignore_errors=False):
     )
 
 
+class St2EnvironmentConfigurationSource(EnvironmentConfigurationSource):
+    @staticmethod
+    def get_name(group_name, option_name):
+        group_name = group_name or "DEFAULT"
+        return "ST2_{}__{}".format(group_name.upper(), option_name.upper())
+
+
+def use_st2_env_vars(conf: cfg.ConfigOpts) -> None:
+    # Override oslo_config's 'OS_' env var prefix with 'ST2_'.
+    conf._env_driver = St2EnvironmentConfigurationSource()
+
+
 def parse_args(args=None, ignore_errors=False):
+    use_st2_env_vars(cfg.CONF)
     register_opts(ignore_errors=ignore_errors)
     cfg.CONF(
         args=args,

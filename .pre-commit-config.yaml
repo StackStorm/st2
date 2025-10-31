@@ -37,7 +37,7 @@ repos:
       language: script
       types: [file, python]
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.5.0
+    rev: v5.0.0
     hooks:
     - id: trailing-whitespace
       exclude: (^conf/|^st2common/st2common/openapi.yaml|^st2client/tests/fixtures|^st2tests/st2tests/fixtures)

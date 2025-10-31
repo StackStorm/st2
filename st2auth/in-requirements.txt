@@ -2,11 +2,12 @@
 bcrypt
 eventlet
 oslo.config
-passlib
 pymongo
 six
 stevedore
 # For backward compatibility reasons, flat file backend is installed by default
-st2-auth-backend-flat-file@ git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master
+st2-auth-backend-flat-file
 st2-auth-ldap@ git+https://github.com/StackStorm/st2-auth-ldap.git@master
+# This requirement has been injected by st2-packages.git for many years.
+st2-auth-backend-pam@ git+https://github.com/StackStorm/st2-auth-backend-pam.git@master
 gunicorn

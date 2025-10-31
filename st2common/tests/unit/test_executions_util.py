@@ -17,6 +17,9 @@ from __future__ import absolute_import
 import mock
 import six
 
+# This import must be early for import-time side-effects.
+from st2tests.base import CleanDbTestCase
+
 from st2common.constants import action as action_constants
 from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
@@ -30,15 +33,12 @@ import st2common.services.executions as executions_util
 import st2common.util.action_db as action_utils
 import st2common.util.date as date_utils
 
-from st2tests.base import CleanDbTestCase
 from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2tests.fixtures.descendants.fixture import PACK_NAME as DESCENDANTS_PACK
 from st2tests.fixturesloader import FixturesLoader
 
-import st2tests.config as tests_config
 from six.moves import range
 
-tests_config.parse_args()
 
 TEST_FIXTURES = {
     "liveactions": [
@@ -214,7 +214,7 @@ class ExecutionsUtilTestCase(CleanDbTestCase):
             liveaction_db.status,
         )
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             expected_msg,
             executions_util.abandon_execution_if_incomplete,

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright 2020 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
@@ -18,13 +18,10 @@ import os.path
 
 from setuptools import setup, find_packages
 
-from dist_utils import check_pip_version
 from dist_utils import fetch_requirements
 from dist_utils import apply_vagrant_workaround
 
 from st2client import __version__
-
-check_pip_version()
 
 ST2_COMPONENT = "st2client"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -49,16 +46,18 @@ setup(
     author="StackStorm",
     author_email="info@stackstorm.com",
     url="https://stackstorm.com/",
+    license="Apache-2.0",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Information Technology",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
-        "License :: OSI Approved :: Apache Software License",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     install_requires=install_reqs,
     dependency_links=dep_links,

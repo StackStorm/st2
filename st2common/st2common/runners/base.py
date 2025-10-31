@@ -155,6 +155,7 @@ class ActionRunner(object):
         self.context = None
         self.auth_token = None
         self.rerun_ex_ref = None
+        self._debug = None
 
     def pre_run(self):
         # Handle runner "enabled" attribute
@@ -233,6 +234,7 @@ class ActionRunner(object):
         result["ST2_ACTION_PACK_NAME"] = self.get_pack_ref()
         result["ST2_ACTION_EXECUTION_ID"] = str(self.execution_id)
         result["ST2_ACTION_API_URL"] = get_full_public_api_url()
+        result["ST2_ACTION_DEBUG"] = str(self._debug)
 
         if self.auth_token:
             result["ST2_ACTION_AUTH_TOKEN"] = self.auth_token.token

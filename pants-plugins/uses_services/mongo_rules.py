@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
+from __future__ import annotations
 
 from dataclasses import dataclass
 from textwrap import dedent
@@ -20,6 +20,7 @@ from pants.backend.python.goals.pytest_runner import (
     PytestPluginSetupRequest,
     PytestPluginSetup,
 )
+from pants.backend.python.subsystems.pytest import PyTest
 from pants.backend.python.util_rules.pex import (
     PexRequest,
     PexRequirements,
@@ -27,6 +28,8 @@ from pants.backend.python.util_rules.pex import (
     VenvPexProcess,
     rules as pex_rules,
 )
+from pants.core.goals.test import TestExtraEnv
+from pants.engine.env_vars import EnvironmentVars
 from pants.engine.fs import CreateDigest, Digest, FileContent
 from pants.engine.rules import collect_rules, Get, MultiGet, rule
 from pants.engine.process import FallibleProcessResult, ProcessCacheScope
@@ -55,17 +58,49 @@ class UsesMongoRequest:
     #   for unit tests: st2tests/st2tests/config.py
     #   for integration tests: conf/st2.tests*.conf st2tests/st2tests/fixtures/conf/st2.tests*.conf
     #       (changed by setting ST2_CONFIG_PATH env var inside the tests)
-    # TODO: for unit tests: modify code to pull db connect settings from env vars
-    # TODO: for int tests: modify st2.tests*.conf on the fly to set the per-pantsd-slot db_name
-    #                      and either add env vars for db connect settings or modify conf files as well
-
-    #   with our version of oslo.config (newer are slower) we can't directly override opts w/ environment variables.
+    # These can also be updated via the ST2_DATABASE__* env vars (which oslo_config reads).
+    # Integration tests should pass these changes onto subprocesses via the same env vars.
 
     db_host: str = "127.0.0.1"  # localhost in test_db.DbConnectionTestCase
     db_port: int = 27017
     # db_name is "st2" in test_db.DbConnectionTestCase
-    db_name: str = f"st2-test{os.environ.get('ST2TESTS_PARALLEL_SLOT', '')}"
+    db_name: str = "st2-test{}"  # {} will be replaced by test slot (a format string)
+
+    # username and password are not required to validate connectivity, so this doesn't have them.
+
     db_connection_timeout: int = 3000
+
+    execution_slot_var: str = "ST2TESTS_PARALLEL_SLOT"
+
+    @classmethod
+    def from_env(
+        cls, execution_slot_var: str, env: EnvironmentVars
+    ) -> UsesMongoRequest:
+        default = cls()
+        host = env.get("ST2_DATABASE__HOST", default.db_host)
+        port_raw = env.get("ST2_DATABASE__PORT", str(default.db_port))
+        db_name = default.db_name  # not overridable via ST2_DATABASE__DB_NAME
+        db_connection_timeout_raw = env.get(
+            "ST2_DATABASE__CONNECTION_TIMEOUT", str(default.db_connection_timeout)
+        )
+
+        try:
+            port = int(port_raw)
+        except (TypeError, ValueError):
+            port = default.db_port
+
+        try:
+            db_connection_timeout = int(db_connection_timeout_raw)
+        except (TypeError, ValueError):
+            db_connection_timeout = default.db_connection_timeout
+
+        return cls(
+            db_host=host,
+            db_port=port,
+            db_name=db_name,
+            db_connection_timeout=db_connection_timeout,
+            execution_slot_var=execution_slot_var,
+        )
 
 
 @dataclass(frozen=True)
@@ -88,6 +123,8 @@ class PytestUsesMongoRequest(PytestPluginSetupRequest):
 )
 async def mongo_is_running_for_pytest(
     request: PytestUsesMongoRequest,
+    pytest: PyTest,
+    test_extra_env: TestExtraEnv,
 ) -> PytestPluginSetup:
     # TODO: delete these comments once the Makefile becomes irrelevant.
     #       the comments explore how the Makefile prepares to run and runs tests
@@ -104,7 +141,12 @@ async def mongo_is_running_for_pytest(
     #            nosetests $(NOSE_OPTS) -s -v $(NOSE_COVERAGE_FLAGS) $(NOSE_COVERAGE_PACKAGES) $$component/tests/unit
 
     # this will raise an error if mongo is not running
-    _ = await Get(MongoIsRunning, UsesMongoRequest())
+    _ = await Get(
+        MongoIsRunning,
+        UsesMongoRequest.from_env(
+            execution_slot_var=pytest.execution_slot_var or "", env=test_extra_env.env
+        ),
+    )
 
     return PytestPluginSetup()
 
@@ -146,7 +188,9 @@ async def mongo_is_running(
                 request.db_name,
                 str(request.db_connection_timeout),
             ),
+            extra_env={"PANTS_PYTEST_EXECUTION_SLOT_VAR": request.execution_slot_var},
             input_digest=script_digest,
+            execution_slot_variable=request.execution_slot_var,
             description="Checking to see if Mongo is up and accessible.",
             # this can change from run to run, so don't cache results.
             cache_scope=ProcessCacheScope.PER_SESSION,
@@ -192,6 +236,18 @@ async def mongo_is_running(
                 """
             ),
             service_start_cmd_generic="systemctl start mongod",
+            env_vars_hint=dedent(
+                """\
+                You can also export the ST2_DATABASE__HOST and ST2_DATABASE__PORT
+                env vars to automatically use any MongoDB host, local or remote,
+                while running unit and integration tests. Note that you cannot
+                override the db-name, which is st2-test suffixed by an integer
+                to allow tests to safely run in parallel. If needed you can also
+                override the default username, password, and connection timeout
+                by exporting one or more of: ST2_DATABASE__USERNAME,
+                ST2_DATABASE__PASSWORD, and ST2_DATABASE__CONNECTION_TIMEOUT.
+                """
+            ),
         ),
     )
 

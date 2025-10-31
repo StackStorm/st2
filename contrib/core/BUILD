@@ -1,3 +1,5 @@
+__defaults__(all=dict(inject_pack_python_path=True))
+
 pack_metadata(
     name="metadata",
 )
@@ -5,11 +7,23 @@ pack_metadata(
 python_requirements(
     name="reqs",
     source="requirements-tests.txt",
-    # module_mapping can be removed once pants is released with
-    # https://github.com/pantsbuild/pants/pull/17390
-    module_mapping={"mail-parser": ["mailparser"]},
 )
 
 python_sources(
-    dependencies=[":metadata"],
+    # this is for fixture.py
+    dependencies=[
+        ":metadata",
+        "./actions",
+        "./actions/send_mail:send_mail_resources",
+    ],
+)
+
+st2_pack_archive(
+    dependencies=[
+        ":metadata",
+        ":reqs",
+        "./actions",
+        "./actions/send_mail:send_mail_resources",
+        "./tests",
+    ],
 )

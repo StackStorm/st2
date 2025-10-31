@@ -17,7 +17,7 @@ from __future__ import absolute_import
 import os
 import os.path
 
-import unittest2
+import unittest
 
 from st2common.util.file_system import get_file_list
 
@@ -25,22 +25,27 @@ CURRENT_DIR = os.path.dirname(__file__)
 ST2TESTS_DIR = os.path.join(CURRENT_DIR, "../../../st2tests/st2tests")
 
 
-class FileSystemUtilsTestCase(unittest2.TestCase):
+class FileSystemUtilsTestCase(unittest.TestCase):
     def test_get_file_list(self):
+        # NB: Make sure to exclude BUILD files as pants will not include them in the sandbox,
+        #     but the BUILD files will be present if you directly run the tests.
+        basic_excludes = ["*.pyc", "__pycache__", "*BUILD"]
+
         # Standard exclude pattern
         directory = os.path.join(ST2TESTS_DIR, "policies")
         expected = [
-            "BUILD",
             "mock_exception.py",
             "concurrency.py",
             "__init__.py",
-            "meta/BUILD",
             "meta/mock_exception.yaml",
             "meta/concurrency.yaml",
             "meta/__init__.py",
         ]
-        result = get_file_list(directory=directory, exclude_patterns=["*.pyc"])
-        self.assertItemsEqual(expected, result)
+        result = get_file_list(directory=directory, exclude_patterns=basic_excludes)
+        # directory listings are sorted because the item order must be exact for assert
+        # to validate equivalence.  Directory item order doesn't matter in general and may
+        # even change on different platforms or locales.
+        assert sorted(expected) == sorted(result)
 
         # Custom exclude pattern
         expected = [
@@ -50,6 +55,9 @@ class FileSystemUtilsTestCase(unittest2.TestCase):
             "meta/__init__.py",
         ]
         result = get_file_list(
-            directory=directory, exclude_patterns=["*.pyc", "*.yaml", "*BUILD"]
+            directory=directory, exclude_patterns=["*.yaml"] + basic_excludes
         )
-        self.assertItemsEqual(expected, result)
+        # directory listings are sorted because the item order must be exact for assert
+        # to validate equivalence.  Directory item order doesn't matter in general and may
+        # even change on different platforms or locales.
+        assert sorted(expected) == sorted(result)

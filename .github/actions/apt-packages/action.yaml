@@ -1,0 +1,33 @@
+---
+name: Cache and Install APT Dependencies
+description:
+  Light wrapper around the actions/cache action and our script
+  to maintain the input vars in only one place for all workflows.
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache APT Dependencies
+      id: cache-apt-deps
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/apt_cache
+        key: ${{ runner.os }}-v8-apt-${{ hashFiles('scripts/github/apt-packages.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-v8-apt-
+
+    - name: Install APT Depedencies
+      shell: bash
+      env:
+        CACHE_HIT: ${{steps.cache-apt-deps.outputs.cache-hit}}
+      run: |
+        # install dev dependencies for Python YAML and LDAP packages
+        # https://github.com/StackStorm/st2-auth-ldap
+        ./scripts/github/install-apt-packages-use-cache.sh
+
+    - name: Install Mongo Shell
+      shell: bash
+      run: |
+        # Required as part of switch to GHA image ubuntu-22.04
+        ./scripts/github/install-mongosh.sh

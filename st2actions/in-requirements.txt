@@ -4,12 +4,12 @@ python-dateutil
 eventlet
 jinja2
 kombu
-#Used by jinja2
-MarkupSafe
 oslo.config
 oslo.utils
 pyparsing
 requests
+# urllib3 is a transitive dep
+urllib3
 six
 pyyaml
 python-json-logger
@@ -19,7 +19,12 @@ lockfile
 # needed by core "linux" pack - TODO: create virtualenv for linux pack on postinst
 pyinotify
 logshipper@ git+https://github.com/StackStorm/logshipper.git@stackstorm_patched ; platform_system=="Linux"
+# logshipper has metadata in setup.cfg that is not supported by setuptools 78, so we need
+# an explicit dep (from fixed-requirements.txt) to prevent CircleCI from pulling that in.
+setuptools
 # required by pack_mgmt/setup_virtualenv.py#L135
 virtualenv
 # needed by requests
 chardet
+# needed by kombu (dh_virtualenv on ubuntu focal is failing to put tzdata in the wheelhouse)
+backports.zoneinfo[tzdata]; python_version<"3.9"

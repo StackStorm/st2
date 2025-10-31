@@ -34,8 +34,6 @@ import os
 import os.path
 import sys
 
-from distutils.version import StrictVersion
-
 # NOTE: This script can't rely on any 3rd party dependency so we need to use this code here
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
@@ -49,7 +47,6 @@ OSCWD = os.path.abspath(os.curdir)
 GET_PIP = "    curl https://bootstrap.pypa.io/get-pip.py | python"
 
 try:
-    import pip
     from pip import __version__ as pip_version
 except ImportError as e:
     print("Failed to import pip: %s" % (text_type(e)))
@@ -115,15 +112,6 @@ def parse_args():
     return vars(parser.parse_args())
 
 
-def check_pip_version():
-    if StrictVersion(pip.__version__) < StrictVersion("6.1.0"):
-        print(
-            "Upgrade pip, your version `{0}' " "is outdated:\n".format(pip.__version__),
-            GET_PIP,
-        )
-        sys.exit(1)
-
-
 def load_requirements(file_path):
     return tuple((r for r in parse_requirements(file_path, session=False)))
 
@@ -134,6 +122,33 @@ def locate_file(path, must_exist=False):
     if must_exist and not os.path.isfile(path):
         print("Error: couldn't locate file `{0}'".format(path))
     return path
+
+
+def load_fixed_requirements(file_path):
+    fixed = load_requirements(locate_file(file_path, must_exist=True))
+
+    # Make sure there are no duplicate / conflicting definitions
+    fixedreq_hash = {}
+    for req in fixed:
+        if hasattr(req, "requirement"):
+            parsedreq = parse_req_from_line(req.requirement, req.line_source)
+            project_name = parsedreq.requirement.name
+
+            if not req.requirement:
+                continue
+        else:
+            project_name = req.name
+
+            if not req.req:
+                continue
+
+        if project_name in fixedreq_hash:
+            raise ValueError(
+                'Duplicate definition for dependency "%s"' % (project_name)
+            )
+
+        fixedreq_hash[project_name] = req
+    return fixedreq_hash
 
 
 def merge_source_requirements(sources):
@@ -185,29 +200,8 @@ def write_requirements(
     skip = skip or []
 
     requirements = merge_source_requirements(sources)
-    fixed = load_requirements(locate_file(fixed_requirements, must_exist=True))
 
-    # Make sure there are no duplicate / conflicting definitions
-    fixedreq_hash = {}
-    for req in fixed:
-        if hasattr(req, "requirement"):
-            parsedreq = parse_req_from_line(req.requirement, req.line_source)
-            project_name = parsedreq.requirement.name
-
-            if not req.requirement:
-                continue
-        else:
-            project_name = req.name
-
-            if not req.req:
-                continue
-
-        if project_name in fixedreq_hash:
-            raise ValueError(
-                'Duplicate definition for dependency "%s"' % (project_name)
-            )
-
-        fixedreq_hash[project_name] = req
+    fixedreq_hash = load_fixed_requirements(fixed_requirements)
 
     lines_to_write = []
     links = set()
@@ -282,7 +276,6 @@ def write_requirements(
 
 
 if __name__ == "__main__":
-    check_pip_version()
     args = parse_args()
 
     if args["skip"]:

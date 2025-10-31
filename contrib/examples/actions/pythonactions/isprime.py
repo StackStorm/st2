@@ -15,7 +15,8 @@
 
 import math
 
-from environ import get_environ
+# TODO: extend pants and pants-plugins/pack_metadata to add lib dirs extra_sys_path for pylint
+from environ import get_environ  # pylint: disable=E0401
 from st2common.runners.base_action import Action
 
 

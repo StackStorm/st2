@@ -1,13 +1,31 @@
 # This config is for CI. It extends the config in pants.toml.
-# See https://www.pantsbuild.org/docs/using-pants-in-ci
+# See https://www.pantsbuild.org/stable/docs/using-pants/using-pants-in-ci
 
 [GLOBAL]
 # Colors often work in CI, but the shell is usually not a TTY so Pants
 # doesn't attempt to use them by default.
 colors = true
 
+# GitHub Actions cache URL and token are set via environment variables
+remote_provider = "experimental-github-actions-cache"
+remote_cache_read = true
+remote_cache_write = true
+
+# https://www.pantsbuild.org/stable/reference/global-options#ignore_warnings
+ignore_warnings = [
+    # remote cache errors caused by GitHub rate-limits are not helpful
+    "Failed to read from remote cache",
+    "Failed to write to remote cache",
+]
+
 [stats]
 # "print metrics of your cache's performance at the end of the run,
 # including the number of cache hits and the total time saved thanks
 # to caching"
 log = true
+
+[test]
+# Have pants automatically retry tests that fail to help with flaky tests.
+# https://www.pantsbuild.org/stable/docs/using-pants/using-pants-in-ci#tip-automatically-retry-failed-tests
+# https://www.pantsbuild.org/stable/reference/goals/test#attempts_default
+attempts_default = 3

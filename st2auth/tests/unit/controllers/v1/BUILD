@@ -1,7 +1,8 @@
 python_tests(
     name="tests",
-    dependencies=[
-        # most files import tests.base which is ambiguous. Tell pants which one to use.
-        "st2auth/tests/base.py",
+    stevedore_namespaces=[
+        "st2auth.sso.backends",
+        "st2common.metrics.driver",
     ],
+    uses=["mongo"],
 )
