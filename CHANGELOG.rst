@@ -3,6 +3,11 @@ Changelog
 
 in development
 --------------
+* implemented zstandard compression for parameters and results. #5995
+  contributed by @guzzijones12
+
+* removed embedded liveaction in action execution database table #5995
+  contributed by @guzzijones12
 
 
 3.9.0 - October 10, 2025

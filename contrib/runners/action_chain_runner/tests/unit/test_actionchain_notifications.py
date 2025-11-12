@@ -151,7 +151,7 @@ class TestActionChainNotifications(ExecutionDbTestCase):
 
         # Assert task1 notify is skipped
         task1_exec = ActionExecution.get_by_id(execution.children[0])
-        task1_live = LiveAction.get_by_id(task1_exec.liveaction["id"])
+        task1_live = LiveAction.get_by_id(task1_exec.liveaction_id)
         task1_live = self._wait_on_status(
             task1_live, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -162,7 +162,7 @@ class TestActionChainNotifications(ExecutionDbTestCase):
 
         # Assert task2 notify is not skipped
         task2_exec = ActionExecution.get_by_id(execution.children[1])
-        task2_live = LiveAction.get_by_id(task2_exec.liveaction["id"])
+        task2_live = LiveAction.get_by_id(task2_exec.liveaction_id)
         notify = notify_api_models.NotificationsHelper.from_model(
             notify_model=task2_live.notify
         )
@@ -186,7 +186,7 @@ class TestActionChainNotifications(ExecutionDbTestCase):
 
         # Assert task1 notify is set.
         task1_exec = ActionExecution.get_by_id(execution.children[0])
-        task1_live = LiveAction.get_by_id(task1_exec.liveaction["id"])
+        task1_live = LiveAction.get_by_id(task1_exec.liveaction_id)
         task1_live = self._wait_on_status(
             task1_live, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -200,7 +200,7 @@ class TestActionChainNotifications(ExecutionDbTestCase):
 
         # Assert task2 notify is not skipped by default.
         task2_exec = ActionExecution.get_by_id(execution.children[1])
-        task2_live = LiveAction.get_by_id(task2_exec.liveaction["id"])
+        task2_live = LiveAction.get_by_id(task2_exec.liveaction_id)
         self.assertIsNone(task2_live.notify)
         MockLiveActionPublisherNonBlocking.wait_all()
 

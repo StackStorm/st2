@@ -127,7 +127,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
         workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
@@ -166,7 +166,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -196,7 +196,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
         workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
@@ -264,7 +264,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
         workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
@@ -322,7 +322,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING
         )
@@ -381,7 +381,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
         workflow_service.handle_action_execution_completion(tk1_ac_ex_db)
         tk1_ex_db = wf_db_access.TaskExecution.get_by_id(tk1_ex_db.id)
@@ -436,7 +436,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -450,7 +450,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk2_ex_db.id)
         )[0]
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -464,7 +464,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk3_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk3_ex_db.id)
         )[0]
-        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction["id"])
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -505,7 +505,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk1_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -522,7 +522,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk2_ex_db.id)
         )[0]
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk2_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
@@ -539,7 +539,7 @@ class OrquestRunnerTest(st2tests.WorkflowTestCase):
         tk3_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk3_ex_db.id)
         )[0]
-        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction["id"])
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction_id)
         self.assertEqual(
             tk3_lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
         )
