@@ -127,6 +127,9 @@ Added
 * Cherry-pick changes to runners.sh from st2-packages git repo. #6302
   Cherry-picked by @cognifloyd
 
+* Pinned DOCKER_API_VERSION in the circleci build to make sure the docker-cli api version does not exceed what
+  `cicrleci docker24 <https://circleci.com/docs/guides/execution-managed/building-docker-images/>`_ supports
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
