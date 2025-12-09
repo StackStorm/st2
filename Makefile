@@ -174,7 +174,11 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
+ifeq ($(OS),Darwin)
+	echo "$(COMPONENTS_RUNNERS)" | tr ' ' '\n' | xargs -P $(XARGS_CONCURRENCY) -n1 -I {} sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+else
 	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+endif
 	#@for component in $(COMPONENTS_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing runner:" $$component; \
@@ -188,7 +192,11 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
+ifeq ($(OS),Darwin)
+	echo "$(MOCK_RUNNERS)" | tr ' ' '\n' | xargs -P $(XARGS_CONCURRENCY) -n1 -I {} sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+else
 	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+endif
 	#@for component in $(MOCK_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing mock runner:" $$component; \
@@ -672,7 +680,11 @@ distclean: clean
 
 	# Generate finall requirements.txt file for each component
 	# NOTE: We use xargs to speed things up by running commands in parallel
+ifeq ($(OS),Darwin)
+	echo "$(COMPONENTS_WITH_RUNNERS)" | tr ' ' '\n' | xargs -P $(XARGS_CONCURRENCY) -n1 -I {} sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
+else
 	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
+endif
 
 	#@for component in $(COMPONENTS_WITH_RUNNERS); do\
 	#	echo "==========================================================="; \
