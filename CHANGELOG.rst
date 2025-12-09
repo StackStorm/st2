@@ -71,7 +71,8 @@ Changed
 
 * Switched tests from `nosetest` to `pytest`. `st2-run-pack-tests` also uses pytest.
   So, all pack tests must be runnable by `pytest`, which may require migration. #6291
-  Contributed by @nzlosh, @FileMagic, @guzzijones, and @cognifloyd.
+  Contributed by @nzlosh, @FileMagic, @guzzijones, and @cognifloyd. Pinned pytest-cov
+  to 5.0.0 for python 3.8 support.
 
 * Migrated github actions from image ubunutu 20.04 with python 3.8.10 to image ubuntu 22.04 with python 3.8.12. #6301
   Contributed by @nzlosh
