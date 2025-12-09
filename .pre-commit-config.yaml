@@ -12,28 +12,28 @@ repos:
     hooks:
     - id: black
       name: black
-      entry: ./.venv/bin/python -m black --config pyproject.toml
+      entry: ./virtualenv/bin/python -m black --config pyproject.toml
       language: script
       types: [file, python]
   - repo: local
     hooks:
     - id: flake8
       name: flake8
-      entry: ./.venv/bin/python -m flake8 --config lint-configs/python/.flake8
+      entry: ./virtualenv/bin/python -m flake8 --config lint-configs/python/.flake8
       language: script
       types: [file, python]
   - repo: local
     hooks:
     - id: pylint
       name: pylint
-      entry: ./.venv/bin/python -m pylint -E --rcfile=./lint-configs/python/.pylintrc
+      entry: ./virtualenv/bin/python -m pylint -E --rcfile=./lint-configs/python/.pylintrc
       language: script
       types: [file, python]
   - repo: local
     hooks:
     - id: bandit
       name: bandit
-      entry: ./.venv/bin/python -m bandit -lll -x build,dist
+      entry: ./virtualenv/bin/python -m bandit -lll -x build,dist
       language: script
       types: [file, python]
   - repo: https://github.com/pre-commit/pre-commit-hooks
