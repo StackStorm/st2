@@ -11,7 +11,7 @@ backports.zoneinfo[tzdata]; python_version<"3.9"
 cffi==1.17.1
 chardet==5.2.0
 ciso8601
-cryptography==43.0.3
+cryptography==45.0.7
 decorator==5.2.1
 dnspython
 eventlet==0.39.1
