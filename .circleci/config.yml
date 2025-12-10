@@ -123,6 +123,7 @@ jobs:
       - ST2_CHECKOUT: 0
       - ST2_GITDIR: /tmp/st2
       - BASH_ENV: ~/.buildenv
+      - DOCKER_API_VERSION: "1.43"
     steps:
       - checkout
       - run:

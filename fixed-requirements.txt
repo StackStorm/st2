@@ -89,3 +89,4 @@ python-dateutil==2.9.0.post0
 python-statsd==2.1.0
 orjson==3.10.15
 zipp==3.20.2
+pynacl==1.6.0
