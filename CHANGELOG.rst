@@ -71,7 +71,8 @@ Changed
 
 * Switched tests from `nosetest` to `pytest`. `st2-run-pack-tests` also uses pytest.
   So, all pack tests must be runnable by `pytest`, which may require migration. #6291
-  Contributed by @nzlosh, @FileMagic, @guzzijones, and @cognifloyd.
+  Contributed by @nzlosh, @FileMagic, @guzzijones, and @cognifloyd. Pinned pytest-cov
+  to 5.0.0 for python 3.8 support.
 
 * Migrated github actions from image ubunutu 20.04 with python 3.8.10 to image ubuntu 22.04 with python 3.8.12. #6301
   Contributed by @nzlosh
@@ -125,6 +126,9 @@ Added
 
 * Cherry-pick changes to runners.sh from st2-packages git repo. #6302
   Cherry-picked by @cognifloyd
+
+* Pinned DOCKER_API_VERSION in the circleci build to make sure the docker-cli api version does not exceed what
+  `cicrleci docker24 <https://circleci.com/docs/guides/execution-managed/building-docker-images/>`_ supports
 
 3.8.1 - December 13, 2023
 -------------------------

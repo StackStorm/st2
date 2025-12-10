@@ -32,6 +32,7 @@ oslo.config==9.6.0
 paramiko==3.5.1
 pyOpenSSL<25.2
 pymongo==4.6.3
+pynacl==1.6.0
 python-dateutil==2.9.0.post0
 python-statsd==2.1.0
 pyyaml==6.0.3

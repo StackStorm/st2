@@ -38,10 +38,11 @@ PACK_TEST_PYTHON_DEPENDENCIES_NAMES=(
     'mock'
     'pytest-cov'
 )
+# While Stackstorm supports Python 3.8, pytest-cov must be run at a lower version
 PACK_TEST_PYTHON_DEPENDENCIES_VERSIONS=(
     '>7'
     '>=4.0.3'
-    '>=6.1.1'
+    '>=5.0.0'
 )
 
 VIRTUALENVS_DIR="/tmp/st2-pack-tests-virtualenvs"
