@@ -18,6 +18,9 @@ from __future__ import absolute_import
 from st2common import transport
 from st2common.models.db.liveaction import liveaction_access
 from st2common.persistence import base as persistence
+from oslo_config import cfg
+from st2common.util.crypto import read_crypto_key
+from st2common.util.secrets import decrypt_secret_parameters, get_secret_parameters
 
 __all__ = ["LiveAction"]
 
@@ -25,6 +28,7 @@ __all__ = ["LiveAction"]
 class LiveAction(persistence.StatusBasedResource):
     impl = liveaction_access
     publisher = None
+    encryption_key = read_crypto_key(cfg.CONF.actionrunner.encryption_key_path)
 
     @classmethod
     def _get_impl(cls):
@@ -39,3 +43,46 @@ class LiveAction(persistence.StatusBasedResource):
     @classmethod
     def delete_by_query(cls, *args, **query):
         return cls._get_impl().delete_by_query(*args, **query)
+
+    @classmethod
+    def get(self, *args, **kwargs):
+        return super(LiveAction, self).get(*args, **kwargs)
+
+    @classmethod
+    def get_by_id(cls, value):
+        from st2common.util import action_db
+
+        instance = super(LiveAction, cls).get_by_id(value)
+        parameters = getattr(instance, "parameters", None)
+        action = getattr(instance, "action", None)
+        action_parameters = action_db.get_action_parameters_specs(action_ref=action)
+        secret_parameters = get_secret_parameters(parameters=action_parameters)
+        decrypt_parameters = decrypt_secret_parameters(
+            parameters, secret_parameters, cls.encryption_key
+        )
+        setattr(instance, "parameters", decrypt_parameters)
+        return instance
+
+    @classmethod
+    def get_by_name(cls, value):
+        # TODO: Ideally we should add decryption logic here after getting the data from mongo DB
+        instance = super(LiveAction, cls).get_by_name(value)
+        return instance
+
+    @classmethod
+    def get_by_uid(cls, value):
+        # TODO: Ideally we should add decryption logic here after getting the data from mongo DB
+        instance = super(LiveAction, cls).get_by_uid(value)
+        return instance
+
+    @classmethod
+    def get_by_ref(cls, value):
+        # TODO: Ideally we should add decryption logic here after getting the data from mongo DB
+        instance = super(LiveAction, cls).get_by_ref(value)
+        return instance
+
+    @classmethod
+    def get_by_pack(cls, value):
+        # TODO: Ideally we should add decryption logic here after getting the data from mongo DB
+        instance = super(LiveAction, cls).get_by_pack(value)
+        return instance

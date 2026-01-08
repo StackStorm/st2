@@ -25,8 +25,11 @@ from st2common.models.db.notification import NotificationSchema
 from st2common.fields import ComplexDateTimeField
 from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.util import date as date_utils
+from oslo_config import cfg
 from st2common.util.secrets import get_secret_parameters
 from st2common.util.secrets import mask_secret_parameters
+from st2common.util.secrets import encrypt_secret_parameters
+from st2common.util.crypto import read_crypto_key
 
 __all__ = [
     "LiveActionDB",
@@ -94,6 +97,7 @@ class LiveActionDB(stormbase.StormFoundationDB):
             {"fields": ["task_execution"]},
         ],
     }
+    encryption_key = read_crypto_key(cfg.CONF.actionrunner.encryption_key_path)
 
     def mask_secrets(self, value):
         from st2common.util import action_db
@@ -124,6 +128,28 @@ class LiveActionDB(stormbase.StormFoundationDB):
         """
         serializable_dict = self.to_serializable_dict(mask_secrets=True)
         return serializable_dict["parameters"]
+
+    def save(self, *args, **kwargs):
+        from st2common.util import action_db
+
+        original_parameters = copy.deepcopy(self.parameters)
+        action_parameters = action_db.get_action_parameters_specs(
+            action_ref=self.action
+        )
+        secret_parameters = get_secret_parameters(parameters=action_parameters)
+        encrpyted_parameters = encrypt_secret_parameters(
+            self.parameters, secret_parameters, self.encryption_key
+        )
+        self.parameters = encrpyted_parameters
+        self = super(LiveActionDB, self).save(*args, **kwargs)
+        # Reset parameters to original value after saving them to mongo
+        self.parameters = original_parameters
+        return self
+
+    def update(self, **kwargs):
+        # TODO : As of now update is not being used for LiveAction and that is why we did not
+        # add the encryption logic here but we should add it here soon
+        return super(LiveActionDB, self).update(**kwargs)
 
 
 # specialized access objects
