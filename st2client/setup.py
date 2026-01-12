@@ -15,6 +15,10 @@
 # limitations under the License.
 
 import os.path
+import sys
+
+# Add the current directory to the module search path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from setuptools import setup, find_packages
 
