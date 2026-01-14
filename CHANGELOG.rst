@@ -1,8 +1,12 @@
 Changelog
 =========
 
-in development
+In development
 --------------
+
+
+3.10dev - January 14, 2026
+--------------------------
 
 
 3.9.0 - October 10, 2025
