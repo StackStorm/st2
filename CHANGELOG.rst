@@ -177,6 +177,9 @@ Fixed
 
 Added
 ~~~~~
+* Add support for `limit` and `offset` parameters in sensor wrapper `list_items()`
+  method to make congruent with regular datastore method. #5913
+
 * Move `git clone` to `user_home/.st2packs` #5845
 
 * Error on `st2ctl status` when running in Kubernetes. #5851
