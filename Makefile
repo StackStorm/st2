@@ -174,12 +174,12 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
 	#@for component in $(COMPONENTS_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing runner:" $$component; \
 	#	echo "==========================================================="; \
-	#	#(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
+	#	#(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python -m pip install --editable . --no-deps); \
 	#done
 
 .PHONY: install-mock-runners
@@ -188,12 +188,12 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
 	#@for component in $(MOCK_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing mock runner:" $$component; \
 	#	echo "==========================================================="; \
-	#	(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
+	#	(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python -m pip install --editable . --no-deps); \
 	#done
 
 .PHONY: check-requirements
@@ -276,7 +276,7 @@ check-python-packages-nightly:
 		echo "==========================================================="; \
 		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
 		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py develop --no-deps) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m pip install --editable . --no-deps) || exit 1; \
 		($(VIRTUALENV_COMPONENTS_DIR)/bin/python -c "import $$component") || exit 1; \
 		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
 	done
@@ -505,9 +505,9 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
-	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "readme_renderer"
-	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/pip install --upgrade "restructuredtext-lint"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m pip install --upgrade "readme_renderer"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m pip install --upgrade "restructuredtext-lint"
 
 	# Check with readme-renderer
 	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m readme_renderer README.rst
@@ -534,10 +534,10 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/pip install . ; cd ..
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install . ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
 
@@ -661,7 +661,7 @@ distclean: clean
 
 .PHONY: .requirements
 .requirements: virtualenv
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"
 	# Print out pip version
 	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
@@ -694,32 +694,33 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 
 	# Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
 	#       only have to update it one place when we change the version
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
-	$(VIRTUALENV_DIR)/bin/pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
+	# virtualenv is deprecated, use python -m venv
+	#$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
+	$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
 
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
-		$(VIRTUALENV_DIR)/bin/pip install $(PIP_OPTIONS) -r $$req ; \
+		$(VIRTUALENV_DIR)/bin/python -m pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
 	# Install st2common package to load drivers defined in st2common setup.py
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2auth to register SSO drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive --remote
@@ -1058,7 +1059,7 @@ packs-tests: requirements .packs-tests
 	@echo "==================== packs-tests ===================="
 	@echo
 	# Install st2common to register metrics drivers
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 
@@ -1122,7 +1123,7 @@ cli:
 	@echo
 	@echo "=================== Building st2 client ==================="
 	@echo
-	pushd $(CURDIR) && cd st2client && ((python setup.py develop || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
+	pushd $(CURDIR) && cd st2client && ((python -m pip install --editable . || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
 
 .PHONY: rpms
 rpms:
