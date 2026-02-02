@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2020-2026 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import json
 import logging
-from pipes import quote as pquote
+from shlex import quote
 
 import requests
 
@@ -185,18 +185,18 @@ class HTTPClient(object):
         if method in ["HEAD"]:
             parts.extend(["--head"])
         else:
-            parts.extend(["-X", pquote(method)])
+            parts.extend(["-X", quote(method)])
 
         # headers
         for key, value in request.headers.items():
-            parts.extend(["-H ", pquote("%s: %s" % (key, value))])
+            parts.extend(["-H ", quote("%s: %s" % (key, value))])
 
         # body
         if request.body:
-            parts.extend(["--data-binary", pquote(request.body)])
+            parts.extend(["--data-binary", quote(request.body)])
 
         # URL
-        parts.extend([pquote(request.url)])
+        parts.extend([quote(request.url)])
 
         curl_line = " ".join(parts)
         return curl_line
