@@ -820,22 +820,29 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_TEST); do\
-		echo "==========================================================="; \
-		echo "Running tests in" $$component; \
-		echo "-----------------------------------------------------------"; \
-		. $(VIRTUALENV_DIR)/bin/activate; \
-		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
-		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
-		    pytest -rx --verbose \
-		    $$component/tests/unit || ((failed+=1)); \
-		echo "-----------------------------------------------------------"; \
-		echo "Done running tests in" $$component; \
-		echo "==========================================================="; \
+		if ls $$component/tests/unit/test_*.py 2>/dev/null >/dev/null; then \
+			echo "==========================================================="; \
+			echo "Running tests in" $$component; \
+			echo "-----------------------------------------------------------"; \
+			. $(VIRTUALENV_DIR)/bin/activate; \
+			ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
+			ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
+			pytest -rx --verbose $$component/tests/unit; \
+			RET=$$?; \
+			test $$RET -eq 0 || failed+=($$component); \
+			echo "-----------------------------------------------------------"; \
+			echo "Done running tests in $$component ($$RET)"; \
+			echo "==========================================================="; \
+		else \
+			echo "==========================================================="; \
+			echo "Skip: no test files for $$component"; \
+			echo "==========================================================="; \
+		fi; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [[ $${#failed[@]} -gt 0 ]]; then exit 1; fi
 
 .PHONY: .run-unit-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
