@@ -16,6 +16,8 @@ orquesta
 st2-rbac-backend
 oslo.config
 paramiko
+# pynacl is used by paramiko and version needs to be pinned
+pynacl
 pyyaml
 pymongo
 # used for optional network level compression for mongodb

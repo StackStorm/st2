@@ -26,6 +26,7 @@
   "allow_wheels": true,
   "build_isolation": true,
   "constraints": [],
+  "elide_unused_requires_dist": false,
   "excluded": [],
   "locked_resolves": [
     {
@@ -54,13 +55,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "468dff3b89520b474c0397703366b7b95eebe6303f108adf9b19da1f702be87a",
-              "url": "https://files.pythonhosted.org/packages/46/d1/e73b6ad76f0b1fb7f23c35c6d95dbc506a9c8804f43dda8cb5b0fa6331fd/dill-0.3.9-py3-none-any.whl"
+              "hash": "44f54bf6412c2c8464c14e8243eb163690a9800dbe2c367330883b19c7561049",
+              "url": "https://files.pythonhosted.org/packages/50/3d/9373ad9c56321fdab5b41197068e1d8c25883b3fea29dd361f9b55116869/dill-0.4.0-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "81aa267dddf68cbfe8029c42ca9ec6a4ab3b22371d1c450abc54422577b4512c",
-              "url": "https://files.pythonhosted.org/packages/70/43/86fe3f9e130c4137b0f1b50784dd70a5087b911fe07fa81e53e0c4c47fea/dill-0.3.9.tar.gz"
+              "hash": "0633f1d2df477324f53a895b02c901fb961bdbf65a17122586ea7019292cbcf0",
+              "url": "https://files.pythonhosted.org/packages/12/80/630b4b88364e9a8c8c5797f4602d0f76ef820909ee32f0bacb9f90654042/dill-0.4.0.tar.gz"
             }
           ],
           "project_name": "dill",
@@ -69,7 +70,7 @@
             "objgraph>=1.7.2; extra == \"graph\""
           ],
           "requires_python": ">=3.8",
-          "version": "0.3.9"
+          "version": "0.4.0"
         },
         {
           "artifacts": [
@@ -174,13 +175,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "f2504966861356aa38616760c0f66568e535562374995367b4e69c7143cf6bcd",
-              "url": "https://files.pythonhosted.org/packages/90/12/282ee9bce8b58130cb762fbc9beabd531549952cac11fc56add11dcb7ea0/setuptools-75.3.0-py3-none-any.whl"
+              "hash": "90ab613b6583fc02d5369cbca13ea26ea0e182d1df2d943ee9cbe81d4c61add9",
+              "url": "https://files.pythonhosted.org/packages/15/65/3f0dba35760d902849d39d38c0a72767794b1963227b69a587f8a336d08c/setuptools-75.3.2-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "fba5dd4d766e97be1b1681d98712680ae8f2f26d7881245f2ce9e40714f1a686",
-              "url": "https://files.pythonhosted.org/packages/ed/22/a438e0caa4576f8c383fa4d35f1cc01655a46c75be358960d815bfbb12bd/setuptools-75.3.0.tar.gz"
+              "hash": "3c1383e1038b68556a382c1e8ded8887cd20141b0eb5708a6c8d277de49364f5",
+              "url": "https://files.pythonhosted.org/packages/5c/01/771ea46cce201dd42cff043a5eea929d1c030fb3d1c2ee2729d02ca7814c/setuptools-75.3.2.tar.gz"
             }
           ],
           "project_name": "setuptools",
@@ -225,6 +226,7 @@
             "pytest-timeout; extra == \"test\"",
             "pytest-xdist>=3; extra == \"test\"",
             "rst.linker>=1.9; extra == \"doc\"",
+            "ruff<=0.7.1; extra == \"test\"",
             "ruff>=0.5.2; sys_platform != \"cygwin\" and extra == \"check\"",
             "sphinx-favicon; extra == \"doc\"",
             "sphinx-inline-tabs; extra == \"doc\"",
@@ -241,7 +243,7 @@
             "wheel>=0.44.0; extra == \"test\""
           ],
           "requires_python": ">=3.8",
-          "version": "75.3.0"
+          "version": "75.3.2"
         },
         {
           "artifacts": [
@@ -305,37 +307,37 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "7a974427f6e119197f670fbbbeae7bef749a6c14e793db934baefc1b5f03efde",
-              "url": "https://files.pythonhosted.org/packages/f9/b6/a447b5e4ec71e13871be01ba81f5dfc9d0af7e473da256ff46bc0e24026f/tomlkit-0.13.2-py3-none-any.whl"
+              "hash": "c89c649d79ee40629a9fda55f8ace8c6a1b42deb912b2a8fd8d942ddadb606b0",
+              "url": "https://files.pythonhosted.org/packages/bd/75/8539d011f6be8e29f339c42e633aae3cb73bffa95dd0f9adec09b9c58e85/tomlkit-0.13.3-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "fff5fe59a87295b278abd31bec92c15d9bc4a06885ab12bcea52c71119392e79",
-              "url": "https://files.pythonhosted.org/packages/b1/09/a439bec5888f00a54b8b9f05fa94d7f901d6735ef4e55dcec9bc37b5d8fa/tomlkit-0.13.2.tar.gz"
+              "hash": "430cf247ee57df2b94ee3fbe588e71d362a941ebb545dec29b53961d61add2a1",
+              "url": "https://files.pythonhosted.org/packages/cc/18/0bbf3884e9eaa38819ebe46a7bd25dcd56b67434402b66a58c4b8e552575/tomlkit-0.13.3.tar.gz"
             }
           ],
           "project_name": "tomlkit",
           "requires_dists": [],
           "requires_python": ">=3.8",
-          "version": "0.13.2"
+          "version": "0.13.3"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d",
-              "url": "https://files.pythonhosted.org/packages/26/9f/ad63fc0248c5379346306f8668cda6e2e2e9c95e01216d2b8ffd9ff037d0/typing_extensions-4.12.2-py3-none-any.whl"
+              "hash": "a439e7c04b49fec3e5d3e2beaa21755cadbbdc391694e28ccdd36ca4a1408f8c",
+              "url": "https://files.pythonhosted.org/packages/8b/54/b1ae86c0973cc6f0210b53d508ca3641fb6d0c56823f288d108bc7ab3cc8/typing_extensions-4.13.2-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8",
-              "url": "https://files.pythonhosted.org/packages/df/db/f35a00659bc03fec321ba8bce9420de607a1d37f8342eee1863174c69557/typing_extensions-4.12.2.tar.gz"
+              "hash": "e6c81219bd689f51865d9e372991c540bda33a0379d5573cddb9a3a23f7caaef",
+              "url": "https://files.pythonhosted.org/packages/f6/37/23083fcd6e35492953e8d2aaaa68b860eb422b34627b13f2ce3eb6106061/typing_extensions-4.13.2.tar.gz"
             }
           ],
           "project_name": "typing-extensions",
           "requires_dists": [],
           "requires_python": ">=3.8",
-          "version": "4.12.2"
+          "version": "4.13.2"
         }
       ],
       "platform_tag": null
@@ -345,8 +347,8 @@
   "only_wheels": [],
   "overridden": [],
   "path_mappings": {},
-  "pex_version": "2.16.2",
-  "pip_version": "24.0",
+  "pex_version": "2.32.1",
+  "pip_version": "24.2",
   "prefer_older_binary": false,
   "requirements": [
     "astroid",
@@ -363,5 +365,6 @@
     "mac"
   ],
   "transitive": true,
-  "use_pep517": null
+  "use_pep517": null,
+  "use_system_time": false
 }

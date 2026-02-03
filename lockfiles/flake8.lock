@@ -25,6 +25,7 @@
   "allow_wheels": true,
   "build_isolation": true,
   "constraints": [],
+  "elide_unused_requires_dist": false,
   "excluded": [],
   "locked_resolves": [
     {
@@ -129,13 +130,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "f2504966861356aa38616760c0f66568e535562374995367b4e69c7143cf6bcd",
-              "url": "https://files.pythonhosted.org/packages/90/12/282ee9bce8b58130cb762fbc9beabd531549952cac11fc56add11dcb7ea0/setuptools-75.3.0-py3-none-any.whl"
+              "hash": "90ab613b6583fc02d5369cbca13ea26ea0e182d1df2d943ee9cbe81d4c61add9",
+              "url": "https://files.pythonhosted.org/packages/15/65/3f0dba35760d902849d39d38c0a72767794b1963227b69a587f8a336d08c/setuptools-75.3.2-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "fba5dd4d766e97be1b1681d98712680ae8f2f26d7881245f2ce9e40714f1a686",
-              "url": "https://files.pythonhosted.org/packages/ed/22/a438e0caa4576f8c383fa4d35f1cc01655a46c75be358960d815bfbb12bd/setuptools-75.3.0.tar.gz"
+              "hash": "3c1383e1038b68556a382c1e8ded8887cd20141b0eb5708a6c8d277de49364f5",
+              "url": "https://files.pythonhosted.org/packages/5c/01/771ea46cce201dd42cff043a5eea929d1c030fb3d1c2ee2729d02ca7814c/setuptools-75.3.2.tar.gz"
             }
           ],
           "project_name": "setuptools",
@@ -180,6 +181,7 @@
             "pytest-timeout; extra == \"test\"",
             "pytest-xdist>=3; extra == \"test\"",
             "rst.linker>=1.9; extra == \"doc\"",
+            "ruff<=0.7.1; extra == \"test\"",
             "ruff>=0.5.2; sys_platform != \"cygwin\" and extra == \"check\"",
             "sphinx-favicon; extra == \"doc\"",
             "sphinx-inline-tabs; extra == \"doc\"",
@@ -196,7 +198,7 @@
             "wheel>=0.44.0; extra == \"test\""
           ],
           "requires_python": ">=3.8",
-          "version": "75.3.0"
+          "version": "75.3.2"
         },
         {
           "artifacts": [
@@ -226,8 +228,8 @@
   "only_wheels": [],
   "overridden": [],
   "path_mappings": {},
-  "pex_version": "2.16.2",
-  "pip_version": "24.0",
+  "pex_version": "2.32.1",
+  "pip_version": "24.2",
   "prefer_older_binary": false,
   "requirements": [
     "flake8==7.0.0",
@@ -243,5 +245,6 @@
     "mac"
   ],
   "transitive": true,
-  "use_pep517": null
+  "use_pep517": null,
+  "use_system_time": false
 }
