@@ -231,8 +231,9 @@ def main(args):
             )  # late import to let config get set up first.
 
             available_backends = auth_backends.get_available_backends()
+            # lmbuild only has 2 backends enabled
             assert (
-                len(available_backends) == 3
+                len(available_backends) == 2
             ), f"Expected 3 available auth backends, got {len(available_backends)}: {available_backends}"
     _read_groups(opt_groups)
 
