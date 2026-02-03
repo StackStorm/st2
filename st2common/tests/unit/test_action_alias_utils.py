@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2020-2026 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +14,26 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-from sre_parse import (
-    parse,
-    AT,
-    AT_BEGINNING,
-    AT_BEGINNING_STRING,
-    AT_END,
-    AT_END_STRING,
-)
+
+import sys
+if sys.version_info >= (3, 11):
+    from re._parser import (
+        parse,
+        AT,
+        AT_BEGINNING,
+        AT_BEGINNING_STRING,
+        AT_END,
+        AT_END_STRING,
+    )
+else:
+    from sre_parse import (
+        parse,
+        AT,
+        AT_BEGINNING,
+        AT_BEGINNING_STRING,
+        AT_END,
+        AT_END_STRING,
+    )
 from mock import Mock
 from unittest import TestCase
 from st2common.exceptions.content import ParseException
