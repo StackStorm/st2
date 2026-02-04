@@ -45,10 +45,10 @@ __all__ = [
 ]
 
 
-def get_site_packages_dir() -> str:
+def get_site_packages_dir(type_dir="platlib") -> str:
     """Returns a string with the python platform lib path (to site-packages)."""
     # This assumes we are running in the primary st2 virtualenv (typically /opt/stackstorm/st2)
-    site_packages_dir = get_path("platlib")
+    site_packages_dir = get_path(type_dir)
 
     sys_prefix = os.path.abspath(sys.prefix)
     if sys_prefix not in site_packages_dir:
@@ -147,7 +147,9 @@ def get_sandbox_python_path(inherit_from_parent=True, inherit_parent_virtualenv=
     if inherit_parent_virtualenv and is_in_virtualenv():
         # We are running inside virtualenv
         site_packages_dir = get_site_packages_dir()
+        pure_site_packages_dir = get_site_packages_dir("purelib")
         sandbox_python_path.append(site_packages_dir)
+        sandbox_python_path.append(pure_site_packages_dir)
 
     sandbox_python_path = ":".join(sandbox_python_path)
     sandbox_python_path = ":" + sandbox_python_path

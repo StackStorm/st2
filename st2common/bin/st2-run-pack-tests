@@ -195,8 +195,8 @@ if [ "${CREATE_VIRTUALENV}" = true ]; then
 
         if [ -f "${STACKSTORM_VIRTUALENV_PYTHON_BINARY}" ]; then
             # ensure any .pth files in st2 venv get loaded with the pack venv too.
-            ST2_SITE_PACKAGES=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sysconfig;print(sysconfig.get_path('platlib'))")
-            PACK_SITE_PACKAGES=$(${VIRTUALENV_DIR}/bin/python3 -c "import sysconfig;print(sysconfig.get_path('platlib'))")
+            ST2_SITE_PACKAGES=$(${STACKSTORM_VIRTUALENV_PYTHON_BINARY} -c "import sysconfig;print(sysconfig.get_path('platlib')); import sysconfig;print(sysconfig.get_path('purelib'))")
+            PACK_SITE_PACKAGES=$(${VIRTUALENV_DIR}/bin/python3 -c "import sysconfig;print(sysconfig.get_path('platlib')); import sysconfig;print(sysconfig.get_path('purelib'))")
             echo "import sys; addsitedir('${ST2_SITE_PACKAGES}', known_paths)" > "${PACK_SITE_PACKAGES}/zzzzzzzzzz__st2__.pth"
         fi
 

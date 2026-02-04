@@ -127,7 +127,8 @@ class SandboxingUtilsTestCase(unittest.TestCase):
             )
 
         self.assertEqual(
-            python_path, f":/data/test1:/data/test2:{sys.prefix}/virtualenvtest"
+            python_path,
+            f":/data/test1:/data/test2:{sys.prefix}/virtualenvtest:{sys.prefix}/virtualenvtest",
         )
 
     @mock.patch("os.path.isdir", mock.Mock(return_value=True))
@@ -249,7 +250,7 @@ class SandboxingUtilsTestCase(unittest.TestCase):
             )
 
         actual_path = python_path.strip(":").split(":")
-        self.assertEqual(len(actual_path), 7)
+        self.assertEqual(len(actual_path), 8)
 
         # First entry should be lib/python3 dir from venv
         self.assertEndsWith(actual_path[0], "virtualenvs/dummy_pack/lib/python3.6")
