@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import sys
+
 if sys.version_info >= (3, 11):
     from re._parser import (
         parse,
@@ -97,9 +98,7 @@ class TestActionAliasParser(TestCase):
         param_stream = 'Malcolm Reynolds is my captain weirdo="River Tam"'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(
-            extracted_values, {"captain": "Malcolm Reynolds", "weirdo": "River Tam"}
-        )
+        self.assertEqual(extracted_values, {"captain": "Malcolm Reynolds", "weirdo": "River Tam"})
 
     def test_simple_parsing(self):
         alias_format = "skip {{a}} more skip {{b}} and skip more."
@@ -127,9 +126,7 @@ class TestActionAliasParser(TestCase):
         param_stream = 'acl "a1 a2" "b1" "c1"'
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(
-            extracted_values, {"a": "a1 a2", "b": "b1", "c": "c1", "d": "1"}
-        )
+        self.assertEqual(extracted_values, {"a": "a1 a2", "b": "b1", "c": "c1", "d": "1"})
 
     def test_spacing(self):
         alias_format = "acl {{a=test}}"
@@ -157,9 +154,7 @@ class TestActionAliasParser(TestCase):
         param_stream = "s one more two more three more"
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
-        self.assertEqual(
-            extracted_values, {"a": "one", "b": "two", "c": "three", "d": "99"}
-        )
+        self.assertEqual(extracted_values, {"a": "one", "b": "two", "c": "three", "d": "99"})
 
     def test_enclosed_defaults(self):
         alias_format = "skip {{ a = value }} more"
@@ -225,22 +220,15 @@ class TestActionAliasParser(TestCase):
         param_stream = None
         parser = ActionAliasFormatParser(alias_format, param_stream)
 
-        expected_msg = (
-            'Command "" doesn\'t match format string "skip {{d}} more skip {{e}}."'
-        )
-        self.assertRaisesRegex(
-            ParseException, expected_msg, parser.get_extracted_param_value
-        )
+        expected_msg = 'Command "" doesn\'t match format string "skip {{d}} more skip {{e}}."'
+        self.assertRaisesRegex(ParseException, expected_msg, parser.get_extracted_param_value)
 
     def test_all_the_things(self):
         # this is the most insane example I could come up with
         alias_format = (
-            "{{ p0='http' }} g {{ p1=p }} a "
-            + "{{ url }} {{ p2={'a':'b'} }} {{ p3={{ e.i }} }}"
+            "{{ p0='http' }} g {{ p1=p }} a " + "{{ url }} {{ p2={'a':'b'} }} {{ p3={{ e.i }} }}"
         )
-        param_stream = (
-            "g a http://google.com {{ execution.id }} p4='testing' p5={'a':'c'}"
-        )
+        param_stream = "g a http://google.com {{ execution.id }} p4='testing' p5={'a':'c'}"
         parser = ActionAliasFormatParser(alias_format, param_stream)
         extracted_values = parser.get_extracted_param_value()
         self.assertEqual(
@@ -261,12 +249,8 @@ class TestActionAliasParser(TestCase):
         param_stream = "foo lulz ponies"
         parser = ActionAliasFormatParser(alias_format, param_stream)
 
-        expected_msg = (
-            'Command "foo lulz ponies" doesn\'t match format string "foo bar ponies"'
-        )
-        self.assertRaisesRegex(
-            ParseException, expected_msg, parser.get_extracted_param_value
-        )
+        expected_msg = 'Command "foo lulz ponies" doesn\'t match format string "foo bar ponies"'
+        self.assertRaisesRegex(ParseException, expected_msg, parser.get_extracted_param_value)
 
     def test_ending_parameters_matching(self):
         alias_format = "foo bar"
@@ -380,18 +364,14 @@ class TestInjectImmutableParameters(TestCase):
         action_alias_db.immutable_parameters = {"env": "dev"}
         exec_params = [{"param1": "value1", "param2": "value2"}]
         inject_immutable_parameters(action_alias_db, exec_params, {})
-        self.assertEqual(
-            exec_params, [{"param1": "value1", "param2": "value2", "env": "dev"}]
-        )
+        self.assertEqual(exec_params, [{"param1": "value1", "param2": "value2", "env": "dev"}])
 
     def test_immutable_parameters_with_jinja(self):
         action_alias_db = Mock()
         action_alias_db.immutable_parameters = {"env": '{{ "dev" + "1" }}'}
         exec_params = [{"param1": "value1", "param2": "value2"}]
         inject_immutable_parameters(action_alias_db, exec_params, {})
-        self.assertEqual(
-            exec_params, [{"param1": "value1", "param2": "value2", "env": "dev1"}]
-        )
+        self.assertEqual(exec_params, [{"param1": "value1", "param2": "value2", "env": "dev1"}])
 
     def test_override_raises_error(self):
         action_alias_db = Mock()
