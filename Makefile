@@ -653,15 +653,9 @@ distclean: clean
 	# Remove any *.egg-info files which polute PYTHONPATH
 	rm -rf *.egg-info*
 
-	# Generate finall requirements.txt file for each component
+	# Generate final requirements.txt file for each component
 	# NOTE: We use xargs to speed things up by running commands in parallel
 	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
-
-	#@for component in $(COMPONENTS_WITH_RUNNERS); do\
-	#	echo "==========================================================="; \
-	#	echo "Generating requirements.txt for" $$component; \
-	#	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
-	#done
 
 	@echo "==========================================================="
 
@@ -787,7 +781,7 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -796,13 +790,13 @@ unit-tests: requirements .unit-tests
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    pytest -rx --verbose \
-		    $$component/tests/unit || ((failed+=1)); \
+		    $$component/tests/unit || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-unit-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -814,7 +808,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	failed=0; \
+	failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -824,13 +818,13 @@ endif
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
 		    pytest --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
-		    $$component/tests/unit || ((failed+=1)); \
+		    $$component/tests/unit || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
@@ -875,20 +869,20 @@ itests: requirements .itests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    pytest --capture=no --verbose $(PYTEST_OPTS) \
-		    $$component/tests/integration || ((failed+=1)); \
+		    $$component/tests/integration || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-integration-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -900,7 +894,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
@@ -908,13 +902,13 @@ endif
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
 		    pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
-		    $$component/tests/integration || ((failed+=1)); \
+		    $$component/tests/integration || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
 	# ci-integration-full target
 #	@echo
@@ -1033,14 +1027,16 @@ runners-tests: requirements .runners-tests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/unit || ((failed+=1)); \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/unit || failed+=($$component); \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: runners-itests
 runners-itests: requirements .runners-itests
@@ -1051,15 +1047,16 @@ runners-itests: requirements .runners-itests
 	@echo "==================== runners-itests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/integration || ((failed+=1)); \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/integration || failed+=($$component); \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .runners-itests-coverage-html
 .runners-itests-coverage-html:
@@ -1067,16 +1064,16 @@ runners-itests: requirements .runners-itests
 	@echo "============== runners-itests-coverage-html =============="
 	@echo
 	@echo "The tests assume st2 is running on 127.0.0.1."
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) \
-			--cov=$$component --cov-report=html $$component/tests/integration || ((failed+=1)); \
+			--cov=$$component --cov-report=html $$component/tests/integration || failed+=($$component); \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: cli
 cli:
