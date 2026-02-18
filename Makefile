@@ -59,8 +59,8 @@ ST2TESTS_REDIS_PORT := 6379
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 25.0.1
-SETUPTOOLS_VERSION ?= 75.3.2
+PIP_VERSION ?= 26.0.1
+SETUPTOOLS_VERSION ?= 80.6.0
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -175,12 +175,7 @@ install-runners:
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
 	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
-	#@for component in $(COMPONENTS_RUNNERS); do \
-	#	echo "==========================================================="; \
-	#	echo "Installing runner:" $$component; \
-	#	echo "==========================================================="; \
-	#	#(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
-	#done
+
 
 .PHONY: install-mock-runners
 install-mock-runners:
@@ -189,12 +184,7 @@ install-mock-runners:
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
 	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
-	#@for component in $(MOCK_RUNNERS); do \
-	#	echo "==========================================================="; \
-	#	echo "Installing mock runner:" $$component; \
-	#	echo "==========================================================="; \
-	#	(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
-	#done
+
 
 .PHONY: check-requirements
 .check-requirements:
@@ -276,7 +266,7 @@ check-python-packages-nightly:
 		echo "==========================================================="; \
 		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
 		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py develop --no-deps) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m pip install --editable . --no-deps) || exit 1; \
 		($(VIRTUALENV_COMPONENTS_DIR)/bin/python -c "import $$component") || exit 1; \
 		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
 	done
@@ -652,13 +642,6 @@ distclean: clean
 		scripts/write-headers.sh $$component/dist_utils.py || break;\
 	done
 
-	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
-	#@for component in $(COMPONENTS_TEST); do\
-	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
-	#	cp -f CONTRIBUTING.rst $$component/; \
-	#	cp -f LICENSE $$component/; \
-	#done
-
 .PHONY: .requirements
 .requirements: virtualenv
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
@@ -707,19 +690,19 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2auth to register SSO drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive --remote
@@ -767,21 +750,6 @@ endif
 	echo 'PYTHONPATH=${ROOT_DIR}:$(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
-
-	# Setup PYTHONPATH in fish activate script...
-	#echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#touch $(VIRTUALENV_DIR)/bin/activate.fish
 
 	# debug pip installed packages
 	$(VIRTUALENV_DIR)/bin/pip list
@@ -1015,13 +983,6 @@ endif
 		make .coverage-combine; \
 	fi
 
-# @for coverage_result in $(COVERAGE_GLOBS); do \
-# 	[ -e $${coverage_result} ] || echo "$${coverage_result} does not exist." && continue; \
-# 	echo "Combining data from $${coverage_result}"; \
-# 	. $(VIRTUALENV_DIR)/bin/activate; coverage combine $${coverage_result}; \
-# done || \
-# (echo "Running .coverage-combine"; make .coverage-combine)
-
 .PHONY: .coverage-report
 .coverage-report: .coverage
 	. $(VIRTUALENV_DIR)/bin/activate; coverage report
@@ -1058,7 +1019,7 @@ packs-tests: requirements .packs-tests
 	@echo "==================== packs-tests ===================="
 	@echo
 	# Install st2common to register metrics drivers
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 
@@ -1122,7 +1083,7 @@ cli:
 	@echo
 	@echo "=================== Building st2 client ==================="
 	@echo
-	pushd $(CURDIR) && cd st2client && ((python setup.py develop || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
+	pushd $(CURDIR) && cd st2client && ((python -m pip install --editable . || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
 
 .PHONY: rpms
 rpms:
