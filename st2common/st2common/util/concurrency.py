@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2020-2026 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +17,7 @@
 Module which acts as a compatibility later between eventlet and gevent.
 
 It dispatches function call to the concurrency library which is configured using
-"set_concurrency_library" functoion.
+"set_concurrency_library" function.
 """
 
 try:
@@ -168,7 +168,7 @@ def green_pool_wait_all(pool):
     if CONCURRENCY_LIBRARY == "eventlet":
         return pool.waitall()
     elif CONCURRENCY_LIBRARY == "gevent":
-        # NOTE: This mimicks eventlet.waitall() functionallity better than
+        # NOTE: This mimicks eventlet.waitall() functionality better than
         # pool.join()
         return all(gl.ready() for gl in pool.greenlets)
     else:
