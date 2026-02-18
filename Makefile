@@ -174,7 +174,7 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
 
 
 .PHONY: install-mock-runners
@@ -183,7 +183,7 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
+	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
 
 
 .PHONY: check-requirements
@@ -247,7 +247,7 @@ check-python-packages:
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m setuptools_scm) || exit 1; \
 	done
 
 .PHONY: check-python-packages-nightly
@@ -264,8 +264,8 @@ check-python-packages-nightly:
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m setuptools_scm) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m build) || exit 1; \
 		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m pip install --editable . --no-deps) || exit 1; \
 		($(VIRTUALENV_COMPONENTS_DIR)/bin/python -c "import $$component") || exit 1; \
 		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
