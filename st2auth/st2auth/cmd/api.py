@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2020-2026 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,12 +17,11 @@ from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
 
-import eventlet
+from st2common.util import concurrency
 import os
 import sys
 
 from oslo_config import cfg
-from eventlet import wsgi
 
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
@@ -81,7 +80,7 @@ def _run_server():
     if use_ssl and not os.path.isfile(key_file_path):
         raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
 
-    socket = eventlet.listen((host, port))
+    socket = concurrency.listen(host, port)
 
     if use_ssl:
         socket = eventlet.wrap_ssl(
@@ -96,7 +95,7 @@ def _run_server():
         host,
         port,
     )
-
+    wsgi = concurrency.get_wsgi_module()
     wsgi.server(socket, app.setup_app(), log=LOG, log_output=False)
     return 0
 
