@@ -59,8 +59,8 @@ ST2TESTS_REDIS_PORT := 6379
 
 # Pin common pip version here across all the targets
 # Note! Periodic maintenance pip upgrades are required to be up-to-date with the latest pip security fixes and updates
-PIP_VERSION ?= 25.0.1
-SETUPTOOLS_VERSION ?= 75.3.2
+PIP_VERSION ?= 26.0.1
+SETUPTOOLS_VERSION ?= 80.6.0
 PIP_OPTIONS := $(ST2_PIP_OPTIONS)
 
 ifndef PYLINT_CONCURRENCY
@@ -174,13 +174,8 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
-	#@for component in $(COMPONENTS_RUNNERS); do \
-	#	echo "==========================================================="; \
-	#	echo "Installing runner:" $$component; \
-	#	echo "==========================================================="; \
-	#	#(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
-	#done
+	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
+
 
 .PHONY: install-mock-runners
 install-mock-runners:
@@ -188,13 +183,8 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python setup.py develop --no-deps"
-	#@for component in $(MOCK_RUNNERS); do \
-	#	echo "==========================================================="; \
-	#	echo "Installing mock runner:" $$component; \
-	#	echo "==========================================================="; \
-	#	(. $(VIRTUALENV_DIR)/bin/activate; cd $$component; python setup.py develop --no-deps); \
-	#done
+	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
+
 
 .PHONY: check-requirements
 .check-requirements:
@@ -257,7 +247,7 @@ check-python-packages:
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m setuptools_scm) || exit 1; \
 	done
 
 .PHONY: check-python-packages-nightly
@@ -274,9 +264,9 @@ check-python-packages-nightly:
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py develop --no-deps) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m setuptools_scm) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m build) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m pip install --editable . --no-deps) || exit 1; \
 		($(VIRTUALENV_COMPONENTS_DIR)/bin/python -c "import $$component") || exit 1; \
 		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
 	done
@@ -652,13 +642,6 @@ distclean: clean
 		scripts/write-headers.sh $$component/dist_utils.py || break;\
 	done
 
-	# Copy over CHANGELOG.RST, CONTRIBUTING.RST and LICENSE file to each component directory
-	#@for component in $(COMPONENTS_TEST); do\
-	#	test -s $$component/README.rst || cp -f README.rst $$component/; \
-	#	cp -f CONTRIBUTING.rst $$component/; \
-	#	cp -f LICENSE $$component/; \
-	#done
-
 .PHONY: .requirements
 .requirements: virtualenv
 	$(VIRTUALENV_DIR)/bin/pip install --upgrade "pip==$(PIP_VERSION)"
@@ -670,15 +653,9 @@ distclean: clean
 	# Remove any *.egg-info files which polute PYTHONPATH
 	rm -rf *.egg-info*
 
-	# Generate finall requirements.txt file for each component
+	# Generate final requirements.txt file for each component
 	# NOTE: We use xargs to speed things up by running commands in parallel
 	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
-
-	#@for component in $(COMPONENTS_WITH_RUNNERS); do\
-	#	echo "==========================================================="; \
-	#	echo "Generating requirements.txt for" $$component; \
-	#	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s $$component/in-requirements.txt -f fixed-requirements.txt -o $$component/requirements.txt; \
-	#done
 
 	@echo "==========================================================="
 
@@ -707,19 +684,19 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2auth to register SSO drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive --remote
@@ -768,21 +745,6 @@ endif
 	echo 'export PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate
 	touch $(VIRTUALENV_DIR)/bin/activate
 
-	# Setup PYTHONPATH in fish activate script...
-	#echo '' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'set -gx _OLD_PYTHONPATH $$PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'set -gx PYTHONPATH $$_OLD_PYTHONPATH $(COMPONENT_PYTHONPATH)' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'functions -c deactivate old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'function deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  if test -n $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '    set -gx PYTHONPATH $$_OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '    set -e _OLD_PYTHONPATH' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo '  functions -e old_deactivate' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#echo 'end' >> $(VIRTUALENV_DIR)/bin/activate.fish
-	#touch $(VIRTUALENV_DIR)/bin/activate.fish
-
 	# debug pip installed packages
 	$(VIRTUALENV_DIR)/bin/pip list
 
@@ -819,7 +781,7 @@ unit-tests: requirements .unit-tests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -828,13 +790,13 @@ unit-tests: requirements .unit-tests
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    pytest -rx --verbose \
-		    $$component/tests/unit || ((failed+=1)); \
+		    $$component/tests/unit || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-unit-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -846,7 +808,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	failed=0; \
+	failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
@@ -856,13 +818,13 @@ endif
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
 		    pytest --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
-		    $$component/tests/unit || ((failed+=1)); \
+		    $$component/tests/unit || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .combine-unit-tests-coverage
 .combine-unit-tests-coverage: .run-unit-tests-coverage
@@ -907,20 +869,20 @@ itests: requirements .itests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    pytest --capture=no --verbose $(PYTEST_OPTS) \
-		    $$component/tests/integration || ((failed+=1)); \
+		    $$component/tests/integration || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done running integration tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .run-integration-tests-coverage
 ifdef INCLUDE_TESTS_IN_COVERAGE
@@ -932,7 +894,7 @@ endif
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_TEST); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
@@ -940,13 +902,13 @@ endif
 		. $(VIRTUALENV_DIR)/bin/activate; \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
 		    pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
-		    $$component/tests/integration || ((failed+=1)); \
+		    $$component/tests/integration || failed+=($$component); \
 		echo "-----------------------------------------------------------"; \
 		echo "Done integration running tests in" $$component; \
 		echo "==========================================================="; \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 	# NOTE: If you also want to run orquesta tests which seem to have a bunch of race conditions, use
 	# ci-integration-full target
 #	@echo
@@ -1015,13 +977,6 @@ endif
 		make .coverage-combine; \
 	fi
 
-# @for coverage_result in $(COVERAGE_GLOBS); do \
-# 	[ -e $${coverage_result} ] || echo "$${coverage_result} does not exist." && continue; \
-# 	echo "Combining data from $${coverage_result}"; \
-# 	. $(VIRTUALENV_DIR)/bin/activate; coverage combine $${coverage_result}; \
-# done || \
-# (echo "Running .coverage-combine"; make .coverage-combine)
-
 .PHONY: .coverage-report
 .coverage-report: .coverage
 	. $(VIRTUALENV_DIR)/bin/activate; coverage report
@@ -1058,7 +1013,7 @@ packs-tests: requirements .packs-tests
 	@echo "==================== packs-tests ===================="
 	@echo
 	# Install st2common to register metrics drivers
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python setup.py develop --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 	. $(VIRTUALENV_DIR)/bin/activate; find ${ROOT_DIR}/contrib/* -maxdepth 0 -type d -print0 | xargs -0 -I FILENAME ./st2common/bin/st2-run-pack-tests -c -t -x -p FILENAME
 
 
@@ -1072,14 +1027,16 @@ runners-tests: requirements .runners-tests
 	@echo
 	@echo "----- Dropping st2-test db -----"
 	@mongosh st2-test --eval "db.dropDatabase();"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/unit || ((failed+=1)); \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/unit || failed+=($$component); \
 	done; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: runners-itests
 runners-itests: requirements .runners-itests
@@ -1090,15 +1047,16 @@ runners-itests: requirements .runners-itests
 	@echo "==================== runners-itests ===================="
 	@echo
 	@echo "----- Dropping st2-test db -----"
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
-		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/integration || ((failed+=1)); \
+		. $(VIRTUALENV_DIR)/bin/activate; \
+		pytest --capture=no --verbose $(PYTEST_OPTS) $$component/tests/integration || failed+=($$component); \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: .runners-itests-coverage-html
 .runners-itests-coverage-html:
@@ -1106,23 +1064,23 @@ runners-itests: requirements .runners-itests
 	@echo "============== runners-itests-coverage-html =============="
 	@echo
 	@echo "The tests assume st2 is running on 127.0.0.1."
-	@failed=0; \
+	@failed=(); \
 	for component in $(COMPONENTS_RUNNERS); do\
 		echo "==========================================================="; \
 		echo "Running integration tests in" $$component; \
 		echo "==========================================================="; \
 		. $(VIRTUALENV_DIR)/bin/activate; pytest --capture=no --verbose $(PYTEST_OPTS) \
-			--cov=$$component --cov-report=html $$component/tests/integration || ((failed+=1)); \
+			--cov=$$component --cov-report=html $$component/tests/integration || failed+=($$component); \
 	done; \
-	echo pytest runs failed=$$failed; \
-	if [ $$failed -gt 0 ]; then exit 1; fi
+	echo "pytest runs failed=$${failed[@]}"; \
+	if [ $${#failed[@]} -gt 0 ]; then exit 1; fi
 
 .PHONY: cli
 cli:
 	@echo
 	@echo "=================== Building st2 client ==================="
 	@echo
-	pushd $(CURDIR) && cd st2client && ((python setup.py develop || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
+	pushd $(CURDIR) && cd st2client && ((python -m pip install --editable . || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
 
 .PHONY: rpms
 rpms:

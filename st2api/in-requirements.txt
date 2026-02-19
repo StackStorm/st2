@@ -1,5 +1,6 @@
 # Remember to list implicit packages here, otherwise version won't be fixated!
 eventlet
+gevent
 jsonschema
 kombu
 mongoengine
