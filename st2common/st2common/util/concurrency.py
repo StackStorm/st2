@@ -73,6 +73,21 @@ def get_subprocess_module():
         from gevent import subprocess  # pylint: disable=import-error
 
         return subprocess
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def get_wsgi_module():
+    if CONCURRENCY_LIBRARY == "eventlet":
+        from eventlet import wsgi
+
+        return wsgi
+    elif CONCURRENCY_LIBRARY == "gevent":
+        from gevent import pywsgi
+
+        return pywsgi
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def subprocess_popen(*args, **kwargs):
@@ -84,6 +99,8 @@ def subprocess_popen(*args, **kwargs):
         from gevent import subprocess  # pylint: disable=import-error
 
         return subprocess.Popen(*args, **kwargs)
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def spawn(func, *args, **kwargs):
@@ -92,7 +109,7 @@ def spawn(func, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.spawn(func, *args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def wait(green_thread, *args, **kwargs):
@@ -101,7 +118,7 @@ def wait(green_thread, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return green_thread.join(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def cancel(green_thread, *args, **kwargs):
@@ -110,7 +127,7 @@ def cancel(green_thread, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return green_thread.kill(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def kill(green_thread, *args, **kwargs):
@@ -119,7 +136,16 @@ def kill(green_thread, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return green_thread.kill(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def listen(host, port):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.listen((host, port))
+    elif CONCURRENCY_LIBRARY == "gevent":
+        raise NotImplementedError
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def sleep(*args, **kwargs):
@@ -128,7 +154,7 @@ def sleep(*args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.sleep(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def get_greenlet_exit_exception_class():
@@ -137,7 +163,7 @@ def get_greenlet_exit_exception_class():
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.GreenletExit
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def get_default_green_pool_size():
@@ -156,7 +182,7 @@ def get_green_pool_class():
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.pool.Pool
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def is_green_pool_free(pool):
@@ -168,7 +194,7 @@ def is_green_pool_free(pool):
     elif CONCURRENCY_LIBRARY == "gevent":
         return not pool.full()
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def green_pool_wait_all(pool):
@@ -194,4 +220,3 @@ def listen_server(host, port):
         return sock.listen(5)
     else:
         raise ValueError("Unsupported concurrency library")
-
