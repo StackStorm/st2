@@ -586,6 +586,13 @@ def register_opts(ignore_errors=False):
                 "that size"
             ),
         ),
+        cfg.StrOpt(
+            "encryption_key_path",
+            default="conf/st2_kvstore_demo.crypto.key.json",
+            help="Location of the symmetric encryption key for encrypting values in kvstore. "
+            "This key should be in JSON and should've been generated using "
+            "st2-generate-symmetric-crypto-key tool.",
+        ),
     ]
 
     do_register_opts(
