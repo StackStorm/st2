@@ -32,6 +32,18 @@ from st2common.constants.keyvalue import FULL_USER_SCOPE
 from st2common.content import utils as content_utils
 from st2common.models.api.keyvalue import KeyValuePairAPI
 from st2common.models.db.auth import UserDB
+from oslo_config import cfg
+
+opts = [
+    cfg.StrOpt(
+        "encryption_key_path",
+        default="conf/st2_kvstore_demo.crypto.key.json",
+        help="Location of the symmetric encryption key for encrypting values in kvstore. "
+        "This key should be in JSON and should've been generated using "
+        "st2-generate-symmetric-crypto-key tool.",
+    ),
+]
+cfg.CONF.register_opts(opts, group="actionrunner")
 from st2common.models.db.execution import ActionExecutionDB
 from st2common.models.db.execution import ActionExecutionOutputDB
 from st2common.models.db.keyvalue import KeyValuePairDB
@@ -1736,7 +1748,6 @@ class ActionExecutionControllerTestCase(
             ("/v1/actionexecutions?include_attributes=parameters,runner"),
             ("/v1/actionexecutions?include_attributes=parameters,action,runner"),
         ]
-
         for url in urls:
             resp = self.app.get(url + "&limit=1&show_secrets=True")
 

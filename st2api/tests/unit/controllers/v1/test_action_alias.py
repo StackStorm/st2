@@ -13,6 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
+
+opts = [
+    cfg.StrOpt(
+        "encryption_key_path",
+        default="conf/st2_kvstore_demo.crypto.key.json",
+        help="Location of the symmetric encryption key for encrypting values in kvstore. "
+        "This key should be in JSON and should've been generated using "
+        "st2-generate-symmetric-crypto-key tool.",
+    ),
+]
+cfg.CONF.register_opts(opts, group="actionrunner")
 from st2common.models.api.action import ActionAliasAPI
 from st2api.controllers.v1.actionalias import ActionAliasController
 

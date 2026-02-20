@@ -75,8 +75,13 @@ def get_action_parameters_specs(action_ref):
     runner_type_db = get_runnertype_by_name(runnertype_name=runner_type_name)
 
     # Runner type parameters should be added first before the action parameters.
-    parameters.update(runner_type_db["runner_parameters"])
-    parameters.update(action_db.parameters)
+    runner_parameters = getattr(runner_type_db, "runner_parameters")
+    action_parameters = getattr(action_db, "parameters")
+    # We need to check if the runner parameters are None or not before updating parameters
+    if runner_parameters is not None:
+        parameters.update(runner_type_db["runner_parameters"])
+    if action_parameters is not None:
+        parameters.update(action_db.parameters)
 
     return parameters
 
