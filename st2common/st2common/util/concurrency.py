@@ -140,6 +140,16 @@ def get_greenlet_exit_exception_class():
         raise ValueError("Unsupported concurrency library")
 
 
+def get_default_green_pool_size():
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
+    elif CONCURRENCY_LIBRARY == "gevent":
+        # matches what DEFAULT_MAX_SIMULTANEOUS_REQUESTS is for eventlet
+        return 1024 
+    else:
+        raise ValueError("Unsupported concurrency library")
+
+
 def get_green_pool_class():
     if CONCURRENCY_LIBRARY == "eventlet":
         return eventlet.GreenPool
@@ -173,3 +183,15 @@ def green_pool_wait_all(pool):
         return all(gl.ready() for gl in pool.greenlets)
     else:
         raise ValueError("Unsupported concurrency library")
+
+def listen_server(host, port):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.listen((host, port)) 
+    elif CONCURRENCY_LIBRARY == "gevent":
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind((host, port))
+        return sock.listen(5)
+    else:
+        raise ValueError("Unsupported concurrency library")
+

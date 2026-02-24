@@ -21,6 +21,7 @@ import os
 import sys
 
 import eventlet
+
 from oslo_config import cfg
 from eventlet import wsgi
 
@@ -29,6 +30,7 @@ from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import deregister_service
 from st2common.stream.listener import get_listener_if_set
+from st2common.util import concurrency
 from st2common.util.wsgi import shutdown_server_kill_pending_requests
 from st2stream.signal_handlers import register_stream_signal_handlers
 from st2stream import config
@@ -40,13 +42,13 @@ from st2stream import app
 __all__ = ["main"]
 
 
-eventlet.monkey_patch(
-    os=True,
-    select=True,
-    socket=True,
-    thread=False if "--use-debugger" in sys.argv else True,
-    time=True,
-)
+#eventlet.monkey_patch(
+#    os=True,
+#    select=True,
+#    socket=True,
+#    thread=False if "--use-debugger" in sys.argv else True,
+#    time=True,
+#)
 
 LOG = logging.getLogger(__name__)
 STREAM = "stream"
@@ -83,9 +85,9 @@ def _run_server():
         "(PID=%s) ST2 Stream API is serving on http://%s:%s.", os.getpid(), host, port
     )
 
-    max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
-    worker_pool = eventlet.GreenPool(max_pool_size)
-    sock = eventlet.listen((host, port))
+    max_pool_size = concurrency.get_default_green_pool_size() 
+    worker_pool = concurrency.get_green_pool_class()(max_pool_size)
+    sock = concurrency.listen_server(host, port) 
 
     def queue_shutdown(signal_number, stack_frame):
         deregister_service(STREAM)
