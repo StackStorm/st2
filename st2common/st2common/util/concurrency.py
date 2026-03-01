@@ -171,7 +171,7 @@ def get_default_green_pool_size():
         return eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
     elif CONCURRENCY_LIBRARY == "gevent":
         # matches what DEFAULT_MAX_SIMULTANEOUS_REQUESTS is for eventlet
-        return 1024 
+        return 1024
     else:
         raise ValueError("Unsupported concurrency library")
 
@@ -210,13 +210,35 @@ def green_pool_wait_all(pool):
     else:
         raise ValueError("Unsupported concurrency library")
 
-def listen_server(host, port):
+
+def listen_server(host, port, backlog=50, **kwargs):
+    """
+    Start listening on the host:port.
+    :backlog: the number of unaccepted connections that the system will allow before refusing new connections.
+    """
     if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.listen((host, port)) 
+        return eventlet.listen((host, port), backlog=backlog, **kwargs)
     elif CONCURRENCY_LIBRARY == "gevent":
         import socket
+
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.bind((host, port))
-        return sock.listen(5)
+        return sock.listen(backlog)
+    else:
+        raise ValueError("Unsupported concurrency library")
+
+
+def blocking_detection(enable=False, timeout=1.0):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        print(
+            f"Eventlet long running / blocking operation detection logic enabled.  Block timeout ({timeout})."
+        )
+        eventlet.debug.hub_blocking_detection(enable_detection=enable, resolution=timeout)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        print(
+            f"gEvent long running / blocking operation detection logic enabled.  Block timeout ({timeout})."
+        )
+        gevent.config.monitor_thread = enable
+        gevent.config.max_blocking_time = timeout
     else:
         raise ValueError("Unsupported concurrency library")
