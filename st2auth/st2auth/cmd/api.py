@@ -14,10 +14,8 @@
 # limitations under the License.
 
 from st2common.util.monkey_patch import monkey_patch
-
 monkey_patch()
 
-from st2common.util import concurrency
 import os
 import sys
 
@@ -27,6 +25,7 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import deregister_service
+from st2common.util import concurrency
 from st2auth import config
 
 config.register_opts(ignore_errors=True)
@@ -74,29 +73,32 @@ def _run_server():
     cert_file_path = os.path.realpath(cfg.CONF.auth.cert)
     key_file_path = os.path.realpath(cfg.CONF.auth.key)
 
-    if use_ssl and not os.path.isfile(cert_file_path):
-        raise ValueError('Certificate file "%s" doesn\'t exist' % (cert_file_path))
-
-    if use_ssl and not os.path.isfile(key_file_path):
-        raise ValueError('Private key file "%s" doesn\'t exist' % (key_file_path))
-
     socket = concurrency.listen(host, port)
 
     if use_ssl:
-        socket = eventlet.wrap_ssl(
+        scheme = "https"
+        if not os.path.isfile(cert_file_path):
+            raise ValueError(f'Certificate file "{cert_file_path}" does not exist')
+
+        if not os.path.isfile(key_file_path):
+            raise ValueError(f'Private key file "{key_file_path}" does not exist')
+
+        socket = concurrency.wrap_ssl(
             socket, certfile=cert_file_path, keyfile=key_file_path, server_side=True
         )
+    else:
+        scheme = "http"
 
     LOG.info('ST2 Auth API running in "%s" auth mode', cfg.CONF.auth.mode)
     LOG.info(
         "(PID=%s) ST2 Auth API is serving on %s://%s:%s.",
         os.getpid(),
-        "https" if use_ssl else "http",
+        scheme,
         host,
         port,
     )
-    wsgi = concurrency.get_wsgi_module()
-    wsgi.server(socket, app.setup_app(), log=LOG, log_output=False)
+
+    concurrency.wsgi_server(socket, app.setup_app(), log=LOG, log_output=False)
     return 0
 
 

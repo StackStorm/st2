@@ -76,19 +76,21 @@ def get_subprocess_module():
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
-
-def get_wsgi_module():
+# socket,   app.setup_app(),                                log=LOG, log_output=False
+# sock,     app.setup_app(),    custom_pool=worker_pool,    log=LOG, log_output=False
+# sock,     app.setup_app(),    custom_pool=worker_pool
+def wsgi_server(socket, app, custom_pool=None, log=None, log_output=True, *args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
         from eventlet import wsgi
 
-        return wsgi
+        wsgi.server(socket, app, custom_pool=custom_pool, log=log, log_output=log_output, *args, **kwargs)
     elif CONCURRENCY_LIBRARY == "gevent":
         from gevent import pywsgi
 
-        return pywsgi
+        # Figure out how to handle custom pool
+        pywsgi.WSGIServer(socket, app)
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
-
 
 def subprocess_popen(*args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
@@ -227,6 +229,17 @@ def listen_server(host, port, backlog=50, **kwargs):
     else:
         raise ValueError("Unsupported concurrency library")
 
+def wrap_ssl(socket, *args, **kwargs):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.wrap_socket(socket, *args, **kwargs)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        # Monkey patching in the caller module is required prior to
+        # calling wrap_ssl() or this may block.
+        import ssl
+
+        return ssl.wrap_socket(socket, *args, **kwargs)
+    else:
+        raise ValueError("Unsupported concurrency library")
 
 def blocking_detection(enable=False, timeout=1.0):
     if CONCURRENCY_LIBRARY == "eventlet":
