@@ -759,8 +759,8 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             "use-debugger",
             default=True,
-            help="Enables debugger. Note that using this option changes how the "
-            "eventlet library is used to support async IO. This could result in "
+            help="Enables debugger.  Note that using this option changes how the "
+            "concurrency library is used to support async IO.  This could result in "
             "failures that do not occur under normal operation.",
         ),
         cfg.BoolOpt(
@@ -769,14 +769,14 @@ def register_opts(ignore_errors=False):
             help="Enable code profiler mode. Do not use in production.",
         ),
         cfg.BoolOpt(
-            "enable-eventlet-blocking-detection",
+            "enable-concurrency-blocking-detection",
             default=False,
-            help="Enable eventlet blocking detection logic. Do not use in production.",
+            help="Enable blocking detection logic in concurrency library.  Do not use in production.",
         ),
         cfg.FloatOpt(
-            "eventlet-blocking-detection-resolution",
+            "concurrency-blocking-detection-resolution",
             default=0.5,
-            help="Resolution in seconds for eventlet blocking detection logic.",
+            help="Resolution in seconds for blocking detection logic in currency library.",
         ),
     ]
 
