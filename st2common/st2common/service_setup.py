@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2020-2026 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ import locale
 import logging as stdlib_logging
 
 import six
-import eventlet.debug
+
 from oslo_config import cfg
 from tooz.coordination import GroupAlreadyExist
 from tooz.coordination import GroupNotCreated
@@ -38,6 +38,7 @@ from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 from st2common.transport.bootstrap_utils import register_kombu_serializers
 from st2common.bootstrap import runnersregistrar
 from st2common.signal_handlers import register_common_signal_handlers
+from st2common.util.concurrency import blocking_detection
 from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
@@ -182,8 +183,7 @@ def setup(
         or encoding.lower() not in VALID_UTF8_ENCODINGS
     ):
         LOG.warning(
-            NON_UTF8_LOCALE_WARNING_MSG
-            % (fs_encoding, default_encoding, used_locale.strip())
+            NON_UTF8_LOCALE_WARNING_MSG % (fs_encoding, default_encoding, used_locale.strip())
         )
 
     is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
@@ -197,9 +197,7 @@ def setup(
     except KeyError as e:
         tb_msg = traceback.format_exc()
         if "log.setLevel" in tb_msg:
-            msg = (
-                "Invalid log level selected. Log level names need to be all uppercase."
-            )
+            msg = "Invalid log level selected. Log level names need to be all uppercase."
             msg += "\n\n" + getattr(e, "message", six.text_type(e))
             raise KeyError(msg)
         else:
@@ -214,8 +212,7 @@ def setup(
         # set to "INFO" and we already log messages with level AUDIT to a special dedicated log
         # file.
         ignore_audit_log_messages = (
-            handler.level >= stdlib_logging.INFO
-            and handler.level < stdlib_logging.AUDIT
+            handler.level >= stdlib_logging.INFO and handler.level < stdlib_logging.AUDIT
         )
         if not is_debug_enabled and ignore_audit_log_messages:
             try:
@@ -224,10 +221,7 @@ def setup(
                 # In case handler doesn't have name assigned, repr would throw
                 handler_repr = "unknown"
 
-            LOG.debug(
-                'Excluding log messages with level "AUDIT" for handler "%s"'
-                % (handler_repr)
-            )
+            LOG.debug('Excluding log messages with level "AUDIT" for handler "%s"' % (handler_repr))
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
     if not is_debug_enabled:
@@ -285,11 +279,10 @@ def setup(
     # modules like jinja, stevedore, etc load files from disk on init which is slow and will be
     # detected as blocking operation, but this is not really an issue inside the service startup /
     # init phase.
-    if cfg.CONF.enable_eventlet_blocking_detection:
-        print("Eventlet long running / blocking operation detection logic enabled")
-        print(cfg.CONF.eventlet_blocking_detection_resolution)
-        eventlet.debug.hub_blocking_detection(
-            state=True, resolution=cfg.CONF.eventlet_blocking_detection_resolution
+    if cfg.CONF.enable_concurrency_blocking_detection:
+        blocking_detection(
+            cfg.CONF.enable_concurrency_blocking_detection,
+            cfg.CONF.concurrency_blocking_detection_resolution,
         )
 
 
@@ -354,9 +347,7 @@ def deregister_service(service, start_heart=True):
     coordinator = coordination.get_coordinator(start_heart=start_heart)
 
     member_id = coordination.get_member_id()
-    LOG.debug(
-        'Leaving service registry group "%s" as member_id "%s"' % (group_id, member_id)
-    )
+    LOG.debug('Leaving service registry group "%s" as member_id "%s"' % (group_id, member_id))
     try:
         coordinator.leave_group(group_id).get()
     except (GroupNotCreated, MemberNotJoined):

@@ -73,7 +73,24 @@ def get_subprocess_module():
         from gevent import subprocess  # pylint: disable=import-error
 
         return subprocess
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
+# socket,   app.setup_app(),                                log=LOG, log_output=False
+# sock,     app.setup_app(),    custom_pool=worker_pool,    log=LOG, log_output=False
+# sock,     app.setup_app(),    custom_pool=worker_pool
+def wsgi_server(socket, app, custom_pool=None, log=None, log_output=True, *args, **kwargs):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        from eventlet import wsgi
+
+        wsgi.server(socket, app, custom_pool=custom_pool, log=log, log_output=log_output, *args, **kwargs)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        from gevent import pywsgi
+
+        # Figure out how to handle custom pool
+        pywsgi.WSGIServer(socket, app)
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 def subprocess_popen(*args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
@@ -84,6 +101,8 @@ def subprocess_popen(*args, **kwargs):
         from gevent import subprocess  # pylint: disable=import-error
 
         return subprocess.Popen(*args, **kwargs)
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def spawn(func, *args, **kwargs):
@@ -92,7 +111,7 @@ def spawn(func, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.spawn(func, *args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def wait(green_thread, *args, **kwargs):
@@ -101,7 +120,7 @@ def wait(green_thread, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return green_thread.join(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def cancel(green_thread, *args, **kwargs):
@@ -110,7 +129,7 @@ def cancel(green_thread, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return green_thread.kill(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def kill(green_thread, *args, **kwargs):
@@ -119,7 +138,16 @@ def kill(green_thread, *args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return green_thread.kill(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def listen(host, port):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.listen((host, port))
+    elif CONCURRENCY_LIBRARY == "gevent":
+        raise NotImplementedError
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def sleep(*args, **kwargs):
@@ -128,7 +156,7 @@ def sleep(*args, **kwargs):
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.sleep(*args, **kwargs)
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def get_greenlet_exit_exception_class():
@@ -136,6 +164,16 @@ def get_greenlet_exit_exception_class():
         return eventlet.support.greenlets.GreenletExit
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.GreenletExit
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def get_default_green_pool_size():
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
+    elif CONCURRENCY_LIBRARY == "gevent":
+        # matches what DEFAULT_MAX_SIMULTANEOUS_REQUESTS is for eventlet
+        return 1024
     else:
         raise ValueError("Unsupported concurrency library")
 
@@ -146,7 +184,7 @@ def get_green_pool_class():
     elif CONCURRENCY_LIBRARY == "gevent":
         return gevent.pool.Pool
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def is_green_pool_free(pool):
@@ -158,7 +196,7 @@ def is_green_pool_free(pool):
     elif CONCURRENCY_LIBRARY == "gevent":
         return not pool.full()
     else:
-        raise ValueError("Unsupported concurrency library")
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def green_pool_wait_all(pool):
@@ -171,5 +209,49 @@ def green_pool_wait_all(pool):
         # NOTE: This mimicks eventlet.waitall() functionality better than
         # pool.join()
         return all(gl.ready() for gl in pool.greenlets)
+    else:
+        raise ValueError("Unsupported concurrency library")
+
+
+def listen_server(host, port, backlog=50, **kwargs):
+    """
+    Start listening on the host:port.
+    :backlog: the number of unaccepted connections that the system will allow before refusing new connections.
+    """
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.listen((host, port), backlog=backlog, **kwargs)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        import socket
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind((host, port))
+        return sock.listen(backlog)
+    else:
+        raise ValueError("Unsupported concurrency library")
+
+def wrap_ssl(socket, *args, **kwargs):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.wrap_socket(socket, *args, **kwargs)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        # Monkey patching in the caller module is required prior to
+        # calling wrap_ssl() or this may block.
+        import ssl
+
+        return ssl.wrap_socket(socket, *args, **kwargs)
+    else:
+        raise ValueError("Unsupported concurrency library")
+
+def blocking_detection(enable=False, timeout=1.0):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        print(
+            f"Eventlet long running / blocking operation detection logic enabled.  Block timeout ({timeout})."
+        )
+        eventlet.debug.hub_blocking_detection(enable_detection=enable, resolution=timeout)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        print(
+            f"gEvent long running / blocking operation detection logic enabled.  Block timeout ({timeout})."
+        )
+        gevent.config.monitor_thread = enable
+        gevent.config.max_blocking_time = timeout
     else:
         raise ValueError("Unsupported concurrency library")
