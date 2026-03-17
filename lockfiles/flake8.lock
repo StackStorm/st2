@@ -130,13 +130,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "90ab613b6583fc02d5369cbca13ea26ea0e182d1df2d943ee9cbe81d4c61add9",
-              "url": "https://files.pythonhosted.org/packages/15/65/3f0dba35760d902849d39d38c0a72767794b1963227b69a587f8a336d08c/setuptools-75.3.2-py3-none-any.whl"
+              "hash": "2dd50a7f42dddfa1d02a36f275dbe716f38ed250224f609d35fb60a09593d93e",
+              "url": "https://files.pythonhosted.org/packages/cd/b1/961ba076c7d3732e3a97e6681c55ef647afb795fe8bfcd27becec8a762ce/setuptools-75.3.4-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "3c1383e1038b68556a382c1e8ded8887cd20141b0eb5708a6c8d277de49364f5",
-              "url": "https://files.pythonhosted.org/packages/5c/01/771ea46cce201dd42cff043a5eea929d1c030fb3d1c2ee2729d02ca7814c/setuptools-75.3.2.tar.gz"
+              "hash": "b4ea3f76e1633c4d2d422a5d68ab35fd35402ad71e6acaa5d7e5956eb47e8887",
+              "url": "https://files.pythonhosted.org/packages/0e/93/d2622cbf262418995140dfc1ddb890badd6322893fa122302577c82b9617/setuptools-75.3.4.tar.gz"
             }
           ],
           "project_name": "setuptools",
@@ -198,7 +198,7 @@
             "wheel>=0.44.0; extra == \"test\""
           ],
           "requires_python": ">=3.8",
-          "version": "75.3.2"
+          "version": "75.3.4"
         },
         {
           "artifacts": [
