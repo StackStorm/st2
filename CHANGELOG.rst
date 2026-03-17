@@ -1,8 +1,20 @@
 Changelog
 =========
 
-in development
---------------
+in development - unreleased
+---------------------------
+
+Python3.8 and Python3.9 support has been removed.
+This release adds support for Python3.12, so StackStorm supports Python versions 3.10 - 3.12
+
+Fixed
+~~~~~
+
+Changed
+~~~~~~~
+
+Added
+~~~~~
 
 
 3.9.0 - October 10, 2025
