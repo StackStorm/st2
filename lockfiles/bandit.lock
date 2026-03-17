@@ -91,13 +91,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "8908cb2e02fb3b93b7eb0f2827125cb699869470432cc885f019b8fd0fccff77",
-              "url": "https://files.pythonhosted.org/packages/01/61/d4b89fec821f72385526e1b9d9a3a0385dda4a72b206d28049e2c7cd39b8/gitpython-3.1.45-py3-none-any.whl"
+              "hash": "79812ed143d9d25b6d176a10bb511de0f9c67b1fa641d82097b0ab90398a2058",
+              "url": "https://files.pythonhosted.org/packages/6a/09/e21df6aef1e1ffc0c816f0522ddc3f6dcded766c3261813131c78a704470/gitpython-3.1.46-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "85b0ee964ceddf211c41b9f27a49086010a190fd8132a24e21f362a4b36a791c",
-              "url": "https://files.pythonhosted.org/packages/9a/c8/dd58967d119baab745caec2f9d853297cec1989ec1d63f677d3880632b88/gitpython-3.1.45.tar.gz"
+              "hash": "400124c7d0ef4ea03f7310ac2fbf7151e09ff97f2a3288d64a440c584a29c37f",
+              "url": "https://files.pythonhosted.org/packages/df/b5/59d16470a1f0dfe8c793f9ef56fd3826093fc52b3bd96d6b9d6c26c7e27b/gitpython-3.1.46.tar.gz"
             }
           ],
           "project_name": "gitpython",
@@ -106,7 +106,7 @@
             "ddt!=1.4.3,>=1.1.1; extra == \"test\"",
             "gitdb<5,>=4.0.1",
             "mock; python_version < \"3.8\" and extra == \"test\"",
-            "mypy; extra == \"test\"",
+            "mypy==1.18.2; python_version >= \"3.9\" and extra == \"test\"",
             "pre-commit; extra == \"test\"",
             "pytest-cov; extra == \"test\"",
             "pytest-instafail; extra == \"test\"",
@@ -120,7 +120,7 @@
             "typing-extensions>=3.10.0.2; python_version < \"3.10\""
           ],
           "requires_python": ">=3.7",
-          "version": "3.1.45"
+          "version": "3.1.46"
         },
         {
           "artifacts": [
@@ -188,13 +188,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "32df5156fbeccb6f8a858d1ebc4e465dcf47d6cc7a4895d5df9aa951c712fc35",
-              "url": "https://files.pythonhosted.org/packages/56/c1/7e588435c2394dfded9197a8307417d1ca3b7f49d9bd5b6227d1f3f03ccd/pbr-7.0.1-py2.py3-none-any.whl"
+              "hash": "ff223894eb1cd271a98076b13d3badff3bb36c424074d26334cd25aebeecea6b",
+              "url": "https://files.pythonhosted.org/packages/c0/db/61efa0d08a99f897ef98256b03e563092d36cc38dc4ebe4a85020fe40b31/pbr-7.0.3-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "3ecbcb11d2b8551588ec816b3756b1eb4394186c3b689b17e04850dfc20f7e57",
-              "url": "https://files.pythonhosted.org/packages/ad/8d/23253ab92d4731eb34383a69b39568ca63a1685bec1e9946e91a32fc87ad/pbr-7.0.1.tar.gz"
+              "hash": "b46004ec30a5324672683ec848aed9e8fc500b0d261d40a3229c2d2bbfcedc29",
+              "url": "https://files.pythonhosted.org/packages/5e/ab/1de9a4f730edde1bdbbc2b8d19f8fa326f036b4f18b2f72cfbea7dc53c26/pbr-7.0.3.tar.gz"
             }
           ],
           "project_name": "pbr",
@@ -202,7 +202,7 @@
             "setuptools"
           ],
           "requires_python": ">=2.6",
-          "version": "7.0.1"
+          "version": "7.0.3"
         },
         {
           "artifacts": [
@@ -371,13 +371,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "536f5f1785986d6dbdea3c75205c473f970777b4a0d6c6dd1b696aa05a3fa04f",
-              "url": "https://files.pythonhosted.org/packages/e3/30/3c4d035596d3cf444529e0b2953ad0466f6049528a879d27534700580395/rich-14.1.0-py3-none-any.whl"
+              "hash": "793431c1f8619afa7d3b52b2cdec859562b950ea0d4b6b505397612db8d5362d",
+              "url": "https://files.pythonhosted.org/packages/14/25/b208c5683343959b670dc001595f2f3737e051da617f66c31f7c4fa93abc/rich-14.3.3-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "e497a48b844b0320d45007cdebfeaeed8db2a4f4bcf49f15e455cfc4af11eaa8",
-              "url": "https://files.pythonhosted.org/packages/fe/75/af448d8e52bf1d8fa6a9d089ca6c07ff4453d86c65c145d0a300bb073b9b/rich-14.1.0.tar.gz"
+              "hash": "b8daa0b9e4eef54dd8cf7c86c03713f53241884e814f4e2f5fb342fe520f639b",
+              "url": "https://files.pythonhosted.org/packages/b3/c6/f3b320c27991c46f43ee9d856302c70dc2d0fb2dba4842ff739d5f46b393/rich-14.3.3.tar.gz"
             }
           ],
           "project_name": "rich",
@@ -387,19 +387,19 @@
             "pygments<3.0.0,>=2.13.0"
           ],
           "requires_python": ">=3.8.0",
-          "version": "14.1.0"
+          "version": "14.3.3"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "90ab613b6583fc02d5369cbca13ea26ea0e182d1df2d943ee9cbe81d4c61add9",
-              "url": "https://files.pythonhosted.org/packages/15/65/3f0dba35760d902849d39d38c0a72767794b1963227b69a587f8a336d08c/setuptools-75.3.2-py3-none-any.whl"
+              "hash": "2dd50a7f42dddfa1d02a36f275dbe716f38ed250224f609d35fb60a09593d93e",
+              "url": "https://files.pythonhosted.org/packages/cd/b1/961ba076c7d3732e3a97e6681c55ef647afb795fe8bfcd27becec8a762ce/setuptools-75.3.4-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "3c1383e1038b68556a382c1e8ded8887cd20141b0eb5708a6c8d277de49364f5",
-              "url": "https://files.pythonhosted.org/packages/5c/01/771ea46cce201dd42cff043a5eea929d1c030fb3d1c2ee2729d02ca7814c/setuptools-75.3.2.tar.gz"
+              "hash": "b4ea3f76e1633c4d2d422a5d68ab35fd35402ad71e6acaa5d7e5956eb47e8887",
+              "url": "https://files.pythonhosted.org/packages/0e/93/d2622cbf262418995140dfc1ddb890badd6322893fa122302577c82b9617/setuptools-75.3.4.tar.gz"
             }
           ],
           "project_name": "setuptools",
@@ -461,25 +461,25 @@
             "wheel>=0.44.0; extra == \"test\""
           ],
           "requires_python": ">=3.8",
-          "version": "75.3.2"
+          "version": "75.3.4"
         },
         {
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "b30115f0def7d7531d22a0fb6502488d879e75b260a9db4d0819cfb25403af5e",
-              "url": "https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl"
+              "hash": "c106e05d5a61449cf6ba9a1e650227ecfb141590d2a98412103ff35d89fc7b2f",
+              "url": "https://files.pythonhosted.org/packages/c1/d4/59e74daffcb57a07668852eeeb6035af9f32cbfd7a1d2511f17d2fe6a738/smmap-5.0.3-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "26ea65a03958fa0c8a1c7e8c7a58fdc77221b8910f6be2131affade476898ad5",
-              "url": "https://files.pythonhosted.org/packages/44/cd/a040c4b3119bbe532e5b0732286f805445375489fceaec1f48306068ee3b/smmap-5.0.2.tar.gz"
+              "hash": "4d9debb8b99007ae47165abc08670bd74cb74b5227dda7f643eccc4e9eb5642c",
+              "url": "https://files.pythonhosted.org/packages/1f/ea/49c993d6dfdd7338c9b1000a0f36817ed7ec84577ae2e52f890d1a4ff909/smmap-5.0.3.tar.gz"
             }
           ],
           "project_name": "smmap",
           "requires_dists": [],
           "requires_python": ">=3.7",
-          "version": "5.0.2"
+          "version": "5.0.3"
         },
         {
           "artifacts": [
