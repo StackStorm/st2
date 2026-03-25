@@ -7,7 +7,7 @@ set -e
 # TODO: simplify this once fixed in contrib/runners/python_runner/tests/integration/test_pythonrunner_behavior.py
 if [[ ! -f ~/virtualenv/bin/virtualenv ]]; then  # use the cached version whenever possible
   pip install --user --upgrade --force-reinstall "$(grep "^virtualenv" fixed-requirements.txt)"
-  virtualenv --no-download ~/virtualenv
+  python3 -m venv ~/virtualenv
   ~/virtualenv/bin/pip install --upgrade --force-reinstall "$(grep "^virtualenv" fixed-requirements.txt)"
   # drop the --user install virtualenv to prevent polluting tests
   pip freeze --user | xargs pip uninstall -y
