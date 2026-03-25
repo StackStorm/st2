@@ -12,6 +12,7 @@ mongoengine
 networkx
 # used by networkx
 decorator
+# Revert to master branch after merging updates_st2v3.10
 orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 oslo.config
