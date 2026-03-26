@@ -4,15 +4,26 @@ Changelog
 in development - unreleased
 ---------------------------
 
-Python3.8 and Python3.9 support has been removed.
-This release adds support for Python3.12, so StackStorm supports Python versions 3.10 - 3.12
+This release is tested with and supports the following Python versions and 3rd party dependencies.
+
+```
+Python      3.10, 3.11 and 3.12
+MongoDB     8.2
+RabbitMQ    4.2
+Redis       8.6
+```
+
 
 Fixed
 ~~~~~
 
+
 Changed
 ~~~~~~~
-
+ * Removed Python 3.8 and 3.9 from testing and CI/CD.
+ * Removed mongodb 7.0, rabbitmq 3.13 and redis 8.0
+ * Replaced deprecated `pkg_resources` module with `importlib-metadata` and `importlib-resources`.
+ 
 Added
 ~~~~~
 

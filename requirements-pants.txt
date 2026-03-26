@@ -21,6 +21,9 @@ gitpython
 # st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
 greenlet
 gunicorn
+# importlib backport to replace pkg_resource from setuptools.
+importlib-metadata
+importlib-resources
 jinja2
 jsonpath-rw
 jsonschema
