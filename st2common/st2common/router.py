@@ -22,7 +22,7 @@ import sys
 import copy
 import traceback
 
-from flex.core import validate
+from openapi_spec_validator import validate_spec
 import jsonschema
 from oslo_config import cfg
 import routes
@@ -238,7 +238,7 @@ class Router(object):
         self.spec = spec
         self.spec_resolver = jsonschema.RefResolver("", self.spec)
 
-        validate(fast_deepcopy_dict(self.spec))
+        validate_spec(fast_deepcopy_dict(self.spec))
 
         for filter in transforms:
             for (path, methods) in six.iteritems(spec["paths"]):

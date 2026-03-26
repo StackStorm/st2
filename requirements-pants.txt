@@ -13,8 +13,8 @@ ciso8601
 cryptography
 editor
 eventlet
-# flex parses the openapi 2 spec in our router
-flex
+# openapi-spec-validator parses the openapi 2 spec in our router
+openapi-spec-validator
 # gitpython & gitdb are used for pack management
 gitdb
 gitpython
