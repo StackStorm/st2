@@ -18,9 +18,11 @@ import random
 
 from six.moves import http_client
 import requests
-import eventlet
-from eventlet.green import subprocess
 import pytest
+
+from st2common.util import concurrency
+
+subprocess = concurrency.get_subprocess_module()
 
 import st2tests.config
 from st2common.models.utils import profiling
@@ -48,7 +50,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
-            eventlet.sleep(8)
+            concurrency.sleep(8)
             self.assertProcessIsRunning(process=process)
             response = requests.get("http://127.0.0.1:%s/v1/actions" % (port))
             self.assertEqual(response.status_code, http_client.OK)
@@ -70,7 +72,7 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
         try:
             self.add_process(process=process)
-            eventlet.sleep(8)
+            concurrency.sleep(8)
             self.assertProcessIsRunning(process=process)
             response = requests.post("http://127.0.0.1:%s/tokens" % (port))
             self.assertEqual(response.status_code, http_client.UNAUTHORIZED)

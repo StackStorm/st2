@@ -16,8 +16,9 @@
 from __future__ import absolute_import
 
 from bson.errors import InvalidStringData
-import eventlet
 import mock
+
+from st2common.util import concurrency
 import os
 from oslo_config import cfg
 from tooz.drivers.redis import RedisDriver
@@ -168,11 +169,11 @@ class WorkerTestCase(DbTestCase):
             )
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.create_execution_object(liveaction_db)
-            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+            runner_thread = concurrency.spawn(action_worker._run_action, liveaction_db)
 
             # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
             for i in range(0, int(10 / 0.1)):
-                eventlet.sleep(0.1)
+                concurrency.sleep(0.1)
                 if len(action_worker._running_liveactions) > 0:
                     break
 
@@ -231,25 +232,25 @@ class WorkerTestCase(DbTestCase):
             )
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.create_execution_object(liveaction_db)
-            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+            runner_thread = concurrency.spawn(action_worker._run_action, liveaction_db)
 
             # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
             for i in range(0, int(10 / 0.1)):
-                eventlet.sleep(0.1)
+                concurrency.sleep(0.1)
                 if len(action_worker._running_liveactions) > 0:
                     break
 
             self.assertEqual(len(action_worker._running_liveactions), 1)
 
             # Shutdown the worker to trigger the abandon process.
-            shutdown_thread = eventlet.spawn(action_worker.shutdown)
+            shutdown_thread = concurrency.spawn(action_worker.shutdown)
 
         # Make sure the temporary file has been deleted.
         self.assertFalse(os.path.isfile(temp_file))
 
         # Wait for the worker up to 10s to remove the liveaction from _running_liveactions.
         for i in range(0, int(10 / 0.1)):
-            eventlet.sleep(0.1)
+            concurrency.sleep(0.1)
             if len(action_worker._running_liveactions) < 1:
                 break
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)
@@ -294,27 +295,27 @@ class WorkerTestCase(DbTestCase):
             )
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.create_execution_object(liveaction_db)
-            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+            runner_thread = concurrency.spawn(action_worker._run_action, liveaction_db)
 
             # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
             for i in range(0, int(10 / 0.1)):
-                eventlet.sleep(0.1)
+                concurrency.sleep(0.1)
                 if len(action_worker._running_liveactions) > 0:
                     break
 
             self.assertEqual(len(action_worker._running_liveactions), 1)
 
             # Shutdown the worker to trigger the abandon process.
-            shutdown_thread = eventlet.spawn(action_worker.shutdown)
+            shutdown_thread = concurrency.spawn(action_worker.shutdown)
             # Wait for action runner shutdown sequence to complete
-            eventlet.sleep(5)
+            concurrency.sleep(5)
 
         # Make sure the temporary file has been deleted.
         self.assertFalse(os.path.isfile(temp_file))
 
         # Wait for the worker up to 10s to remove the liveaction from _running_liveactions.
         for i in range(0, int(10 / 0.1)):
-            eventlet.sleep(0.1)
+            concurrency.sleep(0.1)
             if len(action_worker._running_liveactions) < 1:
                 break
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)
@@ -360,27 +361,27 @@ class WorkerTestCase(DbTestCase):
             )
             liveaction_db = LiveAction.add_or_update(liveaction_db)
             executions.create_execution_object(liveaction_db)
-            runner_thread = eventlet.spawn(action_worker._run_action, liveaction_db)
+            runner_thread = concurrency.spawn(action_worker._run_action, liveaction_db)
 
             # Wait for the worker up to 10s to add the liveaction to _running_liveactions.
             for i in range(0, int(10 / 0.1)):
-                eventlet.sleep(0.1)
+                concurrency.sleep(0.1)
                 if len(action_worker._running_liveactions) > 0:
                     break
 
             self.assertEqual(len(action_worker._running_liveactions), 1)
 
             # Shutdown the worker to trigger the abandon process.
-            shutdown_thread = eventlet.spawn(action_worker.shutdown)
+            shutdown_thread = concurrency.spawn(action_worker.shutdown)
             # Continue the excution for 5+ seconds to ensure timeout occurs.
-            eventlet.sleep(6)
+            concurrency.sleep(6)
 
         # Make sure the temporary file has been deleted.
         self.assertFalse(os.path.isfile(temp_file))
 
         # Wait for the worker up to 10s to remove the liveaction from _running_liveactions.
         for i in range(0, int(10 / 0.1)):
-            eventlet.sleep(0.1)
+            concurrency.sleep(0.1)
             if len(action_worker._running_liveactions) < 1:
                 break
         liveaction_db = LiveAction.get_by_id(liveaction_db.id)

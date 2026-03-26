@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 import json
 import logging
-from pipes import quote as pquote
+from shlex import quote as pquote
 
 import requests
 

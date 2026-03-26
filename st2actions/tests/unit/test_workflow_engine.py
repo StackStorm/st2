@@ -15,8 +15,9 @@
 
 from __future__ import absolute_import
 
-import eventlet
 import mock
+
+from st2common.util import concurrency
 
 # This import must be early for import-time side-effects.
 import st2tests
@@ -290,7 +291,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
         # Sleep up to the test config gc_max_idle_sec before running gc.
-        eventlet.sleep(cfg.CONF.workflow_engine.gc_max_idle_sec)
+        concurrency.sleep(cfg.CONF.workflow_engine.gc_max_idle_sec)
 
         # Run garbage collection.
         gc = garbage_collector.GarbageCollectorService()
@@ -320,10 +321,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )[0]
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
-        eventlet.spawn(workflow_engine.shutdown)
+        concurrency.spawn(workflow_engine.shutdown)
 
         # Sleep for few seconds to ensure execution transitions to pausing.
-        eventlet.sleep(8)
+        concurrency.sleep(8)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSING)
@@ -349,7 +350,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         workflow_engine = workflows.get_engine()
         workflow_engine._delay = 0
         workflow_engine.start(False)
-        eventlet.sleep(workflow_engine._delay + 5)
+        concurrency.sleep(workflow_engine._delay + 5)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertTrue(
             lv_ac_db.status
@@ -383,10 +384,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
 
-        eventlet.spawn(workflow_engine.shutdown)
+        concurrency.spawn(workflow_engine.shutdown)
 
         # Sleep for few seconds to ensure shutdown sequence completes.
-        eventlet.sleep(5)
+        concurrency.sleep(5)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
@@ -425,10 +426,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
 
-        eventlet.spawn(workflow_engine.shutdown)
+        concurrency.spawn(workflow_engine.shutdown)
 
         # Sleep for few seconds to ensure shutdown sequence completes.
-        eventlet.sleep(5)
+        concurrency.sleep(5)
 
         # WFE doesn't pause the workflow, since service registry is disabled.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
@@ -457,11 +458,11 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
 
         workflow_engine._delay = 5
         # Initiate shutdown first
-        eventlet.spawn(workflow_engine.shutdown)
-        eventlet.spawn_after(1, workflow_engine.start, True)
+        concurrency.spawn(workflow_engine.shutdown)
+        concurrency.spawn_after(1, workflow_engine.start, True)
 
         # Sleep for few seconds to ensure shutdown sequence completes.
-        eventlet.sleep(2)
+        concurrency.sleep(2)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
 
         # Shutdown routine acquires the lock first
@@ -476,7 +477,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         workflows.get_engine().process(t1_ac_ex_db)
         # Startup sequence won't proceed until shutdown routine completes.
         # Assuming shutdown sequence is complete, start up sequence will resume the workflow.
-        eventlet.sleep(workflow_engine._delay + 5)
+        concurrency.sleep(workflow_engine._delay + 5)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertTrue(
             lv_ac_db.status
@@ -514,12 +515,12 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
 
         workflow_engine._delay = 0
         # Initiate start first
-        eventlet.spawn(workflow_engine.start, True)
-        eventlet.spawn_after(1, workflow_engine.shutdown)
+        concurrency.spawn(workflow_engine.start, True)
+        concurrency.spawn_after(1, workflow_engine.shutdown)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
 
         # Startup routine acquires the lock first and shutdown routine sees a new member present in registry.
-        eventlet.sleep(workflow_engine._delay + 5)
+        concurrency.sleep(workflow_engine._delay + 5)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)

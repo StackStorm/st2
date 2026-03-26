@@ -14,8 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import eventlet
 import traceback
+
+from st2common.util import concurrency
 
 from st2actions.notifier import notifier
 from st2common.models.db.execution import ActionExecutionDB
@@ -40,7 +41,7 @@ class MockExecutionPublisherNonBlocking(object):
     def publish_update(cls, payload):
         try:
             if isinstance(payload, ActionExecutionDB):
-                eventlet.spawn(notifier.get_notifier().process, payload)
+                concurrency.spawn(notifier.get_notifier().process, payload)
         except Exception:
             traceback.print_exc()
             print(payload)

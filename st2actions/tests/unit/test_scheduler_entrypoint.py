@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
 import mock
+
+from st2common.util import concurrency
 
 from st2actions.cmd.scheduler import _run_scheduler
 from st2actions.scheduler.handler import ActionExecutionSchedulingQueueHandler
@@ -26,20 +27,20 @@ __all__ = ["SchedulerServiceEntryPointTestCase"]
 
 
 def mock_handler_run(self):
-    # NOTE: We use eventlet.sleep to emulate async nature of this process
-    eventlet.sleep(0.2)
+    # NOTE: We use concurrency.sleep to emulate async nature of this process
+    concurrency.sleep(0.2)
     raise Exception("handler run exception")
 
 
 def mock_handler_cleanup(self):
-    # NOTE: We use eventlet.sleep to emulate async nature of this process
-    eventlet.sleep(0.2)
+    # NOTE: We use concurrency.sleep to emulate async nature of this process
+    concurrency.sleep(0.2)
     raise Exception("handler clean exception")
 
 
 def mock_entrypoint_start(self):
-    # NOTE: We use eventlet.sleep to emulate async nature of this process
-    eventlet.sleep(0.2)
+    # NOTE: We use concurrency.sleep to emulate async nature of this process
+    concurrency.sleep(0.2)
     raise Exception("entrypoint start exception")
 
 
@@ -47,8 +48,8 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
     @mock.patch.object(ActionExecutionSchedulingQueueHandler, "run", mock_handler_run)
     @mock.patch("st2actions.cmd.scheduler.LOG")
     def test_service_exits_correctly_on_fatal_exception_in_handler_run(self, mock_log):
-        run_thread = eventlet.spawn(_run_scheduler)
-        result = run_thread.wait()
+        run_thread = concurrency.spawn(_run_scheduler)
+        result = concurrency.wait(run_thread)
 
         self.assertEqual(result, 1)
 
@@ -62,8 +63,8 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
     def test_service_exits_correctly_on_fatal_exception_in_handler_cleanup(
         self, mock_log
     ):
-        run_thread = eventlet.spawn(_run_scheduler)
-        result = run_thread.wait()
+        run_thread = concurrency.spawn(_run_scheduler)
+        result = concurrency.wait(run_thread)
 
         self.assertEqual(result, 1)
 
@@ -75,8 +76,8 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
     def test_service_exits_correctly_on_fatal_exception_in_entrypoint_start(
         self, mock_log
     ):
-        run_thread = eventlet.spawn(_run_scheduler)
-        result = run_thread.wait()
+        run_thread = concurrency.spawn(_run_scheduler)
+        result = concurrency.wait(run_thread)
 
         self.assertEqual(result, 1)
 

@@ -79,7 +79,7 @@ def _run_server():
 
     def queue_shutdown(signal_number, stack_frame):
         deregister_service(STREAM)
-        concurrent.spawn(
+        concurrency.spawn(
             shutdown_server_kill_pending_requests,
             sock=sock,
             worker_pool=worker_pool,

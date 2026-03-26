@@ -20,6 +20,8 @@ It dispatches function call to the concurrency library which is configured using
 "set_concurrency_library" function.
 """
 
+import os
+
 try:
     import eventlet  # pylint: disable=import-error
 except ImportError:
@@ -27,11 +29,13 @@ except ImportError:
 
 try:
     import gevent  # pylint: disable=import-error # pants: no-infer-dep
+    import gevent.lock
     import gevent.pool
+    import gevent.queue
 except ImportError:
     gevent = None
 
-CONCURRENCY_LIBRARY = "eventlet"
+CONCURRENCY_LIBRARY = os.environ.get("ST2_CONCURRENCY_LIBRARY", "eventlet")
 
 __all__ = [
     "set_concurrency_library",
@@ -76,9 +80,6 @@ def get_subprocess_module():
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
-# socket,   app.setup_app(),                                log=LOG, log_output=False
-# sock,     app.setup_app(),    custom_pool=worker_pool,    log=LOG, log_output=False
-# sock,     app.setup_app(),    custom_pool=worker_pool
 def wsgi_server(socket, app, custom_pool=None, log=None, log_output=True, *args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
         from eventlet import wsgi
@@ -87,8 +88,8 @@ def wsgi_server(socket, app, custom_pool=None, log=None, log_output=True, *args,
     elif CONCURRENCY_LIBRARY == "gevent":
         from gevent import pywsgi
 
-        # Figure out how to handle custom pool
-        pywsgi.WSGIServer(socket, app)
+        server = pywsgi.WSGIServer(socket, app, spawn=custom_pool, log=log)
+        server.serve_forever()
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
@@ -101,6 +102,24 @@ def subprocess_popen(*args, **kwargs):
         from gevent import subprocess  # pylint: disable=import-error
 
         return subprocess.Popen(*args, **kwargs)
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def spawn_after(seconds, func, *args, **kwargs):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.spawn_after(seconds, func, *args, **kwargs)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        return gevent.spawn_later(seconds, func, *args, **kwargs)
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def Semaphore(*args, **kwargs):
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.Semaphore(*args, **kwargs)
+    elif CONCURRENCY_LIBRARY == "gevent":
+        return gevent.lock.Semaphore(*args, **kwargs)
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
@@ -142,10 +161,23 @@ def kill(green_thread, *args, **kwargs):
 
 
 def listen(host, port):
+    return listen_server(host, port)
+
+
+def Queue(*args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.listen((host, port))
+        return eventlet.Queue(*args, **kwargs)
     elif CONCURRENCY_LIBRARY == "gevent":
-        raise NotImplementedError
+        return gevent.queue.Queue(*args, **kwargs)
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def get_queue_empty_exception():
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return eventlet.queue.Empty
+    elif CONCURRENCY_LIBRARY == "gevent":
+        return gevent.queue.Empty
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
@@ -187,16 +219,47 @@ def get_green_pool_class():
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
-def is_green_pool_free(pool):
+def green_pool_free_count(pool):
     """
-    Return True if the provided green pool is free, False otherwise.
+    Return the number of free slots in the pool.
     """
     if CONCURRENCY_LIBRARY == "eventlet":
         return pool.free()
     elif CONCURRENCY_LIBRARY == "gevent":
-        return not pool.full()
+        return pool.free_count()
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
+
+def is_green_pool_free(pool):
+    """
+    Return True if the provided green pool has at least one free slot, False otherwise.
+    """
+    return green_pool_free_count(pool) > 0
+
+
+def green_pool_running_count(pool):
+    """
+    Return the number of greenlets currently running in the pool.
+    """
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return pool.running()
+    elif CONCURRENCY_LIBRARY == "gevent":
+        return len(pool.greenlets)
+    else:
+        raise ValueError("Unsupported concurrency library")
+
+
+def get_pool_greenlets(pool):
+    """
+    Return the set of currently running greenlets in the pool.
+    """
+    if CONCURRENCY_LIBRARY == "eventlet":
+        return pool.coroutines_running
+    elif CONCURRENCY_LIBRARY == "gevent":
+        return pool.greenlets
+    else:
+        raise ValueError("Unsupported concurrency library")
 
 
 def green_pool_wait_all(pool):
@@ -224,8 +287,10 @@ def listen_server(host, port, backlog=50, **kwargs):
         import socket
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind((host, port))
-        return sock.listen(backlog)
+        sock.listen(backlog)
+        return sock
     else:
         raise ValueError("Unsupported concurrency library")
 
