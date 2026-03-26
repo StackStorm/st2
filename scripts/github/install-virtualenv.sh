@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -e -x
 
 # Note: Use the verison of virtualenv pinned in fixed-requirements.txt so we
 #       only have to update it one place when we change the version
@@ -10,7 +10,7 @@ if [[ ! -f ~/virtualenv/bin/virtualenv ]]; then  # use the cached version whenev
   python3 -m venv ~/virtualenv
 #  ~/virtualenv/bin/pip install --upgrade --force-reinstall "$(grep "^virtualenv" fixed-requirements.txt)"
   # drop the --user install virtualenv to prevent polluting tests
-  pip freeze --user | xargs pip uninstall -y
+ # pip freeze --user | xargs pip uninstall -y
 fi
 
 mkdir -p ~/.local/bin
