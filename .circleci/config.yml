@@ -43,7 +43,7 @@ jobs:
   # Run st2 Integration tests
   integration:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.9
       - image: mongo:7.0
       - image: rabbitmq:3.13
     working_directory: ~/st2
@@ -80,7 +80,7 @@ jobs:
   # Run st2 Lint Checks
   lint:
     docker:
-      - image: circleci/python:3.8
+      - image: circleci/python:3.9
       - image: mongo:7.0
       - image: rabbitmq:3.13
     working_directory: ~/st2
@@ -114,7 +114,7 @@ jobs:
     resource_class: large
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:3.8
+      - image: circleci/python:3.9
     working_directory: ~/st2
     environment:
       - DISTROS: "focal jammy el8 el9"
