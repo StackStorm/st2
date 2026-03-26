@@ -20,6 +20,9 @@ gitdb==4.0.12
 # Note: greenlet is used by eventlet
 greenlet==3.1.1
 gunicorn==23.0.0
+# importlib backport to replace pkg_resrouce from setuptools.
+importlib-metadata==6.5
+importlib-resources==5.12
 jsonpath-rw==1.4.0
 # Using jsonschema>=4.18.0 requires refactoring/debugging use of $ref.
 jsonschema==4.17.3

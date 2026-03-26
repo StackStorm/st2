@@ -15,7 +15,7 @@
 
 from __future__ import absolute_import
 import os
-from pkg_resources import get_distribution
+from importlib_metadata import get_distribution
 
 from st2common.constants.pack import USER_PACK_NAME_BLACKLIST
 
