@@ -9,6 +9,7 @@ jinja2
 jsonschema
 kombu
 mongoengine
+importlib_resources
 networkx
 # used by networkx
 decorator
@@ -40,7 +41,7 @@ zake
 # default coordinator backend configured for tooz
 redis
 routes
-flex
+openapi-spec-validator
 webob
 jsonpath-rw
 pyOpenSSL

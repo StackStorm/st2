@@ -23,7 +23,8 @@ Changed
  * Removed Python 3.8 and 3.9 from testing and CI/CD.
  * Removed mongodb 7.0, rabbitmq 3.13 and redis 8.0
  * Replaced deprecated `pkg_resources` module with `importlib-metadata` and `importlib-resources`.
- 
+ * Replaced abandoned `flex` module by `openapi-spec-validator`
+
 Added
 ~~~~~
 

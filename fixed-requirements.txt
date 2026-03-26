@@ -12,7 +12,6 @@ chardet==5.2.0
 cffi==1.17.1
 cryptography==43.0.3
 eventlet==0.39.1
-flex==6.14.1
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
 gitpython==3.1.45
 # Needed by gitpython, old versions used to bundle it
@@ -20,12 +19,14 @@ gitdb==4.0.12
 # Note: greenlet is used by eventlet
 greenlet==3.1.1
 gunicorn==23.0.0
-# importlib backport to replace pkg_resrouce from setuptools.
-importlib-metadata==6.5
-importlib-resources==5.12
+# importlib backport replaces setuptool's pkg_resource.
+importlib_resources==6.5.2
+importlib_metadata==9.0.0
 jsonpath-rw==1.4.0
 # Using jsonschema>=4.18.0 requires refactoring/debugging use of $ref.
 jsonschema==4.17.3
+# openapi-spec-validator pinned to align with st2's jsonschema pinning constraint
+openapi-spec-validator==0.5.7
 kombu==5.5.4
 lockfile==0.12.2
 mongoengine==0.29.1
@@ -64,7 +65,6 @@ six==1.17.0
 argparse==1.4.0
 argcomplete==3.6.2
 prettytable==3.11.0
-importlib-metadata==8.5.0
 # 20250909 virtualenv 20.34.0 requires typing-extension>=4.13.2
 typing-extensions>=4.13.2; python_version < "3.11"
 # NOTE: sseclient has various issues which sometimes hang the connection for a long time, etc.

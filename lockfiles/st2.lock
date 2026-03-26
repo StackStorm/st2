@@ -21,7 +21,6 @@
 //     "editor",
 //     "eventlet",
 //     "flask",
-//     "flex",
 //     "gitdb",
 //     "gitpython",
 //     "graphviz",
@@ -39,6 +38,7 @@
 //     "mock",
 //     "mongoengine<0.30.0,>=0.24.0",
 //     "networkx",
+//     "openapi-spec-validator",
 //     "orjson",
 //     "orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10",
 //     "oslo.config",
@@ -1690,28 +1690,6 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "292ed6a37f1ac0a10ad8669f5ceb82e8ba3106c16c54090820927bac8b0b29eb",
-              "url": "https://files.pythonhosted.org/packages/de/51/f3bf1779a12e92c3bf9f2d0ee242298775ef625adb596951090bdd24854f/flex-6.14.1.tar.gz"
-            }
-          ],
-          "project_name": "flex",
-          "requires_dists": [
-            "PyYAML>=3.11",
-            "click>=3.3",
-            "jsonpointer>=1.7",
-            "requests>=2.4.3",
-            "rfc3987>=1.3.4",
-            "six>=1.7.3",
-            "strict-rfc3339>=0.7",
-            "validate-email>=1.2"
-          ],
-          "requires_python": null,
-          "version": "6.14.1"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
               "hash": "3ba50d57b6086e3ba3d8bf87402218ab9fc4e280592cf5a19a49c0b375c3a69d",
               "url": "https://files.pythonhosted.org/packages/35/6b/29b561eef753e14c999931e2a5acf44a5623958d877d7265595b737dfc51/futurist-3.3.0-py3-none-any.whl"
             },
@@ -2240,24 +2218,6 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "8ff8b95779d071ba472cf5bc913028df06031797532f08a7d5b602d8b2a488ca",
-              "url": "https://files.pythonhosted.org/packages/9e/6a/a83720e953b1682d2d109d3c2dbb0bc9bf28cc1cbc205be4ef4be5da709d/jsonpointer-3.1.1-py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "0b801c7db33a904024f6004d526dcc53bbb8a4a0f4e32bfd10beadf60adf1900",
-              "url": "https://files.pythonhosted.org/packages/18/c7/af399a2e7a67fd18d63c40c5e62d3af4e67b836a2107468b6a5ea24c4304/jsonpointer-3.1.1.tar.gz"
-            }
-          ],
-          "project_name": "jsonpointer",
-          "requires_dists": [],
-          "requires_python": ">=3.10",
-          "version": "3.1.1"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
               "hash": "a870ad254da1a8ca84b6a2905cac29d265f805acc57af304784962a2aa6508f6",
               "url": "https://files.pythonhosted.org/packages/c1/97/c698bd9350f307daad79dd740806e1a59becd693bd11443a0f531e3229b3/jsonschema-4.17.3-py3-none-any.whl"
             },
@@ -2294,6 +2254,30 @@
           ],
           "requires_python": ">=3.7",
           "version": "4.17.3"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "f2206d18c89d1824c1f775ba14ed039743b41a9167bd2c5bdb774b66b3ca0bbf",
+              "url": "https://files.pythonhosted.org/packages/52/18/0c62b011d64158c2420594002f58b3ad30a8e982bf8e6b4f078df9e95b9b/jsonschema_spec-0.1.6-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "90215863b56e212086641956b20127ccbf6d8a3a38343dad01d6a74d19482f76",
+              "url": "https://files.pythonhosted.org/packages/a3/d5/b1c6171af26a3086189c45fcc7145cb40cdb7ab6779806e9e321501f5251/jsonschema_spec-0.1.6.tar.gz"
+            }
+          ],
+          "project_name": "jsonschema-spec",
+          "requires_dists": [
+            "PyYAML>=5.1",
+            "jsonschema<4.18.0,>=4.0.0",
+            "pathable<0.5.0,>=0.4.1",
+            "requests<3.0.0,>=2.31.0",
+            "typing-extensions<4.6.0; python_version < \"3.8\""
+          ],
+          "requires_python": "<4.0.0,>=3.7.0",
+          "version": "0.1.6"
         },
         {
           "artifacts": [
@@ -2381,6 +2365,99 @@
           ],
           "requires_python": ">=3.9",
           "version": "5.6.2"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "c3b2e0af1f7f77c4263759c4824316ce458fabe0fceadcd24ef8ca08b2d1e402",
+              "url": "https://files.pythonhosted.org/packages/41/a0/b91504515c1f9a299fc157967ffbd2f0321bce0516a3d5b89f6f4cad0355/lazy_object_proxy-1.12.0-pp39.pp310.pp311.graalpy311-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "1cf69cd1a6c7fe2dbcc3edaa017cf010f4192e53796538cc7d5e1fedbfa4bcff",
+              "url": "https://files.pythonhosted.org/packages/01/b3/4684b1e128a87821e485f5a901b179790e6b5bc02f89b7ee19c23be36ef3/lazy_object_proxy-1.12.0-cp311-cp311-macosx_11_0_arm64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "d01c7819a410f7c255b20799b65d36b414379a30c6f1684c7bd7eb6777338c1b",
+              "url": "https://files.pythonhosted.org/packages/07/d2/b7189a0e095caedfea4d42e6b6949d2685c354263bdf18e19b21ca9b3cd6/lazy_object_proxy-1.12.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "1f5a462d92fd0cfb82f1fab28b51bfb209fabbe6aabf7f0d51472c0c124c0c61",
+              "url": "https://files.pythonhosted.org/packages/08/a2/69df9c6ba6d316cfd81fe2381e464db3e6de5db45f8c43c6a23504abf8cb/lazy_object_proxy-1.12.0.tar.gz"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "8ee0d6027b760a11cc18281e702c0309dd92da458a74b4c15025d7fc490deede",
+              "url": "https://files.pythonhosted.org/packages/0d/1b/b5f5bd6bda26f1e15cd3232b223892e4498e34ec70a7f4f11c401ac969f1/lazy_object_proxy-1.12.0-cp312-cp312-macosx_11_0_arm64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "14e348185adbd03ec17d051e169ec45686dcd840a3779c9d4c10aabe2ca6e1c0",
+              "url": "https://files.pythonhosted.org/packages/11/53/857fc2827fc1e13fbdfc0ba2629a7d2579645a06192d5461809540b78913/lazy_object_proxy-1.12.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "c4fcbe74fb85df8ba7825fa05eddca764138da752904b378f0ae5ab33a36c308",
+              "url": "https://files.pythonhosted.org/packages/2b/24/e581ffed864cd33c1b445b5763d617448ebb880f48675fc9de0471a95cbc/lazy_object_proxy-1.12.0-cp312-cp312-musllinux_1_2_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "efff4375a8c52f55a145dc8487a2108c2140f0bec4151ab4e1843e52eb9987ad",
+              "url": "https://files.pythonhosted.org/packages/3a/03/1bdc21d9a6df9ff72d70b2ff17d8609321bea4b0d3cffd2cea92fb2ef738/lazy_object_proxy-1.12.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "1192e8c2f1031a6ff453ee40213afa01ba765b3dc861302cd91dbdb2e2660b00",
+              "url": "https://files.pythonhosted.org/packages/3d/4b/5788e5e8bd01d19af71e50077ab020bc5cce67e935066cd65e1215a09ff9/lazy_object_proxy-1.12.0-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "4ab2c584e3cc8be0dfca422e05ad30a9abe3555ce63e9ab7a559f62f8dbc6ff9",
+              "url": "https://files.pythonhosted.org/packages/55/64/314889b618075c2bfc19293ffa9153ce880ac6153aacfd0a52fcabf21a66/lazy_object_proxy-1.12.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "563d2ec8e4d4b68ee7848c5ab4d6057a6d703cb7963b342968bb8758dda33a23",
+              "url": "https://files.pythonhosted.org/packages/78/be/15f8f5a0b0b2e668e756a152257d26370132c97f2f1943329b08f057eff0/lazy_object_proxy-1.12.0-cp312-cp312-musllinux_1_2_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "3605b632e82a1cbc32a1e5034278a64db555b3496e0795723ee697006b980508",
+              "url": "https://files.pythonhosted.org/packages/79/0e/090bf070f7a0de44c61659cb7f74c2fe02309a77ca8c4b43adfe0b695f66/lazy_object_proxy-1.12.0-cp311-cp311-musllinux_1_2_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "cc6e3614eca88b1c8a625fc0a47d0d745e7c3255b21dac0e30b3037c5e3deeb8",
+              "url": "https://files.pythonhosted.org/packages/7e/6f/b7368d301c15612fcc4cd00412b5d6ba55548bde09bdae71930e1a81f2ab/lazy_object_proxy-1.12.0-cp310-cp310-musllinux_1_2_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "029d2b355076710505c9545aef5ab3f750d89779310e26ddf2b7b23f6ea03cd8",
+              "url": "https://files.pythonhosted.org/packages/a3/ad/b013840cc43971582ff1ceaf784d35d3a579650eb6cc348e5e6ed7e34d28/lazy_object_proxy-1.12.0-cp310-cp310-musllinux_1_2_aarch64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "a61095f5d9d1a743e1e20ec6d6db6c2ca511961777257ebd9b288951b23b44fa",
+              "url": "https://files.pythonhosted.org/packages/cf/d2/b320325adbb2d119156f7c506a5fbfa37fcab15c26d13cf789a90a6de04e/lazy_object_proxy-1.12.0-cp311-cp311-musllinux_1_2_x86_64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "61d5e3310a4aa5792c2b599a7a78ccf8687292c8eb09cf187cca8f09cf6a7519",
+              "url": "https://files.pythonhosted.org/packages/d6/2b/d5e8915038acbd6c6a9fcb8aaf923dc184222405d3710285a1fec6e262bc/lazy_object_proxy-1.12.0-cp310-cp310-macosx_11_0_arm64.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "c1ca33565f698ac1aece152a10f432415d1a2aa9a42dfe23e5ba2bc255ab91f6",
+              "url": "https://files.pythonhosted.org/packages/da/8f/91fc00eeea46ee88b9df67f7c5388e60993341d2a406243d620b2fdfde57/lazy_object_proxy-1.12.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+            }
+          ],
+          "project_name": "lazy-object-proxy",
+          "requires_dists": [],
+          "requires_python": ">=3.9",
+          "version": "1.12.0"
         },
         {
           "artifacts": [
@@ -2794,6 +2871,54 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "79f37f38ef9fd5206b924ed7a6f382cea7b649b3b56383c47f1906082b7b9015",
+              "url": "https://files.pythonhosted.org/packages/8d/94/9cb35371ac834d56ba2bd8870cdab1be25dc664f3a7387f8057ac091916b/openapi_schema_validator-0.4.4-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "c573e2be2c783abae56c5a1486ab716ca96e09d1c3eab56020d1dc680aa57bf8",
+              "url": "https://files.pythonhosted.org/packages/f6/bc/ea1c532bba227c61cf57f228790b3544e73fa1f82832bb59f3272672d239/openapi_schema_validator-0.4.4.tar.gz"
+            }
+          ],
+          "project_name": "openapi-schema-validator",
+          "requires_dists": [
+            "jsonschema<4.18.0,>=4.0.0",
+            "rfc3339-validator",
+            "sphinx-immaterial<0.12.0,>=0.11.0; extra == \"docs\"",
+            "sphinx<6.0.0,>=5.3.0; extra == \"docs\""
+          ],
+          "requires_python": "<4.0.0,>=3.7.0",
+          "version": "0.4.4"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "8712d2879db7692974ef89c47a3ebfc79436442921ec3a826ac0ce80cde8c549",
+              "url": "https://files.pythonhosted.org/packages/a8/68/05df6b11a082ee09b8b5319b3c8aeda58b8d3bccf89f201c45e8fe8a91d2/openapi_spec_validator-0.5.7-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "6c2d42180045a80fd6314de848b94310bdb0fa4949f4b099578b69f79d9fa5ac",
+              "url": "https://files.pythonhosted.org/packages/27/e5/9fe67dfd403777d500abb5cd650c16ef9d4918a6c12e87731c3a4feeb4ff/openapi_spec_validator-0.5.7.tar.gz"
+            }
+          ],
+          "project_name": "openapi-spec-validator",
+          "requires_dists": [
+            "importlib-resources<6.0.0,>=5.8.0; python_version < \"3.9\"",
+            "jsonschema-spec<0.2.0,>=0.1.1",
+            "jsonschema<4.18.0,>=4.0.0",
+            "lazy-object-proxy<2.0.0,>=1.7.1",
+            "openapi-schema-validator<0.5.0,>=0.4.2",
+            "typing-extensions<5.0.0,>=4.5.0; python_version < \"3.8\""
+          ],
+          "requires_python": "<4.0.0,>=3.7.0",
+          "version": "0.5.7"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "4682d1db3bcebd2b64757e0ddf9e87ae5f00d29d16c5cdf3a62f561d08cc3dd2",
               "url": "https://files.pythonhosted.org/packages/0f/fe/d605d700c35dd55f51710d159fc54516a280923cd1b7e47508982fbb387d/orjson-3.11.7-cp312-cp312-musllinux_1_2_x86_64.whl"
             },
@@ -3142,6 +3267,24 @@
           ],
           "requires_python": ">=3.9",
           "version": "4.0.0"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "5ae9e94793b6ef5a4cbe0a7ce9dbbefc1eec38df253763fd0aeeacf2762dbbc2",
+              "url": "https://files.pythonhosted.org/packages/7d/eb/b6260b31b1a96386c0a880edebe26f89669098acea8e0318bff6adb378fd/pathable-0.4.4-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "6905a3cd17804edfac7875b5f6c9142a218c7caef78693c2dbbbfbac186d88b2",
+              "url": "https://files.pythonhosted.org/packages/67/93/8f2c2075b180c12c1e9f6a09d1a985bc2036906b13dff1d8917e395f2048/pathable-0.4.4.tar.gz"
+            }
+          ],
+          "project_name": "pathable",
+          "requires_dists": [],
+          "requires_python": "<4.0.0,>=3.7.0",
+          "version": "0.4.4"
         },
         {
           "artifacts": [
@@ -4580,6 +4723,26 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "24f6ec1eda14ef823da9e36ec7113124b39c04d50a4d3d3a3c2859577e7791fa",
+              "url": "https://files.pythonhosted.org/packages/7b/44/4e421b96b67b2daff264473f7465db72fbdf36a07e05494f50300cc7b0c6/rfc3339_validator-0.1.4-py2.py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "138a2abdf93304ad60530167e51d2dfb9549521a836871b88d7f4695d0022f6b",
+              "url": "https://files.pythonhosted.org/packages/28/ea/a9387748e2d111c3c2b275ba970b735e04e15cdb1eb30693b6b5708c4dbd/rfc3339_validator-0.1.4.tar.gz"
+            }
+          ],
+          "project_name": "rfc3339-validator",
+          "requires_dists": [
+            "six"
+          ],
+          "requires_python": "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7",
+          "version": "0.1.4"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "50b1502b60e289cb37883f3dfd34532b8873c7de9f49bb546641ce9cbd256ebd",
               "url": "https://files.pythonhosted.org/packages/ff/9a/9afaade874b2fa6c752c36f1548f718b5b83af81ed9b76628329dab81c1b/rfc3986-2.0.0-py2.py3-none-any.whl"
             },
@@ -4595,24 +4758,6 @@
           ],
           "requires_python": ">=3.7",
           "version": "2.0.0"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
-              "hash": "10702b1e51e5658843460b189b185c0366d2cf4cff716f13111b0ea9fd2dce53",
-              "url": "https://files.pythonhosted.org/packages/65/d4/f7407c3d15d5ac779c3dd34fbbc6ea2090f77bd7dd12f207ccf881551208/rfc3987-1.3.8-py2.py3-none-any.whl"
-            },
-            {
-              "algorithm": "sha256",
-              "hash": "d3c4d257a560d544e9826b38bc81db676890c79ab9d7ac92b39c7a253d5ca733",
-              "url": "https://files.pythonhosted.org/packages/14/bb/f1395c4b62f251a1cb503ff884500ebd248eed593f41b469f89caa3547bd/rfc3987-1.3.8.tar.gz"
-            }
-          ],
-          "project_name": "rfc3987",
-          "requires_dists": [],
-          "requires_python": null,
-          "version": "1.3.8"
         },
         {
           "artifacts": [
@@ -5103,19 +5248,6 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "5cad17bedfc3af57b399db0fed32771f18fc54bbd917e85546088607ac5e1277",
-              "url": "https://files.pythonhosted.org/packages/56/e4/879ef1dbd6ddea1c77c0078cd59b503368b0456bcca7d063a870ca2119d3/strict-rfc3339-0.7.tar.gz"
-            }
-          ],
-          "project_name": "strict-rfc3339",
-          "requires_dists": [],
-          "requires_python": null,
-          "version": "0.7"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
               "hash": "f0b0622e567335c8fabaaa659f1b33bcb6ddfe2e496071b743aa113f8774f2d3",
               "url": "https://files.pythonhosted.org/packages/99/55/db07de81b5c630da5cbf5c7df646580ca26dfaefa593667fc6f2fe016d2e/tabulate-0.10.0-py3-none-any.whl"
             },
@@ -5528,19 +5660,6 @@
           ],
           "requires_python": ">=3.9",
           "version": "2.6.3"
-        },
-        {
-          "artifacts": [
-            {
-              "algorithm": "sha256",
-              "hash": "784719dc5f780be319cdd185dc85dd93afebdb6ebb943811bc4c7c5f9c72aeaf",
-              "url": "https://files.pythonhosted.org/packages/84/a0/cb53fb64b52123513d04f9b913b905f3eb6fda7264e639b4573cc715c29f/validate_email-1.3.tar.gz"
-            }
-          ],
-          "project_name": "validate-email",
-          "requires_dists": [],
-          "requires_python": null,
-          "version": "1.3"
         },
         {
           "artifacts": [
@@ -6256,7 +6375,6 @@
     "editor",
     "eventlet",
     "flask",
-    "flex",
     "gitdb",
     "gitpython",
     "graphviz",
@@ -6274,6 +6392,7 @@
     "mock",
     "mongoengine<0.30.0,>=0.24.0",
     "networkx",
+    "openapi-spec-validator",
     "orjson",
     "orquesta",
     "oslo.config",

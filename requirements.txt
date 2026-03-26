@@ -19,12 +19,12 @@ decorator==5.2.1
 dnspython
 editor==1.6.6
 eventlet==0.39.1
-flex==6.14.1
 gitdb==4.0.12
 gitpython==3.1.45
 greenlet==3.1.1
 gunicorn==23.0.0
-importlib-metadata==8.5.0
+importlib-metadata
+importlib_resources==6.5.2
 jinja2==3.1.6
 jsonpath-rw==1.4.0
 jsonschema==4.17.3
@@ -34,6 +34,7 @@ logshipper@ git+https://github.com/StackStorm/logshipper.git ; platform_system==
 mock==5.2.0
 mongoengine==0.29.1
 networkx==3.1
+openapi-spec-validator==0.5.7
 orjson==3.10.15
 orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10
 oslo.config==9.6.0
