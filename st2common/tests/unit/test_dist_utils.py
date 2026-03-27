@@ -74,10 +74,8 @@ class DistUtilsTestCase(unittest.TestCase):
             "amqp==2.5.1",
             "argcomplete",
             "bcrypt==3.1.6",
-            "logshipper",
             "orquesta",
             "st2-auth-backend-flat-file",
-            "logshipper-editable",
             "python_runner",
             "SomePackageHq",
             "SomePackageSvn",
@@ -89,10 +87,8 @@ class DistUtilsTestCase(unittest.TestCase):
             "zake==0.2.2",
         ]
         expected_links = [
-            "git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper",
             "git+https://github.com/StackStorm/orquesta.git@224c1a589a6007eb0598a62ee99d674e7836d369#egg=orquesta",  # NOQA
             "git+https://github.com/StackStorm/st2-auth-backend-flat-file.git@master#egg=st2-auth-backend-flat-file",  # NOQA
-            "git+https://github.com/Kami/logshipper.git@stackstorm_patched#egg=logshipper-editable",
             "git+https://github.com/StackStorm/st2.git#egg=python_runner&subdirectory=contrib/runners/python_runner",  # NOQA
             "hg+https://hg.repo/some_pkg.git#egg=SomePackageHq",
             "svn+svn://svn.repo/some_pkg/trunk/@ma-branch#egg=SomePackageSvn",

@@ -1,8 +1,8 @@
 Changelog
 =========
 
-in development - unreleased
----------------------------
+in development
+--------------
 
 This release is tested with and supports the following Python versions and 3rd party dependencies.
 
@@ -24,10 +24,10 @@ Changed
  * Removed mongodb 7.0, rabbitmq 3.13 and redis 8.0
  * Replaced deprecated `pkg_resources` module with `importlib-metadata` and `importlib-resources`.
  * Replaced abandoned `flex` module by `openapi-spec-validator`
+ * Replaced Stackstorm/logshipper (stops working with Python 3.12) and eventlet in the `linux.file_watch_sensor` with threading. (by @skiedude)
 
 Added
 ~~~~~
-
 
 3.9.0 - October 10, 2025
 ------------------------
