@@ -39,7 +39,6 @@ oslo.utils==7.3.0
 paramiko==3.5.1
 # 202403: bump to 3.0.43 for py3.10 support
 prompt-toolkit==3.0.52
-pyinotify==0.9.6 ; platform_system=="Linux"
 pymongo==4.6.3
 pyparsing==3.1.4
 zstandard==0.23.0
@@ -76,8 +75,6 @@ tooz==6.3.0
 # virtualenv==20.30.0 (<21) has pip==25.0.1 wheel==0.45.1 setuptools==75.3.2
 # lockfiles/st2.lock has pip==25.0.1 wheel==0.45.1 setuptools==75.3.2
 pip==25.3
-# This setuptools version number is in the Makefile, but CircleCI builds are pulling a version
-# that is incompatible with our logshipper fork.
 setuptools==80.10.2
 webob==1.8.9
 webtest==3.0.1
