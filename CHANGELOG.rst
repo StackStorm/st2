@@ -28,6 +28,15 @@ Changed
 Added
 ~~~~~
 
+Fixed
+~~~~~
+* Remove the usage of the Stackstorm/logshipper (stops working with Python 3.12) and the usage of eventlet in the `linux.file_watch_sensor`. (by @skiedude)
+
+Changed
+~~~~~~~
+
+Added
+~~~~~
 
 3.9.0 - October 10, 2025
 ------------------------
