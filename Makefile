@@ -662,6 +662,7 @@ distclean: clean
 .PHONY: .requirements
 .requirements: virtualenv
 	$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
 	# Print out pip version
 	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
@@ -696,7 +697,8 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	#       only have to update it one place when we change the version
 	# virtualenv is deprecated, use python -m venv
 	#$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade $(shell grep "^virtualenv" fixed-requirements.txt)
-	$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
+	# Note: Done in .requirements
+	#$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"  # workaround for pbr issue
 
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
