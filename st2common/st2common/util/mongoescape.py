@@ -32,7 +32,7 @@ RULE_CRITERIA_UNESCAPE_TRANSLATION = dict(
 
 # http://docs.mongodb.org/manual/faq/developers/#faq-dollar-sign-escaping
 UNESCAPED = [".", "$"]
-ESCAPED = ["\uFF0E", "\uFF04"]
+ESCAPED = ["\uff0e", "\uff04"]
 ESCAPE_TRANSLATION = dict(list(zip(UNESCAPED, ESCAPED)))
 UNESCAPE_TRANSLATION = dict(
     list(zip(ESCAPED, UNESCAPED))

@@ -74,9 +74,11 @@ class TraceBranch(resource.ResourceBranch):
 class SingleTraceDisplayMixin(object):
     def print_trace_details(self, trace, args, **kwargs):
         options = {
-            "attributes": TRACE_ATTRIBUTE_DISPLAY_ORDER
-            if args.json
-            else TRACE_HEADER_DISPLAY_ORDER
+            "attributes": (
+                TRACE_ATTRIBUTE_DISPLAY_ORDER
+                if args.json
+                else TRACE_HEADER_DISPLAY_ORDER
+            )
         }
         options["json"] = args.json
         options["yaml"] = args.yaml
