@@ -16,6 +16,8 @@ orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2c
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 oslo.config
 paramiko
+# pynacl is used by paramiko and version needs to be pinned
+pynacl
 pyyaml
 pymongo
 # used for optional network level compression for mongodb

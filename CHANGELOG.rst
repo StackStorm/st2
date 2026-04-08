@@ -4,6 +4,10 @@ Changelog
 in development
 --------------
 
+
+3.9.0 - October 10, 2025
+------------------------
+
 Python 3.6 is no longer supported; Stackstorm requires at least Python 3.8.
 This release adds support for Python 3.10 and 3.11, so StackStorm supports python 3.8 - 3.11.
 
@@ -67,9 +71,13 @@ Changed
 
 * Switched tests from `nosetest` to `pytest`. `st2-run-pack-tests` also uses pytest.
   So, all pack tests must be runnable by `pytest`, which may require migration. #6291
-  Contributed by @nzlosh, @FileMagic, @guzzijones, and @cognifloyd.
+  Contributed by @nzlosh, @FileMagic, @guzzijones, and @cognifloyd. Pinned pytest-cov
+  to 5.0.0 for python 3.8 support.
 
 * Migrated github actions from image ubunutu 20.04 with python 3.8.10 to image ubuntu 22.04 with python 3.8.12. #6301
+  Contributed by @nzlosh
+
+* Regenerate pants lockfiles and drop passlib requirement.  #6350
   Contributed by @nzlosh
 
 Added
@@ -80,7 +88,7 @@ Added
   #6118 #6141 #6133 #6120 #6181 #6183 #6200 #6237 #6229 #6240 #6241 #6244 #6251 #6253
   #6254 #6258 #6259 #6260 #6269 #6275 #6279 #6278 #6282 #6283 #6273 #6287 #6306 #6307
   #6311 #6314 #6315 #6317 #6319 #6312 #6320 #6321 #6323 #6324 #6325 #6326 #6327 #6328
-  #6329 #6330
+  #6329 #6330 #6337 #6356
   Contributed by @cognifloyd
 * Build of ST2 EL9 packages #6153
   Contributed by @amanda11
@@ -120,6 +128,9 @@ Added
 
 * Cherry-pick changes to runners.sh from st2-packages git repo. #6302
   Cherry-picked by @cognifloyd
+
+* Pinned DOCKER_API_VERSION in the circleci build to make sure the docker-cli api version does not exceed what
+  `cicrleci docker24 <https://circleci.com/docs/guides/execution-managed/building-docker-images/>`_ supports
 
 3.8.1 - December 13, 2023
 -------------------------

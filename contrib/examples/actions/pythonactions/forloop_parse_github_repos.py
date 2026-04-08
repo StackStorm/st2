@@ -27,7 +27,7 @@ class ParseGithubRepos(Action):
             repo_list = soup.find_all("h3")
             output = {}
 
-            for each_item in repo_list:
+            for each_item in repo_list or ():
                 repo_half_url = each_item.find("a")["href"]
                 repo_name = repo_half_url.split("/")[-1]
                 repo_url = "https://github.com" + repo_half_url
