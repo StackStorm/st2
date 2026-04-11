@@ -411,10 +411,10 @@ class ActionRunCommandTest(unittest.TestCase):
         command = ActionRunCommand(action, self, subparser, name="test")
 
         parameters = {
-            "host":    {"type": "string", "position": 0},
+            "host": {"type": "string", "position": 0},
             "timeout": {"type": "integer", "position": 1},
             "verbose": {"type": "boolean"},
-            "output":  {"type": "string"},
+            "output": {"type": "string"},
         }
         names = ["verbose", "output", "host", "timeout"]
 
