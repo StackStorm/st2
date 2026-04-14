@@ -24,9 +24,11 @@ importlib_resources==6.5.2
 importlib_metadata==9.0.0
 jsonpath-rw==1.4.0
 # Using jsonschema>=4.18.0 requires refactoring/debugging use of $ref.
-jsonschema==4.17.3
+#jsonschema==4.17.3
+jsonschema==4.26.0
 # openapi-spec-validator pinned to align with st2's jsonschema pinning constraint
-openapi-spec-validator==0.5.7
+#openapi-spec-validator==0.5.7
+openapi-spec-validator==0.7.2
 kombu==5.5.4
 lockfile==0.12.2
 mongoengine==0.29.1
