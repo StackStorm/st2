@@ -21,12 +21,12 @@ greenlet==3.1.1
 importlib_resources==6.5.2
 jinja2==3.1.6
 jsonpath-rw==1.4.0
-jsonschema==4.17.3
+jsonschema==4.26.0
 kombu==5.5.4
 lockfile==0.12.2
 mongoengine==0.29.1
 networkx==3.1
-openapi-spec-validator==0.5.7
+openapi-spec-validator==0.7.2
 orjson==3.10.15
 orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10
 oslo.config==9.6.0

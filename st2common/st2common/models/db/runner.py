@@ -33,7 +33,7 @@ PACK_SEPARATOR = "."
 
 class RunnerTypeDB(stormbase.StormBaseDB, stormbase.UIDFieldMixin):
     """
-    The representation of an RunnerType in the system. An RunnerType
+    The representation of a RunnerType in the system. A RunnerType
     has a one-to-one mapping to a particular ActionRunner implementation.
 
     Attributes:
