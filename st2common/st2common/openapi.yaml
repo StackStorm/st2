@@ -1429,7 +1429,7 @@ paths:
           schema:
             type: string
             # Response is raw text so we don't want to perform validation on it
-            validate_response: false
+            x-validate-response: false
         default:
           description: Unexpected error
           schema:
@@ -2395,7 +2395,7 @@ paths:
           schema:
             type: array
             items:
-              - $ref: '#/definitions/PolicyList'
+              $ref: '#/definitions/PolicyList'
           examples:
             application/json:
               ref: 'core.webhook'
@@ -4838,23 +4838,7 @@ definitions:
           formats:
             type: array
             description: Possible parameter format.
-            items:
-              oneOf:
-              - type: string
-              - type: object
-                description: Matched alias formats
-                properties:
-                  representation:
-                    type: array
-                    description: Alias format representations
-                    items:
-                      type: string
-                  match_multiple:
-                    type: boolean
-                    optional: true
-                  display:
-                    type: string
-                    description: Display string of alias format
+            items: {}
           ack:
             type: object
             description: Acknowledgement message format.
@@ -4884,10 +4868,7 @@ definitions:
             description: How long (in milliseconds) to delay the execution before scheduling.
             type: integer
       execution:
-        type: object
-        description: Execution result
-        properties:
-          $ref: '#/definitions/Execution/properties'
+        $ref: '#/definitions/Execution'
       message:
         type: string
   AliasMatchAndExecuteInputAPI:
@@ -4931,9 +4912,9 @@ definitions:
       rule:
         $ref: '#/definitions/Rule'
       action:
-        $ref: '#/definitions/Action'
+        type: object
       runner:
-        $ref: '#/definitions/RunnerType'
+        type: object
       liveaction:
         $ref: '#/definitions/LiveAction'
       task_execution:
@@ -5450,11 +5431,13 @@ definitions:
         description: Channels to post notifications to.
         items:
           type: string
+          x-nullable: true
       channels:  # Deprecated. Only here for backward compatibility.
         type: array
         description: Channels to post notifications to.
         items:
           type: string
+          x-nullable: true
     additionalProperties: false
   ActionDeleteSchema:
     type: object
@@ -5594,9 +5577,9 @@ securityDefinitions:
     description: Cookie representing user's short-lived access token.
     type: apiKey
     name: auth-token
-    in: cookie
+    in: header
+    x-in: cookie
     x-operationId: st2common.util.auth:validate_token
-
 security:
   - auth-token-header: []
   - api-key-header: []

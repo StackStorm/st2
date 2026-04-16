@@ -19,6 +19,8 @@ import os
 
 import six
 import jsonschema
+from referencing import Registry, Resource
+import referencing.jsonschema as ref_jsonschema
 
 from jsonschema.validators import Draft3Validator, Draft4Validator, create
 
@@ -58,6 +60,26 @@ SCHEMAS = {
         os.path.join(PATH, "action_output_schema.json")
     ),
 }
+
+# Registry that maps the draft-04 URI to our local custom schema.
+# All three local schema files (custom.json, action_params.json, action_output_schema.json)
+# claim "id": "http://json-schema.org/draft-04/schema#" but override "required" to accept
+# boolean values (Draft 3 style). In older jsonschema (< 4.18), RefResolver used custom.json
+# (the CustomValidator meta_schema) for all $ref: "#" resolutions. In jsonschema >= 4.18,
+# the referencing library resolves that URI to the official draft-04 meta-schema instead,
+# which requires "required" to be an array. This registry restores the old behavior by
+# mapping the URI back to custom.json.
+_LOCAL_SCHEMA_REGISTRY = Registry().with_resources(
+    [
+        (
+            "http://json-schema.org/draft-04/schema#",
+            Resource.from_contents(
+                SCHEMAS["custom"],
+                default_specification=ref_jsonschema.DRAFT4,
+            ),
+        )
+    ]
+)
 
 SCHEMA_ANY_TYPE = {
     "anyOf": [
@@ -431,6 +453,7 @@ def validate(
         instance = assign_default_values(instance=instance, schema=schema)
 
     # pylint: disable=assignment-from-no-return
+    kwargs.setdefault("registry", _LOCAL_SCHEMA_REGISTRY)
     jsonschema.validate(instance=instance, schema=schema, cls=cls, *args, **kwargs)
 
     return instance

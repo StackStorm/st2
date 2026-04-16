@@ -355,11 +355,15 @@ class Router(object):
                     definition = security_definitions[declaration]
 
                     if definition["type"] == "apiKey":
-                        if definition["in"] == "header":
+                        # x-in overrides in to allow cookie-based apiKey auth, which is not
+                        # valid Swagger 2.0 (in: cookie was added in OpenAPI 3.0) but is
+                        # supported by this router as an extension.
+                        effective_in = definition.get("x-in", definition["in"])
+                        if effective_in == "header":
                             token = req.headers.get(definition["name"])
-                        elif definition["in"] == "query":
+                        elif effective_in == "query":
                             token = req.GET.get(definition["name"])
-                        elif definition["in"] == "cookie":
+                        elif effective_in == "cookie":
                             token = req.cookies.get(definition["name"])
                         else:
                             token = None
@@ -704,7 +708,7 @@ class Router(object):
         response_spec = response_spec or default_response_spec
         response_spec = response_spec or {}
         validate_response = response_spec.get("schema", {}).get(
-            "validate_response", True
+            "x-validate-response", True
         )
 
         if (
