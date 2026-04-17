@@ -208,7 +208,9 @@ class OutputSchemaTestCase(unittest.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_error = "Additional properties are not allowed ('output' was unexpected)"
+        expected_error = (
+            "Additional properties are not allowed ('output' was unexpected)"
+        )
         expected_message = "Error validating output. See error output for more details."
 
         # Use assertIn to avoid fragile exact-string matching: jsonschema error messages

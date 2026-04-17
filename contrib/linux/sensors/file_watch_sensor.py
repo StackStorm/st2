@@ -55,7 +55,9 @@ class FileWatchSensor(Sensor):
         self.file_ref[file_path] = ref
 
         stop_event = threading.Event()
-        t = threading.Thread(target=self._tail, args=(file_path, stop_event), daemon=True)
+        t = threading.Thread(
+            target=self._tail, args=(file_path, stop_event), daemon=True
+        )
         self._watchers[file_path] = (t, stop_event)
         t.start()
 

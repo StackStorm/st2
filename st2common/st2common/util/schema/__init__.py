@@ -155,7 +155,7 @@ CustomValidator = create(
         "pattern": Draft4Validator.VALIDATORS["pattern"],
         "patternProperties": Draft4Validator.VALIDATORS["patternProperties"],
         "properties": Draft3Validator.VALIDATORS["properties"],
-#        "required": Draft3Validator.VALIDATORS["required"],
+        #        "required": Draft3Validator.VALIDATORS["required"],
         "type": Draft4Validator.VALIDATORS["type"],
         "uniqueItems": Draft4Validator.VALIDATORS["uniqueItems"],
     },
