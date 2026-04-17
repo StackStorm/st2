@@ -121,7 +121,9 @@ class ActionAliasFormatParser(object):
         ending_pairs = re.match(self._snippets["ending"], param_stream, re.DOTALL)
         has_ending_pairs = ending_pairs and ending_pairs.group(1)
         if has_ending_pairs:
-            kv_pairs = re.findall(self._snippets["pairs"], ending_pairs.group(1), re.DOTALL)
+            kv_pairs = re.findall(
+                self._snippets["pairs"], ending_pairs.group(1), re.DOTALL
+            )
             param_stream = param_stream.replace(ending_pairs.group(1), "")
         else:
             kv_pairs = []
@@ -138,7 +140,9 @@ class ActionAliasFormatParser(object):
         # Transforming our format string into a regular expression,
         # substituting {{ ... }} with regex named groups, so that param_stream
         # matched against this expression yields a dict of params with values.
-        param_match = r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
+        param_match = (
+            r'\1["\']?(?P<\2>(?:(?<=\').+?(?=\')|(?<=").+?(?=")|{.+?}|.+?))["\']?'
+        )
         reg = re.sub(
             r"(\s*)" + self._snippets["optional"],
             r"(?:" + param_match + r")?",
@@ -149,11 +153,15 @@ class ActionAliasFormatParser(object):
         reg_tokens = parse(reg, flags=re.DOTALL)
 
         # Add a beginning anchor if none exists
-        if not search_regex_tokens(((AT, AT_BEGINNING), (AT, AT_BEGINNING_STRING)), reg_tokens):
+        if not search_regex_tokens(
+            ((AT, AT_BEGINNING), (AT, AT_BEGINNING_STRING)), reg_tokens
+        ):
             reg = r"^\s*" + reg
 
         # Add an ending anchor if none exists
-        if not search_regex_tokens(((AT, AT_END), (AT, AT_END_STRING)), reg_tokens, backwards=True):
+        if not search_regex_tokens(
+            ((AT, AT_END), (AT, AT_END_STRING)), reg_tokens, backwards=True
+        ):
             reg = reg + r"\s*$"
 
         return re.compile(reg, re.DOTALL)
@@ -246,7 +254,9 @@ def extract_parameters(format_str, param_stream, match_multiple=False):
         return parser.get_extracted_param_value()
 
 
-def inject_immutable_parameters(action_alias_db, multiple_execution_parameters, action_context):
+def inject_immutable_parameters(
+    action_alias_db, multiple_execution_parameters, action_context
+):
     """
     Inject immutable parameters from the alias definiton on the execution parameters.
     Jinja expressions will be resolved.
@@ -274,10 +284,14 @@ def inject_immutable_parameters(action_alias_db, multiple_execution_parameters, 
     rendered_params = render_values(immutable_parameters, context)
 
     for exec_params in multiple_execution_parameters:
-        overriden = [param for param in immutable_parameters.keys() if param in exec_params]
+        overriden = [
+            param for param in immutable_parameters.keys() if param in exec_params
+        ]
         if overriden:
             raise ValueError(
-                "Immutable arguments cannot be overriden: {}".format(",".join(overriden))
+                "Immutable arguments cannot be overriden: {}".format(
+                    ",".join(overriden)
+                )
             )
 
         exec_params.update(rendered_params)
