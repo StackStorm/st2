@@ -268,10 +268,16 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
-        # Assert action execution for task is not started and workflow failed.
+        # Manually trigger workflow execution to start tasks (simulates async workflow engine).
         wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(ac_ex_db.id)
         )[0]
+        wf_svc.request_next_tasks(wf_ex_db)
+
+        # Refresh workflow execution after task processing.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+
+        # Assert action execution for task is not started and workflow failed.
         tk_ex_dbs = wf_db_access.TaskExecution.query(
             workflow_execution=str(wf_ex_db.id)
         )
@@ -311,10 +317,16 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
-        # Assert action execution for task is not started and workflow failed.
+        # Manually trigger workflow execution to start tasks (simulates async workflow engine).
         wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(ac_ex_db.id)
         )[0]
+        wf_svc.request_next_tasks(wf_ex_db)
+
+        # Refresh workflow execution after task processing.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+
+        # Assert action execution for task is not started and workflow failed.
         tk_ex_dbs = wf_db_access.TaskExecution.query(
             workflow_execution=str(wf_ex_db.id)
         )
@@ -351,10 +363,16 @@ class OrquestaErrorHandlingTest(st2tests.WorkflowTestCase):
         )
         lv_ac_db, ac_ex_db = ac_svc.request(lv_ac_db)
 
-        # Assert workflow and task executions failed.
+        # Manually trigger workflow execution to start tasks (simulates async workflow engine).
         wf_ex_db = wf_db_access.WorkflowExecution.query(
             action_execution=str(ac_ex_db.id)
         )[0]
+        wf_svc.request_next_tasks(wf_ex_db)
+
+        # Refresh workflow execution after task processing.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+
+        # Assert workflow and task executions failed.
         self.assertEqual(wf_ex_db.status, wf_statuses.FAILED)
         self.assertListEqual(
             self.sort_workflow_errors(wf_ex_db.errors), expected_errors

@@ -305,7 +305,7 @@ def request_cancellation(liveaction, requester):
     # if the liveaction is operating under a workflow.
     if (
         "parent" in liveaction.context
-        or liveaction.status in action_constants.LIVEACTION_STATUS_RUNNING
+        or liveaction.status == action_constants.LIVEACTION_STATUS_RUNNING
     ):
         status = action_constants.LIVEACTION_STATUS_CANCELING
     else:
