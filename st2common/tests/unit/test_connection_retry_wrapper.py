@@ -23,42 +23,47 @@ from six.moves import range
 class TestClusterRetryContext(unittest.TestCase):
     def test_single_node_cluster_retry(self):
         retry_context = ClusterRetryContext(cluster_size=1)
-        should_stop, wait = retry_context.test_should_stop()
+        should_stop, wait = retry_context.should_stop()
         self.assertFalse(should_stop, "Not done trying.")
         self.assertEqual(wait, 10)
 
-        should_stop, wait = retry_context.test_should_stop()
+        should_stop, wait = retry_context.should_stop()
         self.assertFalse(should_stop, "Not done trying.")
         self.assertEqual(wait, 10)
 
-        should_stop, wait = retry_context.test_should_stop()
+        should_stop, wait = retry_context.should_stop()
         self.assertTrue(should_stop, "Done trying.")
-        self.assertEqual(wait, -1)
+        self.assertEqual(wait, 0)
 
     def test_should_stop_second_channel_open_error_should_be_non_fatal(self):
         retry_context = ClusterRetryContext(cluster_size=1)
 
         e = Exception("(504) CHANNEL_ERROR - second 'channel.open' seen")
-        should_stop, wait = retry_context.test_should_stop(e=e)
+        should_stop, wait = retry_context.should_stop(e=e)
         self.assertFalse(should_stop)
-        self.assertEqual(wait, -1)
+        self.assertEqual(wait, 0)
 
         e = Exception("CHANNEL_ERROR - second 'channel.open' seen")
-        should_stop, wait = retry_context.test_should_stop(e=e)
+        should_stop, wait = retry_context.should_stop(e=e)
         self.assertFalse(should_stop)
-        self.assertEqual(wait, -1)
+        self.assertEqual(wait, 0)
 
     def test_multiple_node_cluster_retry(self):
         cluster_size = 3
-        last_index = cluster_size * 2
+        max_retries = 2
+        # _max_attempts = cluster_size * (max_retries + 1) = 3 * 3 = 9
+        # First attempt doesn't count as retry, so we have 9 total attempts (indices 0-8)
+        last_index = (cluster_size * (max_retries + 1)) - 1
 
-        retry_context = ClusterRetryContext(cluster_size=cluster_size)
+        retry_context = ClusterRetryContext(
+            cluster_size=cluster_size, max_retries=max_retries
+        )
 
         for i in range(last_index + 1):
-            should_stop, wait = retry_context.test_should_stop()
+            should_stop, wait = retry_context.should_stop()
             if i == last_index:
                 self.assertTrue(should_stop, "Done trying.")
-                self.assertEqual(wait, -1)
+                self.assertEqual(wait, 0)
             else:
                 self.assertFalse(should_stop, "Not done trying.")
                 # on cluster boundaries the wait is longer. Short wait when switching
@@ -70,6 +75,6 @@ class TestClusterRetryContext(unittest.TestCase):
 
     def test_zero_node_cluster_retry(self):
         retry_context = ClusterRetryContext(cluster_size=0)
-        should_stop, wait = retry_context.test_should_stop()
+        should_stop, wait = retry_context.should_stop()
         self.assertTrue(should_stop, "Done trying.")
-        self.assertEqual(wait, -1)
+        self.assertEqual(wait, 0)

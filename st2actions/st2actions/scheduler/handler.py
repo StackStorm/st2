@@ -374,6 +374,14 @@ class ActionExecutionSchedulingQueueHandler(object):
 
             return
 
+        # Complete cancellation transition: CANCELING → CANCELED
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING:
+            liveaction_db = action_service.update_status(
+                liveaction_db,
+                action_constants.LIVEACTION_STATUS_CANCELED,
+                publish=True,
+            )
+
         if (
             liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES
             or liveaction_db.status in action_constants.LIVEACTION_CANCEL_STATES
