@@ -62,8 +62,11 @@ class PoolPublisher(object):
 
         with Timer(key="amqp.pool_publisher.publish_with_retries." + exchange.name):
             with self.pool.acquire(block=True) as connection:
+                # Use the same retry settings from config for reconnection attempts
                 retry_wrapper = ConnectionRetryWrapper(
-                    cluster_size=self.cluster_size, logger=LOG
+                    cluster_size=self.cluster_size,
+                    logger=LOG,
+                    ensure_max_retries=cfg.CONF.messaging.connection_retry_max_attempts,
                 )
 
                 def do_publish(connection, channel):
