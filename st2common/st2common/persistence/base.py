@@ -23,6 +23,8 @@ import abc
 import six
 
 from amqp import exceptions as amqp_exceptions
+from kombu import exceptions as kombu_exceptions
+
 from st2common import log as logging
 from st2common.exceptions.db import (
     StackStormDBObjectConflictError,
@@ -136,7 +138,6 @@ class Access(object):
         # Late import to avoid very expensive in-direct import (~1 second) when this function
         # is not called / used
         from mongoengine import NotUniqueError
-        from kombu import exceptions as kombu_exceptions
 
         if model_object.id:
             raise ValueError("id for object %s was unexpected." % model_object)

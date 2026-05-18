@@ -134,7 +134,7 @@ class ConnectionRetryWrapper(object):
                 channel = connection.channel()
                 wrapped_callback(connection=connection, channel=channel)
                 break  # Success - exit the retry loop
-            except kombu_exceptions.KombuError as e:
+            except Exception as e:
                 channel = None  # Reset channel to avoid closing errors
                 should_stop, wait = self._retry_context.should_stop(e)
 
