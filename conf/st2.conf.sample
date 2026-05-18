@@ -235,7 +235,7 @@ connection_retry_interval_max = 30
 connection_retry_interval_start = 1
 # Increment for retry interval after each attempt (seconds).
 connection_retry_interval_step = 1
-# Maximum number of retry attempts for initial broker connection. This prevents infinite retry loops when the broker is unavailable. Set to 0 to retry indefinitely (not recommended).
+# Maximum number of retry attempts for broker connection and reconnection. This prevents infinite retry loops when the broker is unavailable. Applies to both initial connection and reconnection during message publishing. Set to 0 to retry indefinitely (not recommended).
 connection_retry_max_attempts = 10
 # How long should we wait between connection retries.
 connection_retry_wait = 10000
