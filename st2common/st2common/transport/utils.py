@@ -53,6 +53,15 @@ def get_connection(urls=None, connection_kwargs=None):
 
     kwargs = {}
 
+    # Transport options for connection retry behavior
+    # These options control the retry behavior during initial connection establishment
+    transport_options = {
+        "max_retries": cfg.CONF.messaging.connection_retry_max_attempts,
+        "interval_start": cfg.CONF.messaging.connection_retry_interval_start,
+        "interval_step": cfg.CONF.messaging.connection_retry_interval_step,
+        "interval_max": cfg.CONF.messaging.connection_retry_interval_max,
+    }
+
     ssl_kwargs = _get_ssl_kwargs(
         ssl=cfg.CONF.messaging.ssl,
         ssl_keyfile=cfg.CONF.messaging.ssl_keyfile,
@@ -70,11 +79,15 @@ def get_connection(urls=None, connection_kwargs=None):
         kwargs.update({"ssl": ssl_kwargs})
 
     kwargs["login_method"] = cfg.CONF.messaging.login_method
+    kwargs["transport_options"] = transport_options
 
     kwargs.update(connection_kwargs)
 
     # NOTE: This line contains no secret values so it's OK to log it
     LOG.debug("Using SSL context for RabbitMQ connection: %s" % (ssl_kwargs))
+    LOG.debug(
+        "Using transport options for RabbitMQ connection: %s" % (transport_options)
+    )
 
     connection = Connection(urls, **kwargs)
     return connection

@@ -367,5 +367,16 @@ class ActionExecutionDispatcher(MessageHandler):
 
 
 def get_worker():
+    """
+    Create and return an ActionExecutionDispatcher worker.
+
+    The worker connects to the messaging broker using connection retry settings
+    from the configuration. If the broker is unavailable and max retry attempts
+    are exhausted, the connection will raise an exception causing the process
+    to exit. This allows process supervisors (systemd, K8s) to restart the service.
+
+    :return: ActionExecutionDispatcher instance
+    :rtype: ActionExecutionDispatcher
+    """
     with transport_utils.get_connection() as conn:
         return ActionExecutionDispatcher(conn, ACTIONRUNNER_QUEUES)
