@@ -229,6 +229,14 @@ cluster_urls =  # comma separated list allowed here.
 compression = None
 # How many times should we retry connection before failing.
 connection_retries = 10
+# Maximum retry interval in seconds for broker connection attempts.
+connection_retry_interval_max = 30
+# Starting retry interval in seconds for broker connection attempts.
+connection_retry_interval_start = 1
+# Increment for retry interval after each attempt (seconds).
+connection_retry_interval_step = 1
+# Maximum number of retry attempts for initial broker connection. This prevents infinite retry loops when the broker is unavailable. Set to 0 to retry indefinitely (not recommended).
+connection_retry_max_attempts = 10
 # How long should we wait between connection retries.
 connection_retry_wait = 10000
 # Login method to use (AMQPLAIN, PLAIN, EXTERNAL, etc.).
