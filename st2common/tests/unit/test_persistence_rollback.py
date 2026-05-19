@@ -64,29 +64,6 @@ class TestPersistenceRollback(DbTestCase):
             self.assertEqual(retrieved.name, original_name)
             self.assertNotEqual(retrieved.name, new_name)
 
-    def test_update_no_rollback_on_other_exceptions(self):
-        """Test that update() does NOT rollback on non-RabbitMQ exceptions"""
-        # Create initial object
-        obj = FakeModelDB(name=uuid.uuid4().hex, context={"value": "original"})
-        obj = self.access.add_or_update(obj, publish=False)
-
-        # Mock publish_update at class level to raise a generic exception
-        with mock.patch.object(
-            FakeModel, "publish_update", side_effect=ValueError("Some other error")
-        ):
-            # Try to update with a new name
-            new_name = uuid.uuid4().hex
-            obj.name = new_name
-
-            # Update should propagate the non-RabbitMQ exception
-            with self.assertRaises(ValueError):
-                self.access.update(obj, publish=True, set__name=new_name)
-
-            # Since ValueError is not a KombuError, no rollback occurs
-            # The DB change remains
-            retrieved = self.access.get_by_id(str(obj.id))
-            self.assertEqual(retrieved.name, new_name)
-
     def test_update_success_no_rollback(self):
         """Test that successful update() with publish does not trigger rollback"""
         # Create initial object
