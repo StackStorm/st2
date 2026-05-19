@@ -21,6 +21,7 @@ from kombu.mixins import ConsumerMixin
 from oslo_config import cfg
 
 from st2common import log as logging
+from st2common.transport.connection_retry_mixin import ConnectionRetryMixin
 from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2common.util import concurrency
 
@@ -35,62 +36,15 @@ __all__ = [
 LOG = logging.getLogger(__name__)
 
 
-class QueueConsumer(ConsumerMixin):
+class QueueConsumer(ConnectionRetryMixin, ConsumerMixin):
     def __init__(self, connection, queues, handler):
         self.connection = connection
         self._dispatcher = BufferedDispatcher()
         self._queues = queues
         self._handler = handler
 
-        # Track connection retry attempts to enforce max_retries from config
-        self._connection_retry_count = 0
-        self._max_connection_retries = cfg.CONF.messaging.connection_retry_max_attempts
-
-    def on_connection_error(self, exc, interval):
-        """
-        Override ConsumerMixin's connection error handler to enforce max retries.
-
-        This prevents infinite retry loops when the broker is unavailable.
-        After max_retries attempts, we raise the exception to kill the consumer.
-        """
-        self._connection_retry_count += 1
-
-        if (
-            self._max_connection_retries > 0
-            and self._connection_retry_count >= self._max_connection_retries
-        ):
-            LOG.error(
-                "Failed to connect to message broker after %d attempts. "
-                "Giving up. Error: %s",
-                self._connection_retry_count,
-                exc,
-            )
-            # Raise the exception to stop the consumer
-            raise exc
-
-        max_retries_display = (
-            self._max_connection_retries if self._max_connection_retries > 0 else "∞"
-        )
-        LOG.warning(
-            "Broker connection error (attempt %d/%s), "
-            "trying again in %.1f seconds: %s",
-            self._connection_retry_count,
-            max_retries_display,
-            interval,
-            exc,
-        )
-
-    def on_connection_revived(self):
-        """
-        Reset retry counter when connection is successfully re-established.
-        """
-        if self._connection_retry_count > 0:
-            LOG.info(
-                "Connection to message broker successfully re-established "
-                "after %d attempts",
-                self._connection_retry_count,
-            )
-        self._connection_retry_count = 0
+        # Initialize connection retry tracking from mixin
+        self._init_connection_retry()
 
     def shutdown(self):
         self.should_stop = True
