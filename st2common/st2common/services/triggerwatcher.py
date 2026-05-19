@@ -147,10 +147,7 @@ class TriggerWatcher(ConnectionRetryMixin, ConsumerMixin):
             LOG.exception("Failed to start watcher: %s", six.text_type(e))
             # Only release connection if it was successfully created
             if self.connection is not None:
-                try:
-                    self.connection.release()
-                except Exception:
-                    LOG.exception("Failed to release connection during cleanup")
+                self.connection.release()
             raise
 
     def stop(self):
