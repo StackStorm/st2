@@ -16,7 +16,6 @@
 from __future__ import absolute_import
 
 import six
-from kombu import exceptions as kombu_exceptions
 
 from st2common.util import concurrency
 
@@ -165,7 +164,7 @@ class ConnectionRetryWrapper(object):
                         max_retries=self._ensure_max_retries,
                         errback=log_error_on_conn_failure,
                     )
-                except kombu_exceptions.KombuError:
+                except Exception:
                     self._logger.error("Failed to re-establish connection to RabbitMQ")
                     raise
             finally:
