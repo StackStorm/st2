@@ -22,9 +22,6 @@ import abc
 
 import six
 
-from amqp import exceptions as amqp_exceptions
-from kombu import exceptions as kombu_exceptions
-
 from st2common import log as logging
 from st2common.exceptions.db import (
     StackStormDBObjectConflictError,
@@ -167,7 +164,7 @@ class Access(object):
                 cls.dispatch_create_trigger(model_object)
 
             return model_object
-        except (kombu_exceptions.KombuError, amqp_exceptions.AMQPError):
+        except Exception:
             # RabbitMQ connection error - rollback the database insert
             LOG.warning(
                 "RabbitMQ publish failed for object %s, rolling back database insert",
@@ -189,7 +186,6 @@ class Access(object):
         # Late import to avoid very expensive in-direct import (~1 second) when this function
         # is not called / used
         from mongoengine import NotUniqueError
-        from kombu import exceptions as kombu_exceptions
 
         pre_persist_id = model_object.id
 
@@ -235,7 +231,7 @@ class Access(object):
                     cls.dispatch_create_trigger(model_object)
 
             return model_object
-        except (kombu_exceptions.KombuError, amqp_exceptions.AMQPError):
+        except Exception:
             # RabbitMQ connection error - rollback the database operation
             LOG.warning(
                 "RabbitMQ publish failed for object %s, rolling back database operation",
@@ -260,7 +256,6 @@ class Access(object):
         NOTE: If publish fails due to RabbitMQ connection errors, the database update
         will be rolled back by restoring the original object state.
         """
-        from kombu import exceptions as kombu_exceptions
 
         # Save the original state before update for potential rollback
         original_object = cls.get_by_id(model_object.id)
@@ -282,7 +277,7 @@ class Access(object):
                 cls.dispatch_update_trigger(updated_object)
 
             return updated_object
-        except (kombu_exceptions.KombuError, amqp_exceptions.AMQPError):
+        except Exception:
             # RabbitMQ connection error - rollback the database update
             if original_object:
                 LOG.warning(
