@@ -62,14 +62,34 @@ def _run_worker():
 
     try:
         rules_engine_worker.start()
-        return rules_engine_worker.wait()
+
+        # Monitor the worker thread - if it dies/fails, we need to exit cleanly
+        import eventlet
+
+        # Poll the worker thread to detect failures
+        while True:
+            if rules_engine_worker.thread and rules_engine_worker.thread.dead:
+                # Thread died - try to get the exception if it raised one
+                try:
+                    rules_engine_worker.thread.wait()  # This will raise if thread raised
+                except Exception as e:
+                    LOG.error("RulesEngine worker thread failed: %s", e)
+                    raise
+                # Thread completed successfully (shouldn't happen in normal operation)
+                LOG.info("RulesEngine worker thread completed")
+                return 0
+
+            # Sleep briefly to avoid tight loop
+            eventlet.sleep(0.1)
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) RulesEngine stopped.", os.getpid())
         deregister_service(RULESENGINE)
         rules_engine_worker.shutdown()
+        raise
     except:
-        LOG.exception("(PID:%s) RulesEngine quit due to exception.", os.getpid())
-        return 1
+        LOG.exception("(PID=%s) RulesEngine quit due to exception.", os.getpid())
+        rules_engine_worker.shutdown()
+        raise
 
     return 0
 
@@ -82,6 +102,6 @@ def main():
         sys.exit(exit_code)
     except:
         LOG.exception("(PID=%s) RulesEngine quit due to exception.", os.getpid())
-        return 1
+        raise
     finally:
         _teardown()

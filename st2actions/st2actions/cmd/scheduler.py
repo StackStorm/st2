@@ -95,8 +95,38 @@ def _run_scheduler():
         handler.start()
         entrypoint.start()
 
-        # Wait on handler first since entrypoint is more durable.
-        handler.wait() or entrypoint.wait()
+        # Wait on both handler and entrypoint. If either fails, we want to shut down gracefully.
+        # Poll the threads to detect when any of them fails
+        import eventlet
+
+        threads_to_monitor = [
+            (handler._main_thread, "handler_main"),
+            (handler._cleanup_thread, "handler_cleanup"),
+            (entrypoint._consumer_thread, "entrypoint_consumer"),
+        ]
+
+        try:
+            # Poll threads in a loop - check if any has died/failed
+            while True:
+                for thread, name in threads_to_monitor:
+                    if thread.dead:
+                        # Thread died - try to get the exception if it raised one
+                        try:
+                            thread.wait()  # This will raise if the thread raised
+                        except Exception as e:
+                            LOG.error("Thread %s failed: %s", name, e)
+                            # Re-raise to let outer exception handler deal with shutdown
+                            raise
+                        # Thread completed successfully (shouldn't happen in normal operation)
+                        LOG.info("Thread %s completed", name)
+                        return 0
+
+                # Sleep briefly to avoid tight loop and allow other greenlets to run
+                eventlet.sleep(0.1)
+        except Exception as e:
+            # If we caught an exception, it's already been logged and components shut down
+            # Re-raise it so tests and monitoring can detect the failure
+            raise e
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) Scheduler stopped.", os.getpid())
 
@@ -121,7 +151,7 @@ def _run_scheduler():
         except:
             LOG.exception("Unable to shutdown scheduler.")
 
-        return 1
+        raise
 
     return 0
 
