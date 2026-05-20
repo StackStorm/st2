@@ -68,10 +68,13 @@ def _run_worker():
 
         # Poll the worker thread to detect failures
         while True:
-            if rules_engine_worker.thread and rules_engine_worker.thread.dead:
+            if (
+                rules_engine_worker._consumer_thread
+                and rules_engine_worker._consumer_thread.dead
+            ):
                 # Thread died - try to get the exception if it raised one
                 try:
-                    rules_engine_worker.thread.wait()  # This will raise if thread raised
+                    rules_engine_worker._consumer_thread.wait()  # This will raise if thread raised
                 except Exception as e:
                     LOG.error("RulesEngine worker thread failed: %s", e)
                     raise
