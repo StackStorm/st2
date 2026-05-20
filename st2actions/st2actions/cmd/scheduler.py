@@ -91,6 +91,10 @@ def _run_scheduler():
             "(PID=%s) Scheduler unable to populate action_execution_id.", os.getpid()
         )
 
+    # Bootstrap missing scheduling queue entries for requested LiveActions.
+    # This handles recovery from RabbitMQ failures where messages were never consumed.
+    handler._bootstrap_missing_scheduling_queue_items()
+
     try:
         handler.start()
         entrypoint.start()
