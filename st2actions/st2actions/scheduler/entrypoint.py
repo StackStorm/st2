@@ -35,6 +35,33 @@ __all__ = ["SchedulerEntrypoint", "get_scheduler_entrypoint"]
 LOG = logging.getLogger(__name__)
 
 
+class SchedulerQueueConsumer(consumers.QueueConsumer):
+    """
+    Custom QueueConsumer that triggers bootstrap recovery when connection is revived.
+    """
+
+    def __init__(self, connection, queues, handler, scheduler_handler=None):
+        super(SchedulerQueueConsumer, self).__init__(connection, queues, handler)
+        self._scheduler_handler = scheduler_handler
+
+    def on_connection_revived(self):
+        """
+        Called when RabbitMQ connection is re-established after a failure.
+
+        Run bootstrap recovery to catch any LiveActions that were stuck in 'requested'
+        status during the connection outage.
+        """
+        # Call parent to reset retry counter
+        super(SchedulerQueueConsumer, self).on_connection_revived()
+
+        if self._scheduler_handler:
+            LOG.info("Running bootstrap recovery after RabbitMQ connection revival...")
+            try:
+                self._scheduler_handler._bootstrap_missing_scheduling_queue_items()
+            except Exception:
+                LOG.exception("Bootstrap recovery failed after connection revival")
+
+
 class SchedulerEntrypoint(consumers.MessageHandler):
     """
     SchedulerEntrypoint subscribes to the Action scheduler request queue and places new Live
@@ -42,6 +69,29 @@ class SchedulerEntrypoint(consumers.MessageHandler):
     """
 
     message_type = LiveActionDB
+
+    def __init__(self, connection, queues):
+        self._handler = None  # Set before super().__init__ because get_queue_consumer is called during init
+        super(SchedulerEntrypoint, self).__init__(connection, queues)
+
+    def set_handler(self, handler):
+        """
+        Set reference to the scheduler handler for bootstrap recovery.
+
+        :param handler: The ActionExecutionSchedulingQueueHandler instance
+        """
+        self._handler = handler
+
+    def get_queue_consumer(self, connection, queues):
+        """
+        Override to return a custom QueueConsumer that calls bootstrap on connection revival.
+        """
+        return SchedulerQueueConsumer(
+            connection=connection,
+            queues=queues,
+            handler=self,
+            scheduler_handler=self._handler,
+        )
 
     def process(self, request):
         """
