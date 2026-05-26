@@ -373,8 +373,26 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         if ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
             return
 
-        # Apply post run policies.
+        # Check if workflow was paused during shutdown.
+        # If so, don't process completion to avoid resuming the workflow.
+        wf_ac_ex_db = ex_db_access.ActionExecution.get_by_id(wf_ex_db.action_execution)
+        wf_lv_ac_db = lv_db_access.LiveAction.get_by_id(wf_ac_ex_db.liveaction_id)
+        if (
+            wf_lv_ac_db.status == ac_const.LIVEACTION_STATUS_PAUSED
+            and wf_lv_ac_db.context.get("paused_by") == WORKFLOW_ENGINE_START_STOP_SEQ
+        ):
+            msg = (
+                "Workflow execution is paused during shutdown. "
+                'Skipping action execution completion processing for task "%s".'
+                % task_ex_db.task_id
+            )
+            wf_svc.update_progress(wf_ex_db, msg)
+            return
+
+        # Get the task's liveaction for post-run policies
         lv_ac_db = lv_db_access.LiveAction.get_by_id(ac_ex_db.liveaction_id)
+
+        # Apply post run policies.
         pc_svc.apply_post_run_policies(lv_ac_db)
 
         # Process completion of the action execution.

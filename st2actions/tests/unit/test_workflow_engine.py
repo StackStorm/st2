@@ -331,7 +331,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         eventlet.sleep(8)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Process task1.
         query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
@@ -470,7 +470,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
 
         # Shutdown routine acquires the lock first
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSING)
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
         # Process task1
         query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
         t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
