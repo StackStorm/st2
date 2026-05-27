@@ -82,7 +82,12 @@ class WorkflowEngineQueueConsumer(consumers.VariableMessageQueueConsumer):
 
             # Call handler's connection error callback to pause workflows
             if hasattr(self._handler, "on_connection_error_callback"):
-                self._handler.on_connection_error_callback(exc, interval)
+                try:
+                    self._handler.on_connection_error_callback(exc, interval)
+                except Exception as callback_exc:
+                    LOG.error(
+                        "Error in connection error callback: %s", callback_exc, exc_info=True
+                    )
 
             # Raise the exception to stop the consumer
             raise exc
@@ -147,68 +152,92 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             "Attempting to pause running workflows before potential engine shutdown."
         )
 
-        self._pause_running_workflows_on_connection_loss()
+        self._pause_running_workflows()
 
-    def _pause_running_workflows_on_connection_loss(self):
+    def _pause_running_workflows(self):
         """
-        Pause all running workflows when RabbitMQ connection is permanently lost.
+        Pause all running workflows when this is the last workflow engine.
 
-        This is similar to the shutdown logic but specifically for connection loss scenarios.
-        We only pause workflows if this is the last workflow engine (when coordination is enabled).
+        This method checks if there are other workflow engines running (when coordination is enabled).
+        If this is the last engine, it pauses all running workflows.
         """
         coordinator = coordination.get_coordinator()
 
         # Only pause workflows if coordination service is enabled
         if not cfg.CONF.coordination.service_registry:
             LOG.warning(
-                "Coordination service not enabled. Cannot safely pause workflows on connection loss. "
-                "Workflows may remain in running state."
+                "Coordination service not enabled. Cannot safely determine if other engines exist. "
+                "Pausing all running workflows as a safety measure."
             )
+            self._pause_all_running_workflows()
             return
 
-        with coordinator.get_lock(WORKFLOW_ENGINE_START_STOP_SEQ):
-            group_id = coordination.get_group_id(WORKFLOW_ENGINE)
+        try:
+            with coordinator.get_lock(WORKFLOW_ENGINE_START_STOP_SEQ):
+                group_id = coordination.get_group_id(WORKFLOW_ENGINE)
+                try:
+                    member_ids = list(coordinator.get_members(group_id).get())
+                except GroupNotCreated:
+                    member_ids = []
+
+                # Check if there are other workflow engines still running
+                # Note: member_ids includes this engine, so we check for <= 1
+                if not member_ids or len(member_ids) <= 1:
+                    LOG.info(
+                        "This appears to be the last workflow engine. Pausing running workflows."
+                    )
+                    self._pause_all_running_workflows()
+                else:
+                    LOG.info(
+                        "Other workflow engines detected (%d members). "
+                        "Skipping workflow pause on this instance.",
+                        len(member_ids),
+                    )
+        except Exception as e:
+            LOG.error(
+                "Error checking for other workflow engines: %s. "
+                "Pausing workflows as a safety measure.",
+                e,
+                exc_info=True,
+            )
+            self._pause_all_running_workflows()
+
+    def _pause_all_running_workflows(self):
+        """
+        Pause all running workflows by setting them to PAUSED state.
+        """
+        ac_ex_dbs = self._get_running_workflows()
+        paused_count = 0
+
+        for ac_ex_db in ac_ex_dbs:
             try:
-                member_ids = list(coordinator.get_members(group_id).get())
-            except GroupNotCreated:
-                member_ids = []
-
-            # Check if there are other workflow engines still running
-            if not member_ids or len(member_ids) <= 1:
-                LOG.info(
-                    "This appears to be the last workflow engine. Pausing running workflows."
+                lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction_id)
+                # Directly set to "paused" instead of "pausing" since RabbitMQ is down
+                # and action runners won't be able to complete the transition
+                lv_ac.context["paused_by"] = WORKFLOW_ENGINE_START_STOP_SEQ
+                action_utils.update_liveaction_status(
+                    liveaction_id=str(lv_ac.id),
+                    status=ac_const.LIVEACTION_STATUS_PAUSED,
+                    context=lv_ac.context,
+                    publish=False,  # Don't publish since RabbitMQ is down
                 )
-                ac_ex_dbs = self._get_running_workflows()
-                paused_count = 0
-
-                for ac_ex_db in ac_ex_dbs:
-                    try:
-                        lv_ac = action_utils.get_liveaction_by_id(
-                            ac_ex_db.liveaction_id
-                        )
-                        # Directly set to "paused" instead of "pausing" since RabbitMQ is down
-                        # and action runners won't be able to complete the transition
-                        lv_ac.context["paused_by"] = WORKFLOW_ENGINE_START_STOP_SEQ
-                        action_utils.update_liveaction_status(
-                            liveaction_id=str(lv_ac.id),
-                            status=ac_const.LIVEACTION_STATUS_PAUSED,
-                            context=lv_ac.context,
-                            publish=False,  # Don't publish since RabbitMQ is down
-                        )
-                        paused_count += 1
-                    except Exception as e:
-                        LOG.error("Failed to pause workflow %s: %s", ac_ex_db.id, e)
-
+                paused_count += 1
                 LOG.info(
-                    "Paused %d running workflow(s) due to connection loss.",
-                    paused_count,
+                    'Paused workflow execution "%s" due to engine shutdown.',
+                    str(ac_ex_db.id),
                 )
-            else:
-                LOG.info(
-                    "Other workflow engines detected (%d members). "
-                    "Skipping workflow pause on this instance.",
-                    len(member_ids),
+            except Exception as e:
+                LOG.error(
+                    "Failed to pause workflow %s: %s",
+                    str(ac_ex_db.id),
+                    str(e),
+                    exc_info=True,
                 )
+
+        LOG.info(
+            "Paused %d running workflow(s) due to engine shutdown.",
+            paused_count,
+        )
 
     def process(self, message):
         handler_function = self.message_types.get(type(message), None)
@@ -248,42 +277,8 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             concurrency.sleep(sleep_delay)
             timeout += sleep_delay
 
-        coordinator = coordination.get_coordinator()
-        member_ids = []
-        with coordinator.get_lock(WORKFLOW_ENGINE_START_STOP_SEQ):
-            try:
-                group_id = coordination.get_group_id(WORKFLOW_ENGINE)
-                member_ids = list(coordinator.get_members(group_id).get())
-            except GroupNotCreated:
-                pass
-
-            # Check if there are other WFEs in service registry
-            if cfg.CONF.coordination.service_registry and not member_ids:
-                ac_ex_dbs = self._get_running_workflows()
-                for ac_ex_db in ac_ex_dbs:
-                    try:
-                        lv_ac = action_utils.get_liveaction_by_id(
-                            ac_ex_db.liveaction_id
-                        )
-                        # Directly set to "paused" instead of "pausing" since RabbitMQ is down
-                        # and action runners won't be able to complete the transition
-                        lv_ac.context["paused_by"] = WORKFLOW_ENGINE_START_STOP_SEQ
-                        action_utils.update_liveaction_status(
-                            liveaction_id=str(lv_ac.id),
-                            status=ac_const.LIVEACTION_STATUS_PAUSED,
-                            context=lv_ac.context,
-                            publish=False,  # Don't publish since RabbitMQ is down
-                        )
-                        LOG.info(
-                            'Paused workflow execution "%s" due to connection loss.',
-                            str(ac_ex_db.id),
-                        )
-                    except Exception as e:
-                        LOG.error(
-                            "Failed to pause workflow %s: %s",
-                            str(ac_ex_db.id),
-                            str(e),
-                        )
+        # Pause workflows if this is the last engine
+        self._pause_running_workflows()
 
     def _get_running_workflows(self):
         query_filters = {
