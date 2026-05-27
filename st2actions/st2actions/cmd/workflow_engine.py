@@ -75,6 +75,17 @@ def run_server():
         engine.shutdown()
         return 0
     except Exception as e:
+        # Check if this is a connection error after retries exhausted
+        # If so, pause workflows before terminating
+        if hasattr(engine, '_queue_consumer') and hasattr(engine._queue_consumer, '_handler'):
+            handler = engine._queue_consumer._handler
+            if hasattr(handler, '_pause_running_workflows_on_connection_loss'):
+                try:
+                    LOG.info("Pausing running workflows due to connection failure...")
+                    handler._pause_running_workflows_on_connection_loss()
+                except Exception as pause_error:
+                    LOG.error("Failed to pause workflows: %s", pause_error, exc_info=True)
+        
         LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())
         raise e
 
