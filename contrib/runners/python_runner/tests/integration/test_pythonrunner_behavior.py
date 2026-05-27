@@ -83,12 +83,6 @@ class PythonRunnerBehaviorTestCase(CleanFilesTestCase, CleanDbTestCase):
         setup_pack_virtualenv(pack_name=pack_name)
         self.assertTrue(os.path.exists(os.path.join(self.virtualenvs_path, pack_name)))
 
-        # This test suite expects that loaded six module is located under the virtualenv library,
-        # because 'six' is written in the requirements.txt of 'test_library_dependencies' pack.
-        (_, output, _) = self._run_action(
-            pack_name, "get_library_path.py", {"module": "six"}
-        )
-
         # Conversely, this expects that 'mock' module file-path is not under sandbox library,
         # but the parent process's library path, because that is not under the pack's virtualenv.
         (_, output, _) = self._run_action(
