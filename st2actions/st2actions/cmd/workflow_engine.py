@@ -74,11 +74,9 @@ def run_server():
         deregister_service(service=workflows.WORKFLOW_ENGINE)
         engine.shutdown()
         return 0
-    except:
+    except Exception as e:
         LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())
-        deregister_service(service=workflows.WORKFLOW_ENGINE)
-        engine.shutdown()
-        return 1
+        raise e
 
 
 def teardown():
