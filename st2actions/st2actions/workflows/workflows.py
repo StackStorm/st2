@@ -53,25 +53,52 @@ WORKFLOW_ENGINE_START_STOP_SEQ = "workflow_engine_start_stop_seq"
 
 class WorkflowEngineQueueConsumer(consumers.VariableMessageQueueConsumer):
     """
-    Custom queue consumer that notifies the handler when connection errors occur.
+    Custom queue consumer that pauses workflows when RabbitMQ connection is lost.
     """
 
     def on_connection_error(self, exc, interval):
         """
-        Override to notify handler before handling connection error.
+        Override ConnectionRetryMixin's on_connection_error to pause workflows
+        only when max retries are exhausted.
 
-        This allows the WorkflowExecutionHandler to pause workflows before
-        the engine terminates due to connection loss.
+        :param exc: The connection exception that occurred
+        :param interval: Time in seconds before next retry attempt
         """
-        # Notify handler if it has a connection error callback
-        if hasattr(self._handler, "on_connection_error_callback"):
-            try:
-                self._handler.on_connection_error_callback(exc, interval)
-            except Exception as e:
-                LOG.error("Handler connection error callback failed: %s", e)
+        # Increment retry counter
+        self._connection_retry_count += 1
 
-        # Call parent's connection error handler from ConnectionRetryMixin
-        super(WorkflowEngineQueueConsumer, self).on_connection_error(exc, interval)
+        # Check if we've reached max retries
+        if (
+            self._max_connection_retries > 0
+            and self._connection_retry_count >= self._max_connection_retries
+        ):
+            # This is the last attempt - pause workflows before giving up
+            LOG.error(
+                "Failed to connect to message broker after %d attempts. "
+                "Pausing running workflows before giving up. Error: %s",
+                self._connection_retry_count,
+                exc,
+            )
+
+            # Call handler's connection error callback to pause workflows
+            if hasattr(self._handler, "on_connection_error_callback"):
+                self._handler.on_connection_error_callback(exc, interval)
+
+            # Raise the exception to stop the consumer
+            raise exc
+
+        # Log retry attempt (not the final one)
+        max_retries_display = (
+            self._max_connection_retries if self._max_connection_retries > 0 else "∞"
+        )
+        LOG.warning(
+            "Broker connection error (attempt %d/%s), "
+            "trying again in %.1f seconds: %s",
+            self._connection_retry_count,
+            max_retries_display,
+            interval,
+            exc,
+        )
 
 
 class WorkflowExecutionHandler(consumers.VariableMessageHandler):
