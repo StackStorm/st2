@@ -51,61 +51,6 @@ WORKFLOW_ENGINE = "workflow_engine"
 WORKFLOW_ENGINE_START_STOP_SEQ = "workflow_engine_start_stop_seq"
 
 
-class WorkflowEngineQueueConsumer(consumers.VariableMessageQueueConsumer):
-    """
-    Custom queue consumer that pauses workflows when RabbitMQ connection is lost.
-    """
-
-    def on_connection_error(self, exc, interval):
-        """
-        Override ConnectionRetryMixin's on_connection_error to pause workflows
-        only when max retries are exhausted.
-
-        :param exc: The connection exception that occurred
-        :param interval: Time in seconds before next retry attempt
-        """
-        # Increment retry counter
-        self._connection_retry_count += 1
-
-        # Check if we've reached max retries
-        if (
-            self._max_connection_retries > 0
-            and self._connection_retry_count >= self._max_connection_retries
-        ):
-            # This is the last attempt - pause workflows before giving up
-            LOG.error(
-                "Failed to connect to message broker after %d attempts. "
-                "Pausing running workflows before giving up. Error: %s",
-                self._connection_retry_count,
-                exc,
-            )
-
-            # Call handler's connection error callback to pause workflows
-            if hasattr(self._handler, "on_connection_error_callback"):
-                try:
-                    self._handler.on_connection_error_callback(exc, interval)
-                except Exception as callback_exc:
-                    LOG.error(
-                        "Error in connection error callback: %s", callback_exc, exc_info=True
-                    )
-
-            # Raise the exception to stop the consumer
-            raise exc
-
-        # Log retry attempt (not the final one)
-        max_retries_display = (
-            self._max_connection_retries if self._max_connection_retries > 0 else "∞"
-        )
-        LOG.warning(
-            "Broker connection error (attempt %d/%s), "
-            "trying again in %.1f seconds: %s",
-            self._connection_retry_count,
-            max_retries_display,
-            interval,
-            exc,
-        )
-
-
 class WorkflowExecutionHandler(consumers.VariableMessageHandler):
     def __init__(self, connection, queues):
         super(WorkflowExecutionHandler, self).__init__(connection, queues)
@@ -131,30 +76,8 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             ex_db_models.ActionExecutionDB: handle_action_execution_with_instrumentation,
         }
 
-    def get_queue_consumer(self, connection, queues):
-        # Use our custom consumer that will notify us of connection errors
-        return WorkflowEngineQueueConsumer(
-            connection=connection, queues=queues, handler=self
-        )
 
-    def on_connection_error_callback(self, exc, interval):
-        """
-        Called by WorkflowEngineQueueConsumer when connection error occurs.
-
-        This callback is invoked before the ConnectionRetryMixin logic runs,
-        allowing us to pause workflows before the engine terminates.
-
-        :param exc: The connection exception that occurred
-        :param interval: Time in seconds before next retry attempt
-        """
-        LOG.error(
-            "RabbitMQ connection error detected. "
-            "Attempting to pause running workflows before potential engine shutdown."
-        )
-
-        self._pause_running_workflows()
-
-    def _pause_running_workflows(self):
+    def _pause_running_workflows_on_connection_loss(self):
         """
         Pause all running workflows when this is the last workflow engine.
 
@@ -278,7 +201,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             timeout += sleep_delay
 
         # Pause workflows if this is the last engine
-        self._pause_running_workflows()
+        self._pause_running_workflows_on_connection_loss()
 
     def _get_running_workflows(self):
         query_filters = {
