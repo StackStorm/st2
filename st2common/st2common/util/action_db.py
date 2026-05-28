@@ -301,7 +301,7 @@ def update_liveaction_status(
 
     # TODO: This is not efficient. Perform direct partial update and only update
     # manipulated fields
-    liveaction_db = LiveAction.add_or_update(liveaction_db)
+    liveaction_db = LiveAction.add_or_update(liveaction_db, publish=publish)
 
     LOG.debug("Updated status for LiveAction object.", extra=extra)
 
