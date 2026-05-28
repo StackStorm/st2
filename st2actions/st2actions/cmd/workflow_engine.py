@@ -74,7 +74,7 @@ def run_server():
         deregister_service(service=workflows.WORKFLOW_ENGINE)
         engine.shutdown()
         return 0
-    except Exception as e:
+    except Exception:
         # Pause workflows before terminating due to fatal error
         try:
             LOG.info("Pausing running workflows due to connection failure...")
