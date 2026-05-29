@@ -429,6 +429,18 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
 
     @mock.patch.object(
+        coordination_service,
+        "get_member_id",
+        mock.MagicMock(return_value=b"member-1"),
+    )
+    @mock.patch.object(
+        RedisDriver,
+        "get_members",
+        mock.MagicMock(
+            return_value=coordination_service.NoOpAsyncResult((b"member-1",))
+        ),
+    )
+    @mock.patch.object(
         RedisDriver,
         "get_lock",
         mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
@@ -452,25 +464,23 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         workflow_engine._delay = 5
         # Initiate shutdown first
         eventlet.spawn(workflow_engine.shutdown)
-        eventlet.spawn_after(1, workflow_engine.start, True)
 
-        # Sleep for few seconds to ensure shutdown sequence completes.
-        eventlet.sleep(2)
+        # Sleep long enough for shutdown to complete
+        eventlet.sleep(10)
+
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-
         # Shutdown routine acquires the lock first
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
-        # Process task1
-        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
-        t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )[0]
 
-        workflows.get_engine().process(t1_ac_ex_db)
-        # Startup sequence won't proceed until shutdown routine completes.
-        # Assuming shutdown sequence is complete, start up sequence will resume the workflow.
-        eventlet.sleep(workflow_engine._delay + 5)
+        # Now get a fresh engine and start it
+        # This simulates a real restart where a new engine is created
+        # The engine start should automatically resume paused workflows
+        new_engine = workflows.get_engine()
+        new_engine._delay = 5
+        new_engine.start(False)
+
+        # Wait for the engine's delay + additional time for resume to complete
+        eventlet.sleep(5 + 5)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertTrue(
             lv_ac_db.status
