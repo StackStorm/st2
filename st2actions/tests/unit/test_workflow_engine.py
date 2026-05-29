@@ -443,12 +443,23 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         # Now get a fresh engine and start it
         # This simulates a real restart where a new engine is created
         # The engine start should automatically resume paused workflows
-        new_engine = workflows.get_engine()
-        new_engine._delay = 5
-        new_engine.start(False)
 
-        # Wait for the engine's delay + additional time for resume to complete
-        eventlet.sleep(5 + 5)
+        # Use context managers to mock the coordinator instance methods
+        with mock.patch.object(
+            coordination_service.get_coordinator(),
+            "get_members",
+            return_value=coordination_service.NoOpAsyncResult((b"member-1",)),
+        ):
+            with mock.patch.object(
+                coordination_service, "get_member_id", return_value=b"member-1"
+            ):
+                new_engine = workflows.get_engine()
+                new_engine._delay = 5
+                new_engine.start(False)
+
+                # Wait for the engine's delay + additional time for resume to complete
+                eventlet.sleep(5 + 5)
+
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertTrue(
             lv_ac_db.status
