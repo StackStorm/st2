@@ -1146,11 +1146,10 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
     # Refresh records.
     conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
 
-    # If workflow is in requested, scheduled, or resuming status, set it to running.
+    # If workflow is in requested, scheduled, set it to running.
     if conductor.get_workflow_status() in [
         statuses.REQUESTED,
         statuses.SCHEDULED,
-        statuses.RESUMING,
     ]:
         update_progress(
             wf_ex_db, "Requesting conductor to start running workflow execution."

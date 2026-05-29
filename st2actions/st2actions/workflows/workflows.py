@@ -381,6 +381,14 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         """
         coordinator = coordination.get_coordinator()
 
+        # Only resume workflows if coordination service is enabled
+        if not cfg.CONF.coordination.service_registry:
+            LOG.warning(
+                "Coordination service not enabled. Cannot safely determine if this is the first engine. "
+                "Skipping automatic workflow resume. Workflows can be manually resumed if needed."
+            )
+            return
+
         # Check system health before attempting to resume workflows
         if not self._check_system_health():
             LOG.warning(
@@ -390,98 +398,125 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             return
 
         with coordinator.get_lock(WORKFLOW_ENGINE_START_STOP_SEQ):
-            lv_ac_dbs = self._get_workflows_paused_during_shutdown()
-            if lv_ac_dbs:
+            group_id = coordination.get_group_id(WORKFLOW_ENGINE)
+            try:
+                member_ids = list(coordinator.get_members(group_id).get())
+            except GroupNotCreated:
+                member_ids = []
+
+            # Sort member IDs for deterministic ordering
+            member_ids_sorted = sorted(member_ids)
+            
+            # Get our own member_id
+            our_member_id = coordination.get_member_id()
+            
+            # Only resume if we're the first member in the sorted list
+            # This prevents race conditions when multiple engines start simultaneously
+            if not member_ids_sorted or member_ids_sorted[0] != our_member_id:
                 LOG.info(
-                    "System health check passed. Auto-resuming %d paused workflow(s).",
-                    len(lv_ac_dbs),
+                    "Not the first workflow engine. Skipping workflow resume. "
+                    "(First member: %s, Our member: %s, Total members: %d)",
+                    member_ids_sorted[0] if member_ids_sorted else "none",
+                    our_member_id,
+                    len(member_ids_sorted),
                 )
-            for lv_ac_db in lv_ac_dbs:
-                try:
+                return
+
+            LOG.info(
+                "This is the first workflow engine (member_id: %s). Checking for workflows to resume.",
+                our_member_id,
+            )
+        lv_ac_dbs = self._get_workflows_paused_during_shutdown()
+        if lv_ac_dbs:
+            LOG.info(
+                "System health check passed. Auto-resuming %d paused workflow(s).",
+                len(lv_ac_dbs),
+            )
+        for lv_ac_db in lv_ac_dbs:
+            try:
+                LOG.debug(
+                    "[%s] DEBUG: Starting resume - LiveAction status: %s",
+                    str(lv_ac_db.id),
+                    lv_ac_db.status,
+                )
+
+                # Clear the paused_by marker before resuming
+                if "paused_by" in lv_ac_db.context:
                     LOG.debug(
-                        "[%s] DEBUG: Starting resume - LiveAction status: %s",
+                        "[%s] DEBUG: Clearing paused_by marker from context",
+                        str(lv_ac_db.id),
+                    )
+                    del lv_ac_db.context["paused_by"]
+                    lv_ac_db = lv_db_access.LiveAction.add_or_update(
+                        lv_ac_db, publish=False
+                    )
+                    LOG.debug(
+                        "[%s] DEBUG: After clearing paused_by - LiveAction status: %s",
                         str(lv_ac_db.id),
                         lv_ac_db.status,
                     )
 
-                    # Clear the paused_by marker before resuming
-                    if "paused_by" in lv_ac_db.context:
-                        LOG.debug(
-                            "[%s] DEBUG: Clearing paused_by marker from context",
-                            str(lv_ac_db.id),
-                        )
-                        del lv_ac_db.context["paused_by"]
-                        lv_ac_db = lv_db_access.LiveAction.add_or_update(
-                            lv_ac_db, publish=False
-                        )
-                        LOG.debug(
-                            "[%s] DEBUG: After clearing paused_by - LiveAction status: %s",
-                            str(lv_ac_db.id),
-                            lv_ac_db.status,
-                        )
+                # Refresh the ActionExecution to get updated liveaction reference
+                ac_ex_db = ex_db_access.ActionExecution.get(
+                    liveaction_id=str(lv_ac_db.id)
+                )
+                LOG.debug(
+                    "[%s] DEBUG: ActionExecution before resume: %s",
+                    str(ac_ex_db.id),
+                    ac_ex_db,
+                )
 
-                    # Refresh the ActionExecution to get updated liveaction reference
-                    ac_ex_db = ex_db_access.ActionExecution.get(
-                        liveaction_id=str(lv_ac_db.id)
-                    )
+                # Get the WorkflowExecution to sync completed tasks before resuming
+                wf_ex_id = ac_ex_db.context.get("workflow_execution")
+                LOG.debug(
+                    "[%s] DEBUG: Workflow execution ID from context: %s",
+                    str(ac_ex_db.id),
+                    wf_ex_id or "None",
+                )
+
+                if wf_ex_id:
+                    # Synchronize any completed tasks to the conductor state
+                    # This fixes the issue where tasks completed during shutdown
+                    # but the conductor still thinks they are running
                     LOG.debug(
-                        "[%s] DEBUG: ActionExecution before resume: %s",
+                        "[%s] DEBUG: Calling _sync_completed_tasks_to_conductor for workflow %s",
                         str(ac_ex_db.id),
-                        ac_ex_db,
+                        wf_ex_id,
                     )
-
-                    # Get the WorkflowExecution to sync completed tasks before resuming
-                    wf_ex_id = ac_ex_db.context.get("workflow_execution")
+                    self._sync_completed_tasks_to_conductor(wf_ex_id)
                     LOG.debug(
-                        "[%s] DEBUG: Workflow execution ID from context: %s",
+                        "[%s] DEBUG: Completed _sync_completed_tasks_to_conductor for workflow %s",
                         str(ac_ex_db.id),
-                        wf_ex_id or "None",
+                        wf_ex_id,
                     )
-
-                    if wf_ex_id:
-                        # Synchronize any completed tasks to the conductor state
-                        # This fixes the issue where tasks completed during shutdown
-                        # but the conductor still thinks they are running
-                        LOG.debug(
-                            "[%s] DEBUG: Calling _sync_completed_tasks_to_conductor for workflow %s",
-                            str(ac_ex_db.id),
-                            wf_ex_id,
-                        )
-                        self._sync_completed_tasks_to_conductor(wf_ex_id)
-                        LOG.debug(
-                            "[%s] DEBUG: Completed _sync_completed_tasks_to_conductor for workflow %s",
-                            str(ac_ex_db.id),
-                            wf_ex_id,
-                        )
-                    else:
-                        LOG.warning(
-                            "[%s] No workflow_execution ID found in context. Skipping task synchronization.",
-                            str(ac_ex_db.id),
-                        )
-
-                    # Call workflow-specific resume - this handles everything:
-                    # - Checks if workflow is in PAUSED status
-                    # - Identifies next tasks to execute
-                    # - Updates status to RUNNING (calls ac_svc.request_resume internally)
-                    # - Publishes workflow for processing
-                    LOG.debug(
-                        "[%s] DEBUG: Calling wf_svc.request_resume()",
+                else:
+                    LOG.warning(
+                        "[%s] No workflow_execution ID found in context. Skipping task synchronization.",
                         str(ac_ex_db.id),
                     )
-                    wf_svc.request_resume(ac_ex_db)
 
-                    LOG.info(
-                        'Successfully resumed workflow execution "%s" after shutdown.',
-                        str(ac_ex_db.id),
-                    )
-                except Exception as e:
-                    LOG.error(
-                        "Failed to resume workflow %s: %s",
-                        str(lv_ac_db.id),
-                        str(e),
-                        exc_info=True,
-                    )
+                # Call workflow-specific resume - this handles everything:
+                # - Checks if workflow is in PAUSED status
+                # - Identifies next tasks to execute
+                # - Updates status to RUNNING (calls ac_svc.request_resume internally)
+                # - Publishes workflow for processing
+                LOG.debug(
+                    "[%s] DEBUG: Calling wf_svc.request_resume()",
+                    str(ac_ex_db.id),
+                )
+                wf_svc.request_resume(ac_ex_db)
 
+                LOG.info(
+                    'Successfully resumed workflow execution "%s" after shutdown.',
+                    str(ac_ex_db.id),
+                )
+            except Exception as e:
+                LOG.error(
+                    "Failed to resume workflow %s: %s",
+                    str(lv_ac_db.id),
+                    str(e),
+                    exc_info=True,
+                )
     def _check_system_health(self):
         """
         Check if RabbitMQ and database connections are healthy.

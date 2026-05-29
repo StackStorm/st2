@@ -301,9 +301,14 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_CANCELED)
 
     @mock.patch.object(
+        coordination_service,
+        "get_member_id",
+        mock.MagicMock(return_value=b"test_host_12345"),
+    )
+    @mock.patch.object(
         RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult("")),
+        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult([b"test_host_12345"])),
     )
     def test_workflow_engine_shutdown(self):
         self.reset_config(
