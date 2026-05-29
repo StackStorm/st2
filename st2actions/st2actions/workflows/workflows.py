@@ -406,10 +406,10 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
 
             # Sort member IDs for deterministic ordering
             member_ids_sorted = sorted(member_ids)
-            
+
             # Get our own member_id
             our_member_id = coordination.get_member_id()
-            
+
             # Only resume if we're the first member in the sorted list
             # This prevents race conditions when multiple engines start simultaneously
             if not member_ids_sorted or member_ids_sorted[0] != our_member_id:
@@ -517,6 +517,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                     str(e),
                     exc_info=True,
                 )
+
     def _check_system_health(self):
         """
         Check if RabbitMQ and database connections are healthy.

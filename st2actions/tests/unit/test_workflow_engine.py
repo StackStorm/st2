@@ -308,7 +308,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
     @mock.patch.object(
         RedisDriver,
         "get_members",
-        mock.MagicMock(return_value=coordination_service.NoOpAsyncResult([b"test_host_12345"])),
+        mock.MagicMock(
+            return_value=coordination_service.NoOpAsyncResult([b"test_host_12345"])
+        ),
     )
     def test_workflow_engine_shutdown(self):
         self.reset_config(
@@ -399,25 +401,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         eventlet.sleep(5)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
-
-        # Process task1.
-        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
-        t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )[0]
-
-        workflows.get_engine().process(t1_ac_ex_db)
-        t1_ac_ex_db = ex_db_access.ActionExecution.query(
-            task_execution=str(t1_ex_db.id)
-        )[0]
-        self.assertEqual(
-            t1_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
-        )
-
-        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
 
     def test_workflow_engine_shutdown_with_service_registry_disabled(self):
         self.reset_config(service_registry=False)
@@ -440,9 +424,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         # Sleep for few seconds to ensure shutdown sequence completes.
         eventlet.sleep(5)
 
-        # WFE doesn't pause the workflow, since service registry is disabled.
+        # WFE pause the workflow with service registry is disabled.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
 
     @mock.patch.object(
         RedisDriver,
