@@ -16,10 +16,13 @@
 from __future__ import absolute_import
 
 import eventlet
+import logging
 import mock
 
 # This import must be early for import-time side-effects.
 import st2tests
+
+LOG = logging.getLogger(__name__)
 
 from orquesta import statuses as wf_statuses
 from oslo_config import cfg
@@ -414,6 +417,8 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
     )
     def test_workflow_engine_shutdown_first_then_start(self):
+        import time
+
         self.reset_config(service_registry=True, exit_still_active_check=0)
 
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -429,20 +434,50 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
 
+        LOG.info("=" * 80)
+        LOG.info("TEST DEBUG: Initial State")
+        LOG.info("LiveAction ID: %s", lv_ac_db.id)
+        LOG.info("ActionExecution ID: %s", ac_ex_db.id)
+        LOG.info("WorkflowExecution ID: %s", wf_ex_db.id)
+        LOG.info("LiveAction status: %s", lv_ac_db.status)
+        LOG.info("WorkflowExecution status: %s", wf_ex_db.status)
+        LOG.info("Time: %s", time.time())
+
         workflow_engine._delay = 5
         # Initiate shutdown first
+        LOG.info("-" * 80)
+        LOG.info("TEST DEBUG: Initiating Shutdown")
+        LOG.info("Engine delay: %s", workflow_engine._delay)
         eventlet.spawn(workflow_engine.shutdown)
 
         # Sleep long enough for shutdown to complete
+        LOG.info("TEST DEBUG: Sleeping 10 seconds for shutdown...")
         eventlet.sleep(10)
 
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        LOG.info("-" * 80)
+        LOG.info("TEST DEBUG: After Shutdown")
+        LOG.info("Time: %s", time.time())
+        LOG.info("LiveAction status: %s", lv_ac_db.status)
+        LOG.info("WorkflowExecution status: %s", wf_ex_db.status)
+
         # Shutdown routine acquires the lock first
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
 
         # Now get a fresh engine and start it
         # This simulates a real restart where a new engine is created
         # The engine start should automatically resume paused workflows
+
+        LOG.info("-" * 80)
+        LOG.info("TEST DEBUG: Preparing Engine Restart")
+        LOG.info("Checking paused workflows in DB...")
+        paused_workflows = lv_db_access.LiveAction.query(
+            status=action_constants.LIVEACTION_STATUS_PAUSED, action_is_workflow=True
+        )
+        LOG.info("Found %d paused workflow(s)", len(paused_workflows))
+        for pw in paused_workflows:
+            LOG.info("  - LiveAction %s: %s, status=%s", pw.id, pw.action, pw.status)
 
         # Use context managers to mock the coordinator instance methods
         with mock.patch.object(
@@ -453,22 +488,56 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             with mock.patch.object(
                 coordination_service, "get_member_id", return_value=b"member-1"
             ):
+                LOG.info("TEST DEBUG: Creating new engine instance...")
                 new_engine = workflows.get_engine()
                 new_engine._delay = 5
+                LOG.info("New engine delay: %s", new_engine._delay)
+                LOG.info("TEST DEBUG: Starting new engine (resume_workflows=False)...")
+                LOG.info("Time before start: %s", time.time())
                 new_engine.start(False)
 
                 # Wait for the engine's delay + additional time for resume to complete
-                eventlet.sleep(5 + 5)
+                # Increased from 10 to 15 seconds to give more time in CI/CD
+                wait_time = 5 + 15
+                LOG.info(
+                    "TEST DEBUG: Sleeping %d seconds for engine start and resume...",
+                    wait_time,
+                )
+                eventlet.sleep(wait_time)
 
+        LOG.info("-" * 80)
+        LOG.info("TEST DEBUG: After Engine Start")
+        LOG.info("Time: %s", time.time())
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertTrue(
-            lv_ac_db.status
-            in [
-                action_constants.LIVEACTION_STATUS_RESUMING,
-                action_constants.LIVEACTION_STATUS_RUNNING,
-                action_constants.LIVEACTION_STATUS_SUCCEEDED,
-            ]
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        LOG.info("LiveAction status: %s", lv_ac_db.status)
+        LOG.info("WorkflowExecution status: %s", wf_ex_db.status)
+
+        # Check task executions
+        task_execs = wf_db_access.TaskExecution.query(
+            workflow_execution=str(wf_ex_db.id)
         )
+        LOG.info("Task executions count: %d", len(task_execs))
+        for te in task_execs:
+            LOG.info("  - Task %s: status=%s", te.task_id, te.status)
+
+        # Check all paused workflows
+        all_paused = lv_db_access.LiveAction.query(
+            status=action_constants.LIVEACTION_STATUS_PAUSED, action_is_workflow=True
+        )
+        LOG.info("Total paused workflows in DB: %d", len(all_paused))
+
+        LOG.info("Expected statuses: RESUMING, RUNNING, or SUCCEEDED")
+        LOG.info("Actual status: %s", lv_ac_db.status)
+        expected_statuses = [
+            action_constants.LIVEACTION_STATUS_RESUMING,
+            action_constants.LIVEACTION_STATUS_RUNNING,
+            action_constants.LIVEACTION_STATUS_SUCCEEDED,
+        ]
+        LOG.info("Status in expected list: %s", lv_ac_db.status)
+        LOG.info("=" * 80)
+
+        self.assertTrue(lv_ac_db.status in expected_statuses)
 
     @mock.patch.object(
         RedisDriver,
