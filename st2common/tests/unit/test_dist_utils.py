@@ -74,7 +74,7 @@ class DistUtilsTestCase(unittest.TestCase):
             "amqp==2.5.1",
             "argcomplete",
             "bcrypt==3.1.6",
-            'flex==6.14.0',
+            "flex==6.14.0",
             "orquesta",
             "st2-auth-backend-flat-file",
             "python_runner",
