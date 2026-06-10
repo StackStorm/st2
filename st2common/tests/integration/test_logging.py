@@ -49,7 +49,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
                 "LC_ALL": "en_US.UTF-8",
                 "ST2_LOG_PATCH_STDOUT": "false",
                 "PYTHONIOENCODING": "utf-8",
-                "EVENTLET_TESTS": 1,
+                "EVENTLET_TESTS": "1",
             }
         )
         self.add_process(process=process)
@@ -92,7 +92,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
                 "LC_ALL": "invalid",
                 "ST2_LOG_PATCH_STDOUT": "false",
                 "PYTHONIOENCODING": "utf-8",
-                "EVENTLET_TESTS": 1,
+                "EVENTLET_TESTS": "1",
             }
         )
         self.add_process(process=process)
@@ -138,7 +138,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
                 "LC_ALL": "en_US.UTF-8",
                 "ST2_LOG_PATCH_STDOUT": "false",
                 "PYTHONIOENCODING": "ascii",
-                "EVENTLET_TESTS": 1,
+                "EVENTLET_TESTS": "1",
             }
         )
         self.add_process(process=process)
@@ -182,7 +182,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
                 "LC_ALL": "en_US.UTF-8",
                 "ST2_LOG_PATCH_STDOUT": "true",
                 "PYTHONIOENCODING": "utf-8",
-                "EVENTLET_TESTS": 1,
+                "EVENTLET_TESTS": "1",
             }
         )
         self.add_process(process=process)
@@ -218,7 +218,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
                 "LC_ALL": "invalid",
                 "ST2_LOG_PATCH_STDOUT": "true",
                 "PYTHONIOENCODING": "utf-8",
-                "EVENTLET_TESTS": 1,
+                "EVENTLET_TESTS": "1",
             }
         )
         self.add_process(process=process)
@@ -255,7 +255,7 @@ class LogFormattingAndEncodingTestCase(IntegrationTestCase):
                 "LC_ALL": "en_US.UTF-8",
                 "ST2_LOG_PATCH_STDOUT": "true",
                 "PYTHONIOENCODING": "ascii",
-                "EVENTLET_TESTS": 1,
+                "EVENTLET_TESTS": "1",
             }
         )
         self.add_process(process=process)
