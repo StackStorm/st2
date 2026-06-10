@@ -5,5 +5,5 @@ python_sources(
                 "//:reqs#openapi-spec-validator",
             ],
         ),
-    },  
+    },
 )
