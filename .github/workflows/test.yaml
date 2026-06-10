@@ -513,6 +513,7 @@ jobs:
 
       - name: Integration Tests
         env:
+          EVENTLET_TESTS: 1
           ST2_CI_RUN_ORQUESTA_PAUSE_RESUME_TESTS: 'true'
         run: >
           pants
