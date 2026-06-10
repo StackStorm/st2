@@ -28,7 +28,7 @@ def _st2_venv_deps() -> list[str]:
     The :st2_venv parametrizations depend on parametrizations of :st2.pex,
     so, make sure to keep these 3 lists of parametrizations in sync.
     """
-    return [f":st2_venv@parametrize=py3{m}" for m in ("8", "9", "10", "11")]
+    return [f":st2_venv@parametrize=py3{m}" for m in ("10", "11")]
 
 
 def _distro(distro_id: str, **kwargs):
