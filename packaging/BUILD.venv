@@ -25,7 +25,7 @@ python_sources()
 def _pex_py3(minor: str, constraint: str = ""):
     """Parametrize :st2.pex for a given python minor version."""
     if not constraint:
-        constraint = f"CPython==3.{minor}.*"
+        constraint = f"CPython>=3.{minor}.*"
     return parametrize(
         f"py3{minor}",
         output_path=f"${{spec_path_normalized}}/st2-py3{minor}.pex",
