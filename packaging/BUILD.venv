@@ -88,8 +88,6 @@ nfpm_content_file(
     file_owner="root",
     file_group="root",
     file_mode="rwxr-x---",
-    **_venv_py3("8"),
-    **_venv_py3("9"),
     **_venv_py3("10"),
     **_venv_py3("11"),
 )
