@@ -830,6 +830,7 @@ unit-tests: requirements .unit-tests
 			echo "Running tests in" $$component; \
 			echo "-----------------------------------------------------------"; \
 			. $(VIRTUALENV_DIR)/bin/activate; \
+			EVENTLET_TESTS=1 \
 			ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 			ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 			pytest -rx --verbose $$component/tests/unit; \
@@ -863,6 +864,7 @@ endif
 		echo "Running tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		 EVENTLET_TESTS=1 \
 		 ST2TESTS_REDIS_HOST=$(ST2TESTS_REDIS_HOST) \
 		 ST2TESTS_REDIS_PORT=$(ST2TESTS_REDIS_PORT) \
 		    COVERAGE_FILE=.coverage.unit.$$(echo $$component | tr '/' '.') \
@@ -924,6 +926,7 @@ itests: requirements .itests
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		    EVENTLET_TESTS=1 \
 		    pytest --capture=no --verbose $(PYTEST_OPTS) \
 		    $$component/tests/integration || ((failed+=1)); \
 		echo "-----------------------------------------------------------"; \
@@ -949,6 +952,7 @@ endif
 		echo "Running integration tests in" $$component; \
 		echo "-----------------------------------------------------------"; \
 		. $(VIRTUALENV_DIR)/bin/activate; \
+		    EVENTLET_TESTS=1 \
 		    COVERAGE_FILE=.coverage.integration.$$(echo $$component | tr '/' '.') \
 		    pytest --capture=no --verbose $(PYTEST_OPTS) --cov=$$component --cov-branch \
 		    $$component/tests/integration || ((failed+=1)); \
