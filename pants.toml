@@ -253,6 +253,7 @@ extra_env_vars = [
   "ST2TESTS_*", # vars to override settings but only for tests.
   # For example: ST2TESTS_SYSTEM_USER, ST2TESTS_REDIS_HOST, ST2TESTS_REDIS_PORT
   "ST2_CI*", # CI-specific vars
+  "EVENTLET_TESTS",
   # Use this so that the test system does not require the stanley user.
   # For example: export ST2TESTS_SYSTEM_USER=${USER}
   "ST2_SYSTEM_USER__USER",

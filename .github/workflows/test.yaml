@@ -23,6 +23,7 @@ on:
   #  - cron:  '0 0 * * *'
 
 env:
+  EVENTLET_TESTS: 1
   COLUMNS: '120'
 
   # Tell StackStorm that we are indeed in CI mode, using our CI-provider agnostic var.
