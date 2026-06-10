@@ -23,7 +23,6 @@ on:
   #  - cron:  '0 0 * * *'
 
 env:
-  EVENTLET_TESTS: 1
   COLUMNS: '120'
 
   # Tell StackStorm that we are indeed in CI mode, using our CI-provider agnostic var.
@@ -513,7 +512,6 @@ jobs:
 
       - name: Integration Tests
         env:
-          EVENTLET_TESTS: 1
           ST2_CI_RUN_ORQUESTA_PAUSE_RESUME_TESTS: 'true'
         run: >
           pants
