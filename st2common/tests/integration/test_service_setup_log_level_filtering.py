@@ -83,8 +83,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(4)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         # Verify first 4 environment related log messages
         stdout = process.stdout.read().decode("utf-8")
@@ -105,8 +105,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(4)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         # Verify first 4 environment related log messages
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))
@@ -126,8 +126,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(4)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         # Verify first 4 environment related log messages
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[:6])
@@ -143,8 +143,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(4)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[6:])
@@ -158,8 +158,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(6)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[6:])
@@ -173,8 +173,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(6)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[6:])
@@ -188,8 +188,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(6)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n")[6:])
@@ -207,8 +207,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(6)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))
         self.assertNotIn("heartbeat_tick", stdout)
@@ -218,8 +218,8 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(6)
-        process.send_signal(signal.SIGKILL)
+        eventlet.sleep(8)
+        process.send_signal(signal.SIGTERM)
 
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))
         self.assertNotIn("heartbeat_tick", stdout)
