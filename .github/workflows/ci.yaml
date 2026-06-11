@@ -234,6 +234,7 @@ jobs:
         timeout-minutes: 5
         run: |
           cd ./st2client
+          rm -rf st2client.egg-info build dist
           pip3 install --upgrade pip
           python3 setup.py develop
 
