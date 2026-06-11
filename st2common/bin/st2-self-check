@@ -126,6 +126,20 @@ if [ $ERRORS -eq 0 ]; then
   TEST_ACTION_LIST=`st2 action list --pack=tests -w 90 | awk '{ print $2 }' | grep -v "|" | grep -v "ref" | grep tests.test_`
 fi
 
+# Diagnostic: Test pack installation to see actual errors
+echo "=========================================="
+echo "DIAGNOSTIC: Testing pack installation..."
+echo "=========================================="
+echo "Attempting to install 'datadog' pack to capture error details..."
+st2 pack install datadog 2>&1 || true
+echo ""
+echo "Attempting to install 'consul' pack to capture error details..."
+st2 pack install consul 2>&1 || true
+echo ""
+echo "Diagnostic complete. Proceeding with normal tests..."
+echo "=========================================="
+echo ""
+
 # Run all the tests
 for TEST in $TEST_ACTION_LIST
 do
