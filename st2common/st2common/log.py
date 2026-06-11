@@ -262,7 +262,7 @@ def _patch_stdout():
             mode="w",
             encoding="utf-8",
             errors="replace",
-            buffering=0,
+            buffering=1,
         )
 
 
