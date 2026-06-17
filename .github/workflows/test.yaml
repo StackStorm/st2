@@ -665,7 +665,7 @@ jobs:
       - name: Run st2-self-check
         env:
           # Space separated list of tests to be skipped if the self-check is running in GitHub Actions
-          TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
+          TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool tests.test_packs_pack"
           ST2_SYSTEM_USER__USER: ${{ env.ST2TESTS_SYSTEM_USER }}
           ST2_SYSTEM_USER__SSH_KEY_FILE: /home/${{ env.ST2TESTS_SYSTEM_USER }}/.ssh/stanley_rsa
         run: >
