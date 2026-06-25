@@ -117,7 +117,7 @@ jobs:
       - image: circleci/python:3.10
     working_directory: ~/st2
     environment:
-      - DISTROS: "jammy el9"
+      - DISTROS: "jammy jammy el9 el9"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -241,7 +241,7 @@ jobs:
       - image: circleci/ruby:2.7
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "jammy el9"
+      - DISTROS: "jammy jammy el9 el9"
     steps:
       - attach_workspace:
           at: .
