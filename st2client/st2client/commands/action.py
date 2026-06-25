@@ -1457,6 +1457,10 @@ class ActionExecutionListCommand(ResourceViewCommand):
         # Filter options
         self.group.add_argument("--action", help="Action reference to filter the list.")
         self.group.add_argument(
+            "--pack",
+            help="Only return executions from the provided pack.",
+        )
+        self.group.add_argument(
             "--status",
             help=(
                 "Only return executions with the provided \
@@ -1523,6 +1527,8 @@ class ActionExecutionListCommand(ResourceViewCommand):
         # Filtering options
         if args.action:
             kwargs["action"] = args.action
+        if args.pack:
+            kwargs["pack"] = args.pack
         if args.status:
             kwargs["status"] = args.status
         if args.user:
