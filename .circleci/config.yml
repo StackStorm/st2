@@ -174,7 +174,7 @@ jobs:
           command: |
             set -x
             # Clean-up running containers
-            .circle/docker-compose2.sh clean
+            .circle/docker-compose.sh clean
             # Remove st2-packages-vol container
             docker rm -v --force st2-packages-vol || true
             # Clean-up any created volumes
