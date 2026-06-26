@@ -152,14 +152,17 @@ jobs:
             docker --version
             docker compose version
       - run:
-          name: Download st2-packages repository
+          name: Clone and patch st2-packages repository
           command: |
             set -x
-            PIP_VERSION=$(grep ^PIP_VERSION Makefile)
+            PIP_VERSION=$(grep ^PIP_VERSION Makefile | grep -o '[0-9.]*$')
+            echo "St2 makefile file pip version ${PIP_VERSION}"
             git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
-            git checkout ${CIRCLE_BRANCH} || true
-            sed -i -e "s/^PIP_VERSION .*$/${PIP_VERSION}/" packages/st2/debian/rules
+            echo "Patch PIP version used by dh_virtualenv"
+            sed -ri "s/^PIP_VERSION .*$/PIP_VERSION = ${PIP_VERSION}/" packages/st2/debian/rules
+            echo "Patch PIP version used by rpm spec"
+            sed -ri "s/install pip==[^\s]+/install pip==${PIP_VERSION}/" rpmspec/package_venv.spec
       - run:
           name: Initialize packages Build Environment
           command: |
