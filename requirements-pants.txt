@@ -72,7 +72,7 @@ routes
 semver
 # setuptools provides pkg_resources (and we need it with pip at runtime)
 # setuptools is also required for pants to build wheels.
-setuptools==80.10.2
+setuptools==82.0.1
 simplejson
 six
 # NOTE: we use sseclient-py instead of sseclient because sseclient

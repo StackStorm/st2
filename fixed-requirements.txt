@@ -73,11 +73,11 @@ sseclient-py==1.8.0
 stevedore==5.3.0
 tenacity==9.0.0
 tooz==6.3.0
-# Note: virtualenv embeds wheels for pip, wheel, and setuptools. So pinning virtualenv pins those as well.
-# virtualenv==20.30.0 (<21) has pip==25.0.1 wheel==0.45.1 setuptools==75.3.2
+# Note: virtualenv embeds wheels for pip, and setuptools. https://github.com/pypa/virtualenv/src/virtualenv/seed/wheels/embed
+# virtualenv==21.5.1 embeds pip==26.1.2 setuptools==82.0.1
 # lockfiles/st2.lock has pip==25.0.1 wheel==0.45.1 setuptools==75.3.2
-pip==25.3
-setuptools==80.10.2
+pip==26.1.2
+setuptools==82.0.1
 webob==1.8.9
 webtest==3.0.1
 zake==0.2.2
