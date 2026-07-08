@@ -214,7 +214,7 @@ jobs:
           when: always
           name: Grab the st2 logs
           command: |
-            docker exec st2-packages-vol ls -la /var/log/st2
+            docker run --rm --volumes-from st2-packages-vol alpine:3.12 ls -la /var/log/st2
             docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
       - store_artifacts:
           path: ~/st2/packages
