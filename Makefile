@@ -1,9 +1,6 @@
 ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 SHELL := /bin/bash
 OS := $(shell uname)
-OS_ID := $(shell source /etc/os-release; echo $ID)
-# Major OS version is sufficient.
-OS_VERSION := $(shell source /etc/os-release; echo ${VERSION_ID%.*})
 
 # We separate the OSX X and Linux virtualenvs so we can run in a Docker
 # container (st2devbox) while doing things on our host Mac machine
@@ -19,15 +16,9 @@ else
 	VIRTUALENV_COMPONENTS_DIR ?= virtualenv-components
 endif
 
-# Assign PYBIN if it doesn't already exist
-PYBIN ?= python3
-# Rocky9 requires a newer python version that the default py3.9
-ifeq ($(OS_ID),rocky)
-	ifeq ($(OS_VERSION),9)
-		PYBIN = python3.11
-	endif
-endif
-SYS_PY3 := $(shell which $(PYBIN))
+# Assign PYTHON_VERSION if it doesn't already exist
+PYTHON_VERSION ?= python3
+
 BINARIES := bin
 
 # All components are prefixed by st2 and not .egg-info.
@@ -132,7 +123,7 @@ all: requirements configgen check tests
 # Target for debugging Makefile variable assembly
 .PHONY: play
 play:
-	@echo PYBIN=$(PYBIN) \($$($(PYBIN) --version)\)
+	@echo PYTHON_VERSION=$(PYTHON_VERSION) \($$($(PYTHON_VERSION) --version)\)
 	@echo
 	@echo COVERAGE_GLOBS=$(COVERAGE_GLOBS_QUOTED)
 	@echo
@@ -183,7 +174,7 @@ install-runners:
 	@echo "================== INSTALL RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i bash -c "set -x; . $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; $(PYBIN) -m pip install --editable . --no-deps"
+	echo -e "$(COMPONENTS_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i bash -c "set -x; . $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
 	#@for component in $(COMPONENTS_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing runner:" $$component; \
@@ -197,7 +188,7 @@ install-mock-runners:
 	@echo "================== INSTALL MOCK RUNNERS ===================="
 	@echo ""
 	# NOTE: We use xargs to speed things up by installing runners in parallel
-	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; $(PYBIN) -m pip install --editable . --no-deps"
+	echo -e "$(MOCK_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c ". $(VIRTUALENV_DIR)/bin/activate; cd $$(pwd)/{} ; python -m pip install --editable . --no-deps"
 	#@for component in $(MOCK_RUNNERS); do \
 	#	echo "==========================================================="; \
 	#	echo "Installing mock runner:" $$component; \
@@ -261,13 +252,13 @@ check-python-packages:
 	@echo ""
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYBIN) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
 	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install --quiet "setuptools==$(SETUPTOOLS_VERSION)"
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/$(PYBIN) setup.py --version) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
 	done
 
 .PHONY: check-python-packages-nightly
@@ -278,16 +269,16 @@ check-python-packages-nightly:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 
-	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYBIN) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
+	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
 	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install --quiet "setuptools==$(SETUPTOOLS_VERSION)" wheel
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
 		echo "==========================================================="; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/$(PYBIN) setup.py --version) || exit 1; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/$(PYBIN) setup.py sdist bdist_wheel) || exit 1; \
-		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/$(PYBIN) -m pip install --editable . --no-deps) || exit 1; \
-		($(VIRTUALENV_COMPONENTS_DIR)/bin/$(PYBIN) -c "import $$component") || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py --version) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python setup.py sdist bdist_wheel) || exit 1; \
+		(set -e; cd $$component; ../$(VIRTUALENV_COMPONENTS_DIR)/bin/python -m pip install --editable . --no-deps) || exit 1; \
+		($(VIRTUALENV_COMPONENTS_DIR)/bin/python -c "import $$component") || exit 1; \
 		(set -e; cd $$component; rm -rf dist/; rm -rf $$component.egg-info) || exit 1; \
 	done
 
@@ -305,7 +296,7 @@ checklogs:
 	@echo
 	@echo "================== LOG WATCHER ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; $(PYBIN) ./tools/log_watcher.py 10
+	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/log_watcher.py 10
 
 .PHONY: pylint
 pylint: requirements .pylint
@@ -327,7 +318,7 @@ configgen: requirements .configgen
 	@echo
 	@echo "================== config gen ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; $(PYBIN) ./tools/config_gen.py > conf/st2.conf.sample;
+	. $(VIRTUALENV_DIR)/bin/activate; python ./tools/config_gen.py > conf/st2.conf.sample;
 
 .PHONY: schemasgen
 schemasgen: requirements .schemasgen
@@ -337,7 +328,7 @@ schemasgen: requirements .schemasgen
 	@echo
 	@echo "================== content model schemas gen ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; $(PYBIN) ./st2common/bin/st2-generate-schemas;
+	. $(VIRTUALENV_DIR)/bin/activate; python ./st2common/bin/st2-generate-schemas;
 
 .PHONY: .pylint
 .pylint:
@@ -460,7 +451,7 @@ lint-api-spec: requirements .lint-api-spec
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; $(PYBIN) st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf
 
 .PHONY: generate-api-spec
 generate-api-spec: requirements .generate-api-spec
@@ -470,14 +461,14 @@ generate-api-spec: requirements .generate-api-spec
 	@echo
 	@echo "================== Generate openapi.yaml file ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; $(PYBIN) st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf > st2common/st2common/openapi.yaml
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-generate-api-spec --config-file conf/st2.dev.conf > st2common/st2common/openapi.yaml
 
 .PHONY: circle-lint-api-spec
 circle-lint-api-spec:
 	@echo
 	@echo "================== Lint API spec ===================="
 	@echo
-	. $(VIRTUALENV_DIR)/bin/activate; $(PYBIN) st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf || echo "Open API spec lint failed."
+	. $(VIRTUALENV_DIR)/bin/activate; python st2common/bin/st2-validate-api-spec --config-file conf/st2.dev.conf || echo "Open API spec lint failed."
 
 .PHONY: flake8
 flake8: requirements .flake8
@@ -502,7 +493,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client pypi check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate || $(PYBIN) -m venv $(VIRTUALENV_ST2CLIENT_PYPI_DIR)
+	test -f $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_PYPI_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -515,12 +506,12 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/$(PYBIN) -m pip install --upgrade "pip==$(PIP_VERSION)"
-	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/$(PYBIN) -m pip install --upgrade "readme_renderer"
-	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/$(PYBIN) -m pip install --upgrade "restructuredtext-lint"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m pip install --upgrade "readme_renderer"
+	$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m pip install --upgrade "restructuredtext-lint"
 
 	# Check with readme-renderer
-	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/$(PYBIN) -m readme_renderer README.rst
+	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/python -m readme_renderer README.rst
 	# Check with rst-lint - encounters errors that readme_renderer doesn't, but pypi complains about
 	. $(VIRTUALENV_ST2CLIENT_PYPI_DIR)/bin/activate; cd st2client ; rst-lint README.rst
 
@@ -530,7 +521,7 @@ flake8: requirements .flake8
 	@echo
 	@echo "==================== st2client install check ===================="
 	@echo
-	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYBIN) -m venv $(VIRTUALENV_ST2CLIENT_DIR)
+	test -f $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_ST2CLIENT_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -544,12 +535,12 @@ flake8: requirements .flake8
 	touch $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 	chmod +x $(VIRTUALENV_ST2CLIENT_DIR)/bin/activate
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/$(PYBIN) -m pip install --upgrade "pip==$(PIP_VERSION)"
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/$(PYBIN) -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
 
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/$(PYBIN) -m pip install . ; cd ..
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/activate; cd st2client ; ../$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -m pip install . ; cd ..
 	$(VIRTUALENV_ST2CLIENT_DIR)/bin/st2 --version
-	$(VIRTUALENV_ST2CLIENT_DIR)/bin/$(PYBIN) -c "import st2client"
+	$(VIRTUALENV_ST2CLIENT_DIR)/bin/python -c "import st2client"
 
 .PHONY: bandit
 bandit: requirements .bandit
@@ -574,7 +565,7 @@ clean: .cleanpycs
 compilepy3:
 	@echo "======================= compile ========================"
 	@echo "------- Compile all .py files (syntax check test - Python 3) ------"
-	$(SYS_PY3) -m compileall -f -q -x 'virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test|./pants-plugins' .
+	python3 -m compileall -f -q -x 'virtualenv|virtualenv-osx|virtualenv-py3|.tox|.git|.venv-st2devbox|./st2tests/st2tests/fixtures/packs/test|./pants-plugins' .
 
 .PHONY: .cleanpycs
 .cleanpycs:
@@ -671,19 +662,19 @@ distclean: clean
 
 .PHONY: .requirements
 .requirements: virtualenv
-	$(VIRTUALENV_DIR)/bin/$(PYBIN) -m pip install --upgrade "pip==$(PIP_VERSION)"
-	$(VIRTUALENV_DIR)/bin/$(PYBIN) -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
+	$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "pip==$(PIP_VERSION)"
+	$(VIRTUALENV_DIR)/bin/python -m pip install --upgrade "setuptools==$(SETUPTOOLS_VERSION)"
 	# Print out pip version
 	$(VIRTUALENV_DIR)/bin/pip --version
 	# Generate all requirements to support current CI pipeline.
-	$(VIRTUALENV_DIR)/bin/$(PYBIN) scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
+	$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s st2*/in-requirements.txt contrib/runners/*/in-requirements.txt -f fixed-requirements.txt -o requirements.txt
 
 	# Remove any *.egg-info files which polute PYTHONPATH
 	rm -rf *.egg-info*
 
 	# Generate finall requirements.txt file for each component
 	# NOTE: We use xargs to speed things up by running commands in parallel
-	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/$(PYBIN) scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
+	echo -e "$(COMPONENTS_WITH_RUNNERS)" | tr -d "\n" | xargs -P $(XARGS_CONCURRENCY) -d " " -n1 -i sh -c "$(VIRTUALENV_DIR)/bin/python scripts/fixate-requirements.py --skip=virtualenv,virtualenv-osx -s {}/in-requirements.txt -f fixed-requirements.txt -o {}/requirements.txt"
 
 	#@for component in $(COMPONENTS_WITH_RUNNERS); do\
 	#	echo "==========================================================="; \
@@ -713,26 +704,26 @@ requirements: virtualenv .requirements .sdist-requirements install-runners insta
 	# Install requirements
 	for req in $(REQUIREMENTS); do \
 		echo "Installing $$req..." ; \
-		$(VIRTUALENV_DIR)/bin/$(PYBIN) -m pip install $(PIP_OPTIONS) -r $$req ; \
+		$(VIRTUALENV_DIR)/bin/python -m pip install $(PIP_OPTIONS) -r $$req ; \
 	done
 
 	# Install st2common package to load drivers defined in st2common setup.py
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/$(PYBIN) -m pip install --editable . --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2common to register metrics drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/$(PYBIN) -m pip install --editable . --no-deps)
+	(cd ${ROOT_DIR}/st2common; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Install st2auth to register SSO drivers
 	# NOTE: We pass --no-deps to the script so we don't install all the
 	# package dependencies which are already installed as part of "requirements"
 	# make targets. This speeds up the build
-	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/$(PYBIN) -m pip install --editable . --no-deps)
+	(cd ${ROOT_DIR}/st2auth; ${ROOT_DIR}/$(VIRTUALENV_DIR)/bin/python -m pip install --editable . --no-deps)
 
 	# Some of the tests rely on submodule so we need to make sure submodules are check out
 	git submodule update --init --recursive --remote
@@ -759,7 +750,7 @@ virtualenv:
 	@echo
 	@echo "==================== virtualenv ===================="
 	@echo
-	test -f $(VIRTUALENV_DIR)/bin/activate || $(PYBIN) -m venv $(VIRTUALENV_DIR)
+	test -f $(VIRTUALENV_DIR)/bin/activate || $(PYTHON_VERSION) -m venv $(VIRTUALENV_DIR)
 
 	# Setup PYTHONPATH in bash activate script...
 	# Delete existing entries (if any)
@@ -1146,7 +1137,7 @@ cli:
 	@echo
 	@echo "=================== Building st2 client ==================="
 	@echo
-	pushd $(CURDIR) && cd st2client && (($(PYBIN) -m pip install --editable . || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
+	pushd $(CURDIR) && cd st2client && ((python -m pip install --editable . || printf "\n\n!!! ERROR: BUILD FAILED !!!\n") || popd)
 
 .PHONY: rpms
 rpms:
