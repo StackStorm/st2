@@ -1,2 +1,3 @@
 orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10
 setuptools
+referencing
