@@ -22,7 +22,7 @@ eventlet==0.39.1
 gitdb==4.0.12
 gitpython==3.1.45
 greenlet==3.1.1
-gunicorn==23.0.0
+gunicorn<26
 importlib-metadata
 importlib_resources==6.5.2
 jinja2==3.1.6

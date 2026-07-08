@@ -7,7 +7,7 @@
 # update the component requirements.txt
 backports.zoneinfo[tzdata]; python_version<"3.9"
 eventlet==0.39.1
-gunicorn==23.0.0
+gunicorn<26
 jsonschema==4.26.0
 kombu==5.5.4
 mongoengine==0.29.1

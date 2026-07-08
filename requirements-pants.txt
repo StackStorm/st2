@@ -20,7 +20,8 @@ gitdb
 gitpython
 # st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
 greenlet
-gunicorn
+# Gunicorn dropped eventlet support as of v26. https://gunicorn.org/news/#2600-2026-05-05
+gunicorn<26
 # importlib backport to replace pkg_resource from setuptools.
 importlib-metadata
 importlib-resources
