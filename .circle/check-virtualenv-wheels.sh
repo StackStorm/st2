@@ -11,12 +11,12 @@ echo ""
 
 # Check virtualenv version
 echo "1. Virtualenv Version:"
-python -m virtualenv --version || echo "  ERROR: Could not determine virtualenv version"
+/opt/stackstorm/st2/bin/python -m virtualenv --version || echo "  ERROR: Could not determine virtualenv version"
 echo ""
 
 # Find virtualenv package location
 echo "2. Virtualenv Package Location:"
-VENV_PKG=$(python -c "import virtualenv; print(virtualenv.__file__)" 2>/dev/null || echo "")
+VENV_PKG=$(/opt/stackstorm/st2/bin/python -c "import virtualenv; print(virtualenv.__file__)" 2>/dev/null || echo "")
 if [ -z "$VENV_PKG" ]; then
     echo "  ERROR: Could not locate virtualenv package"
     exit 1
