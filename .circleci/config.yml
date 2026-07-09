@@ -258,44 +258,15 @@ jobs:
 
                 # 1. Check virtualenv version
                 docker exec ${TEST_CONTAINER} bash -c 'echo "1. Virtualenv Version:"'
-                docker exec ${TEST_CONTAINER} /opt/stackstorm/st2/bin/python -m virtualenv --version || docker exec ${TEST_CONTAINER} bash -c 'echo "  ERROR: Could not determine virtualenv version"'
+                docker exec ${TEST_CONTAINER} /opt/stackstorm/st2/bin/virtualenv --version || docker exec ${TEST_CONTAINER} bash -c 'echo "  ERROR: Could not determine virtualenv version"'
                 docker exec ${TEST_CONTAINER} bash -c 'echo ""'
 
-                # 2. Find virtualenv package location
-                docker exec ${TEST_CONTAINER} bash -c 'echo "2. Virtualenv Package Location:"'
-                docker exec ${TEST_CONTAINER} bash -c '
-                  VENV_PKG=$(/opt/stackstorm/st2/bin/python -c "import virtualenv; print(virtualenv.__file__)" 2>/dev/null || echo "")
-                  if [ -z "$VENV_PKG" ]; then
-                    echo "  ERROR: Could not locate virtualenv package"
-                    exit 1
-                  fi
-                  VENV_DIR=$(dirname "$VENV_PKG")
-                  echo "  Package file: $VENV_PKG"
-                  echo "  Package dir:  $VENV_DIR"
-                  echo "$VENV_DIR" > /tmp/venv_dir.txt
-                '
-                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
 
                 # 3. Find bundled wheels directory
                 docker exec ${TEST_CONTAINER} bash -c 'echo "3. Bundled Wheels Directory:"'
                 docker exec ${TEST_CONTAINER} bash -c '
-                  VENV_DIR=$(cat /tmp/venv_dir.txt)
-                  WHEELS_DIR="$VENV_DIR/seed/wheels/embed"
-                  if [ -d "$WHEELS_DIR" ]; then
-                    echo "  Location: $WHEELS_DIR"
-                    echo "  Contents:"
-                    ls -lh "$WHEELS_DIR" | grep -E "\.(whl|txt)$" || echo "  No .whl or .txt files found"
-                  else
-                    echo "  ERROR: Wheels directory not found at $WHEELS_DIR"
-                    # Try alternate location
-                    WHEELS_DIR="$VENV_DIR/seed/embed"
-                    if [ -d "$WHEELS_DIR" ]; then
-                      echo "  Found alternate location: $WHEELS_DIR"
-                    else
-                      echo "  ERROR: Could not find bundled wheels directory"
-                      exit 1
-                    fi
-                  fi
+                  WHEELS_DIR="/opt/stackstorm/st2/lib/python3.10/site-packages/virtualenv/seed/wheels/embed"
+                  ls -lh "$WHEELS_DIR" | grep -E "\.(whl|txt)$" || echo "  No .whl or .txt files found"
                   echo "$WHEELS_DIR" > /tmp/wheels_dir.txt
                 '
                 docker exec ${TEST_CONTAINER} bash -c 'echo ""'
