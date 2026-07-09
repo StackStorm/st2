@@ -212,10 +212,109 @@ jobs:
           working_directory: ~/st2-packages
       - run:
           when: always
-          name: Grab the st2 logs
+          name: Extract st2 service logs and diagnostics
+          command: |
+            set -x
+
+            # Determine the test container name based on DISTRO
+            if [ "$DISTRO" = "jammy" ]; then
+              TEST_CONTAINER="st2-packages-jammytest-1"
+            elif [ "$DISTRO" = "el9" ]; then
+              TEST_CONTAINER="st2-packages-rockylinux9test-1"
+            elif [ "$DISTRO" = "el8" ]; then
+              TEST_CONTAINER="st2-packages-rockylinux8test-1"
+            elif [ "$DISTRO" = "focal" ]; then
+              TEST_CONTAINER="st2-packages-focaltest-1"
+            else
+              TEST_CONTAINER="st2-packages-${DISTRO}test-1"
+            fi
+
+            echo "Extracting logs from test container: ${TEST_CONTAINER}"
+
+            # Create log directories
+            mkdir -p ~/st2/packages/${DISTRO}/log/debug
+            mkdir -p ~/st2/packages/${DISTRO}/log/st2
+
+            # Check if container exists and is accessible
+            if docker ps -a --format '{{.Names}}' | grep -q "${TEST_CONTAINER}"; then
+              echo "Container ${TEST_CONTAINER} found"
+
+              # Extract systemd journal logs for st2 services
+              echo "Extracting st2api journal logs..."
+              docker exec ${TEST_CONTAINER} journalctl -u st2api --no-pager -n 1000 > ~/st2/packages/${DISTRO}/log/debug/st2api-journal.log 2>&1 || echo "Failed to get st2api journal"
+
+              echo "Extracting st2stream journal logs..."
+              docker exec ${TEST_CONTAINER} journalctl -u st2stream --no-pager -n 1000 > ~/st2/packages/${DISTRO}/log/debug/st2stream-journal.log 2>&1 || echo "Failed to get st2stream journal"
+
+              echo "Extracting st2auth journal logs..."
+              docker exec ${TEST_CONTAINER} journalctl -u st2auth --no-pager -n 1000 > ~/st2/packages/${DISTRO}/log/debug/st2auth-journal.log 2>&1 || echo "Failed to get st2auth journal"
+
+              echo "Extracting st2actionrunner journal logs..."
+              docker exec ${TEST_CONTAINER} journalctl -u st2actionrunner --no-pager -n 1000 > ~/st2/packages/${DISTRO}/log/debug/st2actionrunner-journal.log 2>&1 || echo "Failed to get st2actionrunner journal"
+
+              echo "Extracting st2notifier journal logs..."
+              docker exec ${TEST_CONTAINER} journalctl -u st2notifier --no-pager -n 500 > ~/st2/packages/${DISTRO}/log/debug/st2notifier-journal.log 2>&1 || echo "Failed to get st2notifier journal"
+
+              echo "Extracting st2workflowengine journal logs..."
+              docker exec ${TEST_CONTAINER} journalctl -u st2workflowengine --no-pager -n 500 > ~/st2/packages/${DISTRO}/log/debug/st2workflowengine-journal.log 2>&1 || echo "Failed to get st2workflowengine journal"
+
+              # Extract service status for st2 services
+              echo "Extracting st2 service status..."
+              docker exec ${TEST_CONTAINER} systemctl status st2api > ~/st2/packages/${DISTRO}/log/debug/st2api-status.log 2>&1 || echo "Failed to get st2api status"
+              docker exec ${TEST_CONTAINER} systemctl status st2stream > ~/st2/packages/${DISTRO}/log/debug/st2stream-status.log 2>&1 || echo "Failed to get st2stream status"
+              docker exec ${TEST_CONTAINER} systemctl status st2auth > ~/st2/packages/${DISTRO}/log/debug/st2auth-status.log 2>&1 || echo "Failed to get st2auth status"
+
+              # Get overall st2 status
+              echo "Extracting st2ctl status..."
+              docker exec ${TEST_CONTAINER} st2ctl status > ~/st2/packages/${DISTRO}/log/debug/st2ctl-status.log 2>&1 || echo "Failed to get st2ctl status"
+
+              # Get failed services
+              echo "Extracting failed services..."
+              docker exec ${TEST_CONTAINER} systemctl --failed --no-pager > ~/st2/packages/${DISTRO}/log/debug/systemctl-failed.log 2>&1 || echo "No failed services info"
+
+              # Get process list
+              echo "Extracting process list..."
+              docker exec ${TEST_CONTAINER} ps auxf > ~/st2/packages/${DISTRO}/log/debug/processes.log 2>&1 || echo "Failed to get process list"
+
+              # Get dependency service status
+              echo "Extracting dependency service status..."
+              docker exec ${TEST_CONTAINER} systemctl status mongodb --no-pager > ~/st2/packages/${DISTRO}/log/debug/mongodb-status.log 2>&1 || true
+              docker exec ${TEST_CONTAINER} systemctl status rabbitmq-server --no-pager > ~/st2/packages/${DISTRO}/log/debug/rabbitmq-status.log 2>&1 || true
+              docker exec ${TEST_CONTAINER} systemctl status postgresql --no-pager > ~/st2/packages/${DISTRO}/log/debug/postgresql-status.log 2>&1 || true
+              docker exec ${TEST_CONTAINER} systemctl status redis --no-pager > ~/st2/packages/${DISTRO}/log/debug/redis-status.log 2>&1 || true
+
+              # Get st2 configuration
+              echo "Extracting st2 configuration..."
+              docker exec ${TEST_CONTAINER} cat /etc/st2/st2.conf > ~/st2/packages/${DISTRO}/log/debug/st2.conf 2>&1 || echo "Failed to get st2.conf"
+
+              # Copy application logs from /var/log/st2
+              echo "Copying application logs from /var/log/st2..."
+              docker exec ${TEST_CONTAINER} ls -la /var/log/st2/ > ~/st2/packages/${DISTRO}/log/debug/var-log-st2-listing.log 2>&1 || true
+              docker cp ${TEST_CONTAINER}:/var/log/st2/. ~/st2/packages/${DISTRO}/log/st2/ 2>&1 || echo "Failed to copy /var/log/st2"
+
+              echo "Log extraction completed successfully"
+              ls -lah ~/st2/packages/${DISTRO}/log/debug/
+            else
+              echo "ERROR: Container ${TEST_CONTAINER} not found!"
+              echo "Available containers:"
+              docker ps -a --format '{{.Names}}'
+
+              # Try to find any test container
+              echo "Attempting to extract logs from any available test container..."
+              for container in $(docker ps -a --format '{{.Names}}' | grep -E 'test'); do
+                echo "Found test container: $container"
+                docker exec $container journalctl -u st2api --no-pager -n 500 > ~/st2/packages/${DISTRO}/log/debug/${container}-st2api.log 2>&1 || true
+                docker exec $container st2ctl status > ~/st2/packages/${DISTRO}/log/debug/${container}-st2ctl.log 2>&1 || true
+                docker exec $container systemctl --failed --no-pager > ~/st2/packages/${DISTRO}/log/debug/${container}-failed.log 2>&1 || true
+              done
+            fi
+          working_directory: ~/st2-packages
+      - run:
+          when: always
+          name: Grab the st2 logs from volume
           command: |
             docker run --rm --volumes-from st2-packages-vol alpine:3.12 find / -name "st2*.log"  2>/dev/null
-            docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2
+            docker cp st2-packages-vol:/var/log/st2 ~/st2/packages/${DISTRO}/log/st2-volume 2>&1 || echo "Could not copy from volume container"
       - store_artifacts:
           path: ~/st2/packages
           destination: packages
