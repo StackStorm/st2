@@ -250,7 +250,143 @@ jobs:
 
               # Run virtualenv wheel diagnostic
               echo "Running virtualenv wheel diagnostic..."
-              docker exec ${TEST_CONTAINER} bash ${ST2_GITDIR}/.circle/check-virtualenv-wheels.sh > ~/st2/packages/${DISTRO}/log/debug/virtualenv-wheels-diagnostic.log 2>&1 || echo "Failed to run virtualenv diagnostic"
+              {
+                docker exec ${TEST_CONTAINER} bash -c 'echo "========================================"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo "  VIRTUALENV BUNDLED WHEELS DIAGNOSTIC"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo "========================================"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                # 1. Check virtualenv version
+                docker exec ${TEST_CONTAINER} bash -c 'echo "1. Virtualenv Version:"'
+                docker exec ${TEST_CONTAINER} /opt/stackstorm/st2/bin/python -m virtualenv --version || docker exec ${TEST_CONTAINER} bash -c 'echo "  ERROR: Could not determine virtualenv version"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                # 2. Find virtualenv package location
+                docker exec ${TEST_CONTAINER} bash -c 'echo "2. Virtualenv Package Location:"'
+                docker exec ${TEST_CONTAINER} bash -c '
+                  VENV_PKG=$(/opt/stackstorm/st2/bin/python -c "import virtualenv; print(virtualenv.__file__)" 2>/dev/null || echo "")
+                  if [ -z "$VENV_PKG" ]; then
+                    echo "  ERROR: Could not locate virtualenv package"
+                    exit 1
+                  fi
+                  VENV_DIR=$(dirname "$VENV_PKG")
+                  echo "  Package file: $VENV_PKG"
+                  echo "  Package dir:  $VENV_DIR"
+                  echo "$VENV_DIR" > /tmp/venv_dir.txt
+                '
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                # 3. Find bundled wheels directory
+                docker exec ${TEST_CONTAINER} bash -c 'echo "3. Bundled Wheels Directory:"'
+                docker exec ${TEST_CONTAINER} bash -c '
+                  VENV_DIR=$(cat /tmp/venv_dir.txt)
+                  WHEELS_DIR="$VENV_DIR/seed/wheels/embed"
+                  if [ -d "$WHEELS_DIR" ]; then
+                    echo "  Location: $WHEELS_DIR"
+                    echo "  Contents:"
+                    ls -lh "$WHEELS_DIR" | grep -E "\.(whl|txt)$" || echo "  No .whl or .txt files found"
+                  else
+                    echo "  ERROR: Wheels directory not found at $WHEELS_DIR"
+                    # Try alternate location
+                    WHEELS_DIR="$VENV_DIR/seed/embed"
+                    if [ -d "$WHEELS_DIR" ]; then
+                      echo "  Found alternate location: $WHEELS_DIR"
+                    else
+                      echo "  ERROR: Could not find bundled wheels directory"
+                      exit 1
+                    fi
+                  fi
+                  echo "$WHEELS_DIR" > /tmp/wheels_dir.txt
+                '
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                # 4. Calculate SHA256 hashes for all wheel files
+                docker exec ${TEST_CONTAINER} bash -c 'echo "4. SHA256 Hashes of Bundled Wheels:"'
+                docker exec ${TEST_CONTAINER} bash -c '
+                  WHEELS_DIR=$(cat /tmp/wheels_dir.txt)
+                  WHEEL_COUNT=0
+                  while IFS= read -r wheel; do
+                    if [ -f "$wheel" ]; then
+                      WHEEL_COUNT=$((WHEEL_COUNT + 1))
+                      BASENAME=$(basename "$wheel")
+                      echo "  File: $BASENAME"
+
+                      # Calculate actual hash
+                      ACTUAL_HASH=$(sha256sum "$wheel" | awk "{print \$1}")
+                      echo "    Actual SHA256: $ACTUAL_HASH"
+
+                      # Try to find expected hash in wheels.json or similar
+                      WHEEL_NAME="${BASENAME%.whl}"
+                      JSON_FILE="$WHEELS_DIR/../wheels.json"
+                      if [ -f "$JSON_FILE" ]; then
+                        EXPECTED_HASH=$(python -c "
+                    import json
+                    try:
+                        with open(\"$JSON_FILE\") as f:
+                            data = json.load(f)
+                            for entry in data:
+                                if \"$BASENAME\" in str(entry):
+                                    print(entry.get(\"sha256\", \"Not found\"))
+                                    break
+                    except:
+                        pass
+                    " 2>/dev/null)
+                        if [ ! -z "$EXPECTED_HASH" ] && [ "$EXPECTED_HASH" != "Not found" ]; then
+                          echo "    Expected SHA256: $EXPECTED_HASH"
+                          if [ "$ACTUAL_HASH" = "$EXPECTED_HASH" ]; then
+                            echo "    Status: ✓ MATCH"
+                          else
+                            echo "    Status: ✗ MISMATCH - CORRUPTED WHEEL DETECTED!"
+                          fi
+                        fi
+                      fi
+                      echo ""
+                    fi
+                  done < <(find "$WHEELS_DIR" -name "*.whl" -type f 2>/dev/null)
+
+                  if [ $WHEEL_COUNT -eq 0 ]; then
+                    echo "  WARNING: No wheel files found in $WHEELS_DIR"
+                  fi
+                '
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                # 5. Check virtualenv cache
+                docker exec ${TEST_CONTAINER} bash -c 'echo "5. Virtualenv Cache Status:"'
+                docker exec ${TEST_CONTAINER} bash -c '
+                  CACHE_DIR="${HOME}/.cache/virtualenv"
+                  if [ -d "$CACHE_DIR" ]; then
+                    echo "  Cache location: $CACHE_DIR"
+                    CACHE_SIZE=$(du -sh "$CACHE_DIR" 2>/dev/null | awk "{print \$1}")
+                    echo "  Cache size: $CACHE_SIZE"
+
+                    WHEEL_FILES=$(find "$CACHE_DIR" -type f -name "*.whl" 2>/dev/null | wc -l)
+                    echo "  Cached wheel files: $WHEEL_FILES"
+
+                    if [ $WHEEL_FILES -gt 0 ]; then
+                      echo "  Recent cached wheels:"
+                      find "$CACHE_DIR" -type f -name "*.whl" -exec ls -lh {} \; 2>/dev/null | head -10
+                    fi
+                  else
+                    echo "  No cache found at $CACHE_DIR"
+                  fi
+                '
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                # 6. Check Python and pip versions for context
+                docker exec ${TEST_CONTAINER} bash -c 'echo "6. Python Environment:"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo "  Python: $(python --version 2>&1)"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo "  Pip: $(pip --version 2>&1 | awk "{print \$2}")"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                # 7. Show virtualenv seed wheels module info if available
+                docker exec ${TEST_CONTAINER} bash -c 'echo "7. Virtualenv Seed Module Info:"'
+                docker exec ${TEST_CONTAINER} python -c 'try: from virtualenv.seed.wheels.embed import BUNDLE_FOLDER, BUNDLE_SUPPORT; print(f"  Bundle folder: {BUNDLE_FOLDER}"); print(f"  Bundle support: {BUNDLE_SUPPORT}"); except Exception as e: print(f"  Could not import seed module: {e}")' 2>/dev/null || docker exec ${TEST_CONTAINER} bash -c 'echo "  Could not retrieve seed module info"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo ""'
+
+                docker exec ${TEST_CONTAINER} bash -c 'echo "========================================"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo "  DIAGNOSTIC COMPLETE"'
+                docker exec ${TEST_CONTAINER} bash -c 'echo "========================================"'
+              } > ~/st2/packages/${DISTRO}/log/debug/virtualenv-wheels-diagnostic.log 2>&1 || echo "Failed to run virtualenv diagnostic"
 
               # Extract systemd journal logs for st2 services
               echo "Extracting st2api journal logs..."
