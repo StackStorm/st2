@@ -12,7 +12,8 @@ argparse
 ciso8601
 cryptography
 editor
-eventlet
+# Gunicorn <26 requires eventlet>=0.40.3
+eventlet>=0.40.3
 # openapi-spec-validator parses the openapi 2 spec in our router
 openapi-spec-validator
 # gitpython & gitdb are used for pack management

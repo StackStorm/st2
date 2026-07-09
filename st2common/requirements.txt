@@ -14,7 +14,7 @@ ciso8601
 cryptography==43.0.3
 decorator==5.2.1
 dnspython
-eventlet==0.39.1
+eventlet==0.40.3
 gitdb==4.0.12
 gitpython==3.1.45
 greenlet==3.1.1
