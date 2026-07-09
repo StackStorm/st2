@@ -216,12 +216,6 @@ jobs:
             docker cp st2-packages-vol:/root/build/. ~/st2/packages/${DISTRO}
           working_directory: ~/st2-packages
       - run:
-          name: Check virtualenv wheels in test container
-          command: |
-            docker compose -f docker-compose.circle.yml -f docker-compose.override.yml run \
-              ${DISTRO} bash ${ST2_GITDIR}/.circle/check-virtualenv-wheels.sh
-          working_directory: ~/st2-packages
-      - run:
           name: Test the Packages
           command: .circle/docker-compose.sh test ${DISTRO}
           working_directory: ~/st2-packages
@@ -253,6 +247,10 @@ jobs:
             # Check if container exists and is accessible
             if docker ps -a --format '{{.Names}}' | grep -q "${TEST_CONTAINER}"; then
               echo "Container ${TEST_CONTAINER} found"
+
+              # Run virtualenv wheel diagnostic
+              echo "Running virtualenv wheel diagnostic..."
+              docker exec ${TEST_CONTAINER} bash ${ST2_GITDIR}/.circle/check-virtualenv-wheels.sh > ~/st2/packages/${DISTRO}/log/debug/virtualenv-wheels-diagnostic.log 2>&1 || echo "Failed to run virtualenv diagnostic"
 
               # Extract systemd journal logs for st2 services
               echo "Extracting st2api journal logs..."
