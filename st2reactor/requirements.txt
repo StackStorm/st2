@@ -7,7 +7,7 @@
 # update the component requirements.txt
 apscheduler==3.11.0
 backports.zoneinfo[tzdata]; python_version<"3.9"
-eventlet==0.39.1
+eventlet==0.40.3
 jsonpath-rw==1.4.0
 jsonschema==4.26.0
 kombu==5.5.4

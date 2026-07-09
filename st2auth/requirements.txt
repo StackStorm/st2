@@ -6,7 +6,7 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 bcrypt==5.0.0
-eventlet==0.39.1
+eventlet==0.40.3
 gunicorn<26
 oslo.config==9.6.0
 pymongo==4.6.3
