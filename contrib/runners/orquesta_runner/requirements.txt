@@ -7,4 +7,4 @@
 # update the component requirements.txt
 orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10
 referencing<0.37.0
-setuptools==82.0.1
+setuptools==83.0.0

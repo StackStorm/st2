@@ -203,6 +203,7 @@ jobs:
             docker cp ~/st2-packages st2-packages-vol:/root
             # copy st2 source files into this volume
             docker cp . st2-packages-vol:${ST2_GITDIR}
+
       - run:
           name: Pull dependent Docker Images
           command: .circle/docker-compose.sh pull ${DISTRO} || .circle/docker-compose.sh pull ${DISTRO}

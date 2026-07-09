@@ -62,7 +62,7 @@ requests==2.32.4
 retrying==1.4.2
 routes==2.5.1
 semver==3.0.4
-setuptools==82.0.1
+setuptools==83.0.0
 simplejson
 six==1.17.0
 sseclient-py==1.8.0
