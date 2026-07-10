@@ -225,9 +225,6 @@ jobs:
             echo "Diagnostic test file copied into st2-packages volume at /root/st2-packages/rake/spec/default/"
       - run:
           name: Test the Packages
-          command: .circle/docker-compose.sh test ${DISTRO}
-          working_directory: ~/st2-packages
-      - run:
           command: |
             set -x
 
@@ -325,11 +322,7 @@ jobs:
               '
 
             echo "Diagnostic test file injected into ${TEST_CONTAINER}"
-          working_directory: ~/st2-packages
-      - run:
-          name: Test the Packages
-          command: .circle/docker-compose.sh test ${DISTRO}
-          working_directory: ~/st2-packages
+            .circle/docker-compose.sh test ${DISTRO}
       - run:
           when: always
           name: Extract st2 service logs and diagnostics
