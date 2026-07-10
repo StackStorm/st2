@@ -304,6 +304,10 @@ jobs:
               echo "Extracting st2 configuration..."
               docker exec ${TEST_CONTAINER} cat /etc/st2/st2.conf > ~/st2/packages/${DISTRO}/log/debug/st2.conf 2>&1 || echo "Failed to get st2.conf"
 
+              # Extract virtualenv diagnostic log
+              echo "Extracting virtualenv diagnostic log..."
+              docker exec ${TEST_CONTAINER} cat /tmp/virtualenv-diagnostic.log > ~/st2/packages/${DISTRO}/log/debug/virtualenv-diagnostic.log 2>&1 || echo "Failed to get virtualenv diagnostic"
+
               # Copy application logs from /var/log/st2
               echo "Copying application logs from /var/log/st2..."
               docker exec ${TEST_CONTAINER} ls -la /var/log/st2/ > ~/st2/packages/${DISTRO}/log/debug/var-log-st2-listing.log 2>&1 || true
