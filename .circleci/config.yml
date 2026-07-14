@@ -162,7 +162,7 @@ jobs:
             echo "Patch PIP version used by dh_virtualenv"
             sed -ri "s/^PIP_VERSION .*$/PIP_VERSION = ${PIP_VERSION}/" packages/st2/debian/rules
             echo "Patch PIP version used by rpm spec"
-            sed -ri "s/install pip==[^\s]+/install pip==${PIP_VERSION}/" rpmspec/package_venv.spec
+            sed -ri "s/install pip==[^[:space:]]+/install pip==${PIP_VERSION}/" rpmspec/package_venv.spec
       - run:
           name: Initialize packages Build Environment
           command: |
