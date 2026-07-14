@@ -91,7 +91,8 @@ tabulate
 tooz
 udatetime
 ujson
-virtualenv
+# Pin virtualenv to match version installed by st2packaging-dockerfiles
+virtualenv==21.5.1
 webob
 webtest
 # we use pip+wheel at runtime; wheel is also required for pants to build wheels.

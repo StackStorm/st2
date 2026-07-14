@@ -80,7 +80,7 @@
 //     "tooz",
 //     "udatetime",
 //     "ujson",
-//     "virtualenv",
+//     "virtualenv==21.5.1",
 //     "webob",
 //     "webtest",
 //     "wheel",
@@ -1682,13 +1682,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "d352abe2908d07355014abdd21ddf798c2a961469239afec4962e9da884858f9",
-              "url": "https://files.pythonhosted.org/packages/20/7a/1c6e3562dfd8950adbb11ffbc65d21e7c89d01a6e4f137fa981056de25c5/gitpython-3.1.50-py3-none-any.whl"
+              "hash": "d5b29685708f3c80a56db040b665bfd69492c8e150b5848532af8013b686c5a4",
+              "url": "https://files.pythonhosted.org/packages/f8/11/1232bb1ba52a230f20ff08e1b3df7cd9d43a71b61cc0a1c37941064fe4c7/gitpython-3.1.51-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "80da2d12504d52e1f998772dc5baf6e553f8d2fcfe1fcc226c9d9a2ee3372dcc",
-              "url": "https://files.pythonhosted.org/packages/33/f6/354ae6491228b5eb40e10d89c4d13c651fe1cf7556e35ebdded50cff57ce/gitpython-3.1.50.tar.gz"
+              "hash": "22c9c94bb6b0b9f3c7157c684fece45a414cea204586b600beae6cd4570dcd6d",
+              "url": "https://files.pythonhosted.org/packages/59/30/a8a0c15f9480dc91b5b7f11ebd26105e5f80898d7ff02da197fef35d8395/gitpython-3.1.51.tar.gz"
             }
           ],
           "project_name": "gitpython",
@@ -1711,7 +1711,7 @@
             "typing-extensions>=3.10.0.2; python_version < \"3.10\""
           ],
           "requires_python": ">=3.7",
-          "version": "3.1.50"
+          "version": "3.1.51"
         },
         {
           "artifacts": [
@@ -5631,7 +5631,7 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "69fe7f8c09c828d4a351f74be08834cf3e7164591ed2e40dd5c3db6ab127c2e4",
+              "hash": "28fd56430dde4261b95495b05ae48cf73ac12a8dd33a8b419efcff166f6f5a6f",
               "url": "git+https://github.com/StackStorm/st2-auth-ldap.git@master"
             }
           ],
@@ -5877,19 +5877,19 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "bbe9af844f658da81a5f95019480da3a89415801f6cc966806612cc7169bffe7",
-              "url": "https://files.pythonhosted.org/packages/ce/e4/dccd7f47c4b64213ac01ef921a1337ee6e30e8c6466046018326977efd95/tzdata-2026.2-py2.py3-none-any.whl"
+              "hash": "dc096730c87af6cab1b171c9d532be840741ff5d459015e7f6947bd7d7e54931",
+              "url": "https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "9173fde7d80d9018e02a662e168e5a2d04f87c41ea174b139fbef642eda62d10",
-              "url": "https://files.pythonhosted.org/packages/ba/19/1b9b0e29f30c6d35cb345486df41110984ea67ae69dddbc0e8a100999493/tzdata-2026.2.tar.gz"
+              "hash": "4a1518b8993086a7982523e071643f3c0e5f213e75b21318e78bcabfff9d1415",
+              "url": "https://files.pythonhosted.org/packages/92/ff/5a28bdfd8c3ebec42564ac7d0e54ca3db65044a9314a97f9564fa7a1e926/tzdata-2026.3.tar.gz"
             }
           ],
           "project_name": "tzdata",
           "requires_dists": [],
           "requires_python": ">=2",
-          "version": "2026.2"
+          "version": "2026.3"
         },
         {
           "artifacts": [
@@ -6175,13 +6175,13 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "bce9d097950fef9d81129b333babfb7767072850c2f1acce0ec536708401bfd1",
-              "url": "https://files.pythonhosted.org/packages/b8/e7/2fbd0cc1653c53eed8f10670538bb547de2b3e37aacad283faa82a71094b/virtualenv-21.6.0-py3-none-any.whl"
+              "hash": "55aa670b67bbfb991b03fda39bd3276d92c419d702376e98c5df1c9989a26783",
+              "url": "https://files.pythonhosted.org/packages/2c/02/3623e6169bed617ed1e2d372f7c69f92ec28d54c4dfc997055c8578ec148/virtualenv-21.5.1-py3-none-any.whl"
             },
             {
               "algorithm": "sha256",
-              "hash": "e18a4d750f2b64dea73e72ffde3922f3c52365fabdc8157ebd3da20d031c4734",
-              "url": "https://files.pythonhosted.org/packages/74/65/ec1d92091671e6407d3e7c1f5801413bb7b2b57630a50cae7750456ba0ed/virtualenv-21.6.0.tar.gz"
+              "hash": "dca3bf98275a59c652b69d68e73433e597d977c2da9198882479d1a7188009c8",
+              "url": "https://files.pythonhosted.org/packages/f1/a5/81f987504738e6defeed61ec1c47e2aefab3c35d8eeb87e1b3f38cf28254/virtualenv-21.5.1.tar.gz"
             }
           ],
           "project_name": "virtualenv",
@@ -6194,7 +6194,7 @@
             "typing-extensions>=4.13.2; python_version < \"3.11\""
           ],
           "requires_python": ">=3.9",
-          "version": "21.6.0"
+          "version": "21.5.1"
         },
         {
           "artifacts": [
@@ -6924,7 +6924,7 @@
     "tooz",
     "udatetime",
     "ujson",
-    "virtualenv",
+    "virtualenv==21.5.1",
     "webob",
     "webtest",
     "wheel",
