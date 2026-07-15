@@ -28,7 +28,7 @@ mongoengine==0.29.1
 networkx==3.1
 openapi-spec-validator==0.7.2
 orjson==3.10.15
-orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10
+orquesta@ git+https://github.com/StackStorm/orquesta.git
 oslo.config==9.6.0
 paramiko==3.5.1
 pyOpenSSL<25.2

@@ -39,7 +39,7 @@
 //     "networkx",
 //     "openapi-spec-validator",
 //     "orjson",
-//     "orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10",
+//     "orquesta@ git+https://github.com/StackStorm/orquesta.git",
 //     "oslo.config",
 //     "paramiko<4.0.0",
 //     "pika",
@@ -3085,8 +3085,8 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "14b7eac73db7ee5543c07dc654e48b12a79cd4531d90fc141c9d5ae1ad4bda55",
-              "url": "git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10"
+              "hash": "491767e81c1bb11a54fb68d1a24119bdeede593a2beccca5bc09bfed36fdb35c",
+              "url": "git+https://github.com/StackStorm/orquesta.git"
             }
           ],
           "project_name": "orquesta",
