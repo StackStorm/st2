@@ -5,6 +5,6 @@
 # If you want to update depdencies for a single component, modify the
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
-orquesta@ git+https://github.com/StackStorm/orquesta.git@updates_st2v3.10
+orquesta@ git+https://github.com/StackStorm/orquesta.git
 referencing
 setuptools==82.0.1
