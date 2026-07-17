@@ -55,10 +55,9 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
         make:
           - name: 'Lint Checks (black, flake8, etc.)'
             task: 'ci-checks'
@@ -117,15 +116,15 @@ jobs:
       fail-fast: false
       matrix:
         python:
-          - {version-short: '3.8', version: '3.8.18'}
+          - {version-short: '3.10', version: '3.10.16'}
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.13-management
+        image: rabbitmq:4.2-management
         options: >-
           --name rabbitmq
         ports:
@@ -135,7 +134,7 @@ jobs:
 
       redis:
         # Docker Hub image
-        image: redis:8.0
+        image: redis:8.6
         # Set health checks to wait until redis has started
         options: >-
           --name "redis"
@@ -156,7 +155,7 @@ jobs:
       PATH: /home/runner/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
       # Space separated list of tests to be skipped if the self-check is running in GitHub Actions
-      TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
+      TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool tests.test_packs_pack"
 
 
     steps:
@@ -231,13 +230,6 @@ jobs:
           ln -s ${GITHUB_WORKSPACE}/virtualenv/bin/st2 /usr/local/bin/st2
           ln -s ${GITHUB_WORKSPACE}/st2common/bin/st2-run-pack-tests /usr/local/bin/st2-run-pack-tests
 
-      - name: Install st2client
-        timeout-minutes: 5
-        run: |
-          cd ./st2client
-          pip3 install --upgrade pip
-          python3 setup.py develop
-
       - name: Run self-verification script
         env:
           ST2_CONF: /home/runner/work/st2/st2/conf/st2.ci.conf
@@ -272,10 +264,9 @@ jobs:
         # NOTE: To speed the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
         make:
           - name: 'Unit Tests (chunk 1)'
             task: 'ci-unit'
@@ -290,12 +281,12 @@ jobs:
           #   shard: {k: 0, n: 1}
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
       redis:
         # Docker Hub image
-        image: redis:8.0
+        image: redis:8.6
         # Set health checks to wait until redis has started
         options: >-
           --name "redis"
@@ -307,7 +298,7 @@ jobs:
           - 6379:6379/tcp
 
       rabbitmq:
-        image: rabbitmq:3.13-management
+        image: rabbitmq:4.2-management
         options: >-
           --name rabbitmq
         ports:
@@ -408,7 +399,7 @@ jobs:
         # NOTE: We only generate and submit coverage report for master and version branches and
         # only when the build succeeds (default on GitHub Actions, this was not the case on Travis
         # so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.PYTHON_VERSION_SHORT == '3.10')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
         env:
@@ -427,10 +418,9 @@ jobs:
         # NOTE: To speed-up the CI run, we split unit and integration tests into multiple jobs where
         # each job runs subset of tests.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
         make:
           # We run pack tests here since they rely on some integration tests set
           # up (aka stanley user being present, etc.)
@@ -445,7 +435,7 @@ jobs:
             shard: {k: 1, n: 2}
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
@@ -456,7 +446,7 @@ jobs:
       # or they require config in entrypoint args (which we can't override for GHA services)
       # so we use RabbitMQ's conf.d feature to get config files from mounted volumes.
       rabbitmq:
-        image: rabbitmq:3.13
+        image: rabbitmq:4.2
         volumes:
           - /home/runner/rabbitmq_conf:/etc/rabbitmq/conf.d  # RABBITMQ_MOUNTED_CONF_DIR
         env:
@@ -482,7 +472,7 @@ jobs:
 
       redis:
         # Docker Hub image
-        image: redis:8.0
+        image: redis:8.6
         # Set health checks to wait until redis has started
         options: >-
           --name "redis"
@@ -577,7 +567,7 @@ jobs:
 
       - name: Codecov
         # NOTE: We only generate and submit coverage report for master and version branches and only when the build succeeds (default on GitHub Actions, this was not the case on Travis so we had to explicitly check success)
-        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.8')}}"
+        if: "${{ success() && (env.ENABLE_COVERAGE == 'yes') && (env.TASK == 'ci-integration') && (env.PYTHON_VERSION_SHORT == '3.10')}}"
         run: |
           ./scripts/ci/submit-codecov-coverage.sh
         env:

@@ -43,9 +43,9 @@ jobs:
   # Run st2 Integration tests
   integration:
     docker:
-      - image: circleci/python:3.9
-      - image: mongo:7.0
-      - image: rabbitmq:3.13
+      - image: cimg/python:3.10
+      - image: mongo:8.2
+      - image: rabbitmq:4.2
     working_directory: ~/st2
     steps:
       - checkout
@@ -80,9 +80,9 @@ jobs:
   # Run st2 Lint Checks
   lint:
     docker:
-      - image: circleci/python:3.9
-      - image: mongo:7.0
-      - image: rabbitmq:3.13
+      - image: cimg/python:3.10
+      - image: mongo:8.2
+      - image: rabbitmq:4.2
     working_directory: ~/st2
     steps:
       - checkout
@@ -108,16 +108,16 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 4
+    parallelism: 2
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/python:3.9
+      - image: cimg/python:3.10
     working_directory: ~/st2
     environment:
-      - DISTROS: "focal jammy el8 el9"
+      - DISTROS: "jammy el9"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -152,14 +152,17 @@ jobs:
             docker --version
             docker compose version
       - run:
-          name: Download st2-packages repository
+          name: Clone and patch st2-packages repository
           command: |
             set -x
-            PIP_VERSION=$(grep ^PIP_VERSION Makefile)
+            PIP_VERSION=$(grep ^PIP_VERSION Makefile | grep -o '[0-9.]*$')
+            echo "St2 makefile file pip version ${PIP_VERSION}"
             git clone ${ST2_PACKAGES_REPO} ~/st2-packages
             cd ~/st2-packages
-            git checkout ${CIRCLE_BRANCH} || true
-            sed -i -e "s/^PIP_VERSION .*$/${PIP_VERSION}/" packages/st2/debian/rules
+            echo "Patch PIP version used by dh_virtualenv"
+            sed -ri "s/^PIP_VERSION .*$/PIP_VERSION = ${PIP_VERSION}/" packages/st2/debian/rules
+            echo "Patch PIP version used by rpm spec"
+            sed -ri "s/install pip==[^[:space:]]+/install pip==${PIP_VERSION}/" rpmspec/package_venv.spec
       - run:
           name: Initialize packages Build Environment
           command: |
@@ -174,7 +177,7 @@ jobs:
           command: |
             set -x
             # Clean-up running containers
-            .circle/docker-compose2.sh clean
+            .circle/docker-compose.sh clean
             # Remove st2-packages-vol container
             docker rm -v --force st2-packages-vol || true
             # Clean-up any created volumes
@@ -193,19 +196,19 @@ jobs:
             docker cp . st2-packages-vol:${ST2_GITDIR}
       - run:
           name: Pull dependent Docker Images
-          command: .circle/docker-compose2.sh pull ${DISTRO} || .circle/docker-compose2.sh pull ${DISTRO}
+          command: .circle/docker-compose.sh pull ${DISTRO} || .circle/docker-compose.sh pull ${DISTRO}
           working_directory: ~/st2-packages
       - run:
           name: Build the ${DISTRO} Packages
           command: |
-            .circle/docker-compose2.sh build ${DISTRO}
+            .circle/docker-compose.sh build ${DISTRO}
             # Once build container finishes we can copy packages directly from it
             mkdir -p ~/st2/packages/${DISTRO}/log/
             docker cp st2-packages-vol:/root/build/. ~/st2/packages/${DISTRO}
           working_directory: ~/st2-packages
       - run:
           name: Test the Packages
-          command: .circle/docker-compose2.sh test ${DISTRO}
+          command: .circle/docker-compose.sh test ${DISTRO}
           working_directory: ~/st2-packages
       - run:
           when: always
@@ -227,7 +230,7 @@ jobs:
           command: |
             set -x
             # Clean-up running containers
-            .circle/docker-compose2.sh clean
+            .circle/docker-compose.sh clean
             # Remove st2-packages-vol container
             docker rm -v --force st2-packages-vol || true
             # Clean-up any created volumes
@@ -238,10 +241,10 @@ jobs:
   deploy:
     docker:
       # The primary container is an instance of the first list image listed. Your build commands run in this container.
-      - image: circleci/ruby:2.7
+      - image: cimg/ruby:2.7
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "focal jammy el8 el9"
+      - DISTROS: "jammy el9"
     steps:
       - attach_workspace:
           at: .

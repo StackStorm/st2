@@ -27,7 +27,7 @@ echo ""
 
 # install st2 client
 if [ ! -x "${VIRTUALENV_DIR}/bin/st2" ] || ! st2 --version >/dev/null 2>&1; then
-    python ./st2client/setup.py develop
+    pip install -e ./st2client
 fi
 st2 --version
 
@@ -65,4 +65,6 @@ chmod 777 logs/*
 chmod -R o+rwX "${VIRTUALENV_DIR}/"
 # newer virtualenv versions are putting lock files under ~/.local
 # as this script runs with sudo, HOME is actually the CI user's home
-chmod -R o+rwX "${HOME}/.local/share/virtualenv"
+# NOTE: skipped - Makefile now uses `python -m venv` instead of the virtualenv package,
+# so lock files are no longer written to ~/.local/share/virtualenv
+#chmod -R o+rwX "${HOME}/.local/share/virtualenv"

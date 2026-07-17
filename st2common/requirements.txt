@@ -15,20 +15,21 @@ cryptography==43.0.3
 decorator==5.2.1
 dnspython
 eventlet==0.40.4
-flex==6.14.1
 gevent==25.9.1
 gitdb==4.0.12
 gitpython==3.1.45
 greenlet==3.2.2
+importlib_resources==6.5.2
 jinja2==3.1.6
 jsonpath-rw==1.4.0
-jsonschema==3.2.0
+jsonschema==4.26.0
 kombu==5.5.4
 lockfile==0.12.2
 mongoengine==0.29.1
 networkx==3.1
+openapi-spec-validator==0.7.2
 orjson==3.10.15
-orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
+orquesta@ git+https://github.com/StackStorm/orquesta.git
 oslo.config==9.6.0
 paramiko==3.5.1
 pyOpenSSL<25.2

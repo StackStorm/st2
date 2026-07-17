@@ -10,10 +10,11 @@ jinja2
 jsonschema
 kombu
 mongoengine
+importlib_resources
 networkx
 # used by networkx
 decorator
-orquesta@ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
+orquesta@ git+https://github.com/StackStorm/orquesta.git
 st2-rbac-backend@ git+https://github.com/StackStorm/st2-rbac-backend.git@master
 oslo.config
 paramiko
@@ -40,7 +41,7 @@ zake
 # default coordinator backend configured for tooz
 redis
 routes
-flex
+openapi-spec-validator
 webob
 jsonpath-rw
 pyOpenSSL

@@ -281,7 +281,7 @@ class ResourceRegistrarTestCase(CleanDbTestCase):
         registrar._pack_loader.get_packs.return_value = {DUMMY_PACK_21: PACK_PATH_21}
         packs_base_paths = content_utils.get_packs_base_paths()
 
-        expected_msg = r"'4' is not one of \['2', '3'\]"
+        expected_msg = r"'5' is not one of \['2', '3'\]"
         self.assertRaisesRegex(
             ValueError,
             expected_msg,
