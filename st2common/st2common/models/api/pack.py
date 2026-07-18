@@ -394,6 +394,11 @@ class PackInstallRequestAPI(BaseAPI):
                 "description": "Set to True to skip pack dependency installations.",
                 "default": False,
             },
+            "checkout_submodules": {
+                "type": "boolean",
+                "description": "Checkout git submodules present in the pack.",
+                "default": False,
+            },
         },
     }
 

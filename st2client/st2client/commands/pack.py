@@ -266,6 +266,12 @@ class PackInstallCommand(PackAsyncCommand):
             default=False,
             help="Skip pack dependency installation.",
         )
+        self.parser.add_argument(
+            "--checkout-submodules",
+            action="store_true",
+            default=False,
+            help="Checkout git submodules present in the pack.",
+        )
 
     def run(self, args, **kwargs):
         is_structured_output = args.json or args.yaml
@@ -279,6 +285,7 @@ class PackInstallCommand(PackAsyncCommand):
             args.packs,
             force=args.force,
             skip_dependencies=args.skip_dependencies,
+            checkout_submodules=args.checkout_submodules,
             **kwargs,
         )
 
