@@ -80,11 +80,22 @@ def get_subprocess_module():
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
-def wsgi_server(socket, app, custom_pool=None, log=None, log_output=True, *args, **kwargs):
+
+def wsgi_server(
+    socket, app, custom_pool=None, log=None, log_output=True, *args, **kwargs
+):
     if CONCURRENCY_LIBRARY == "eventlet":
         from eventlet import wsgi
 
-        wsgi.server(socket, app, custom_pool=custom_pool, log=log, log_output=log_output, *args, **kwargs)
+        wsgi.server(
+            socket,
+            app,
+            custom_pool=custom_pool,
+            log=log,
+            log_output=log_output,
+            *args,
+            **kwargs,
+        )
     elif CONCURRENCY_LIBRARY == "gevent":
         from gevent import pywsgi
 
@@ -92,6 +103,7 @@ def wsgi_server(socket, app, custom_pool=None, log=None, log_output=True, *args,
         server.serve_forever()
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+
 
 def subprocess_popen(*args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
@@ -294,9 +306,10 @@ def listen_server(host, port, backlog=50, **kwargs):
     else:
         raise ValueError("Unsupported concurrency library")
 
+
 def wrap_ssl(socket, *args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.wrap_socket(socket, *args, **kwargs)
+        return eventlet.wrap_ssl(socket, *args, **kwargs)
     elif CONCURRENCY_LIBRARY == "gevent":
         # Monkey patching in the caller module is required prior to
         # calling wrap_ssl() or this may block.
@@ -306,12 +319,13 @@ def wrap_ssl(socket, *args, **kwargs):
     else:
         raise ValueError("Unsupported concurrency library")
 
+
 def blocking_detection(enable=False, timeout=1.0):
     if CONCURRENCY_LIBRARY == "eventlet":
         print(
             f"Eventlet long running / blocking operation detection logic enabled.  Block timeout ({timeout})."
         )
-        eventlet.debug.hub_blocking_detection(enable_detection=enable, resolution=timeout)
+        eventlet.debug.hub_blocking_detection(state=enable, resolution=timeout)
     elif CONCURRENCY_LIBRARY == "gevent":
         print(
             f"gEvent long running / blocking operation detection logic enabled.  Block timeout ({timeout})."

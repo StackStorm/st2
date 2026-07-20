@@ -18,6 +18,7 @@
 # See https://github.com/StackStorm/st2/issues/4832 and https://github.com/gevent/gevent/issues/1016
 # for details.
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 import os

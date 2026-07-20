@@ -14,6 +14,7 @@
 # limitations under the License.
 
 from st2common.util.monkey_patch import monkey_patch
+
 monkey_patch()
 
 import os
@@ -63,6 +64,7 @@ def _setup():
         service_registry=True,
         capabilities=capabilities,
     )
+
 
 def _run_server():
 

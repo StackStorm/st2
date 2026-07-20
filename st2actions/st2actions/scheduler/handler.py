@@ -51,7 +51,9 @@ class ActionExecutionSchedulingQueueHandler(object):
     def __init__(self):
         self.message_type = LiveActionDB
         self._shutdown = False
-        self._pool = concurrency.get_green_pool_class()(size=cfg.CONF.scheduler.pool_size)
+        self._pool = concurrency.get_green_pool_class()(
+            size=cfg.CONF.scheduler.pool_size
+        )
         # If an ActionExecutionSchedulingQueueItemDB object hasn't been updated fore more than
         # this amount of milliseconds, it will be marked as "handled=False".
         # As soon as an item is picked by scheduler to be processed, it should be processed very

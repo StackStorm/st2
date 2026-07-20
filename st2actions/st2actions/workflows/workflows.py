@@ -104,7 +104,9 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 self._active_messages -= 1
 
     def start(self, wait):
-        concurrency.spawn_after(self._delay, self._resume_workflows_paused_during_shutdown)
+        concurrency.spawn_after(
+            self._delay, self._resume_workflows_paused_during_shutdown
+        )
         super(WorkflowExecutionHandler, self).start(wait=wait)
 
     def shutdown(self):

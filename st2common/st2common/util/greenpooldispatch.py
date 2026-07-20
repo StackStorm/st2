@@ -91,7 +91,9 @@ class BufferedDispatcher(object):
         # Update the time of when there were free threads available
         self._pool_last_free_ts = time.time()
 
-        while not self._work_buffer.empty() and concurrency.is_green_pool_free(self._dispatcher_pool):
+        while not self._work_buffer.empty() and concurrency.is_green_pool_free(
+            self._dispatcher_pool
+        ):
             (handler, args) = self._work_buffer.get_nowait()
             self._dispatcher_pool.spawn(handler, *args)
 

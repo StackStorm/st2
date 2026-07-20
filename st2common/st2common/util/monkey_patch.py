@@ -57,8 +57,9 @@ def monkey_patch(patch_thread=None):
             os=True, select=True, socket=True, thread=patch_thread, time=True
         )
     elif concurrency_library == "gevent":
-        # Match what eventlet was enabling, fallback on gevent defaults 
+        # Match what eventlet was enabling, fallback on gevent defaults
         import gevent
+
         gevent.monkey.patch_all(
             os=True, select=True, thread=True, time=True, socket=True
         )

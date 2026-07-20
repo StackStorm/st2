@@ -183,7 +183,8 @@ def setup(
         or encoding.lower() not in VALID_UTF8_ENCODINGS
     ):
         LOG.warning(
-            NON_UTF8_LOCALE_WARNING_MSG % (fs_encoding, default_encoding, used_locale.strip())
+            NON_UTF8_LOCALE_WARNING_MSG
+            % (fs_encoding, default_encoding, used_locale.strip())
         )
 
     is_debug_enabled = cfg.CONF.debug or cfg.CONF.system.debug
@@ -197,7 +198,9 @@ def setup(
     except KeyError as e:
         tb_msg = traceback.format_exc()
         if "log.setLevel" in tb_msg:
-            msg = "Invalid log level selected. Log level names need to be all uppercase."
+            msg = (
+                "Invalid log level selected. Log level names need to be all uppercase."
+            )
             msg += "\n\n" + getattr(e, "message", six.text_type(e))
             raise KeyError(msg)
         else:
@@ -212,7 +215,8 @@ def setup(
         # set to "INFO" and we already log messages with level AUDIT to a special dedicated log
         # file.
         ignore_audit_log_messages = (
-            handler.level >= stdlib_logging.INFO and handler.level < stdlib_logging.AUDIT
+            handler.level >= stdlib_logging.INFO
+            and handler.level < stdlib_logging.AUDIT
         )
         if not is_debug_enabled and ignore_audit_log_messages:
             try:
@@ -221,7 +225,10 @@ def setup(
                 # In case handler doesn't have name assigned, repr would throw
                 handler_repr = "unknown"
 
-            LOG.debug('Excluding log messages with level "AUDIT" for handler "%s"' % (handler_repr))
+            LOG.debug(
+                'Excluding log messages with level "AUDIT" for handler "%s"'
+                % (handler_repr)
+            )
             handler.addFilter(LogLevelFilter(log_levels=exclude_log_levels))
 
     if not is_debug_enabled:
@@ -347,7 +354,9 @@ def deregister_service(service, start_heart=True):
     coordinator = coordination.get_coordinator(start_heart=start_heart)
 
     member_id = coordination.get_member_id()
-    LOG.debug('Leaving service registry group "%s" as member_id "%s"' % (group_id, member_id))
+    LOG.debug(
+        'Leaving service registry group "%s" as member_id "%s"' % (group_id, member_id)
+    )
     try:
         coordinator.leave_group(group_id).get()
     except (GroupNotCreated, MemberNotJoined):

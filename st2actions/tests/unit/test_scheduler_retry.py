@@ -26,7 +26,6 @@ from st2actions.scheduler import handler
 from st2common.models.db import execution_queue as ex_q_db
 from st2common.persistence import execution_queue as ex_q_db_access
 
-
 __all__ = ["SchedulerHandlerRetryTestCase"]
 
 
@@ -43,7 +42,9 @@ class SchedulerHandlerRetryTestCase(CleanDbTestCase):
             side_effect=[pymongo.errors.ConnectionFailure(), MOCK_QUEUE_ITEM]
         ),
     )
-    @mock.patch.object(concurrency.get_green_pool_class(), "spawn", mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        concurrency.get_green_pool_class(), "spawn", mock.MagicMock(return_value=None)
+    )
     def test_handler_retry_connection_error(self):
         scheduling_queue_handler = handler.ActionExecutionSchedulingQueueHandler()
         scheduling_queue_handler.process()
@@ -57,7 +58,9 @@ class SchedulerHandlerRetryTestCase(CleanDbTestCase):
         "_get_next_execution",
         mock.MagicMock(side_effect=[pymongo.errors.ConnectionFailure()] * 3),
     )
-    @mock.patch.object(concurrency.get_green_pool_class(), "spawn", mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        concurrency.get_green_pool_class(), "spawn", mock.MagicMock(return_value=None)
+    )
     def test_handler_retries_exhausted(self):
         scheduling_queue_handler = handler.ActionExecutionSchedulingQueueHandler()
         self.assertRaises(
@@ -70,7 +73,9 @@ class SchedulerHandlerRetryTestCase(CleanDbTestCase):
         "_get_next_execution",
         mock.MagicMock(side_effect=KeyError()),
     )
-    @mock.patch.object(concurrency.get_green_pool_class(), "spawn", mock.MagicMock(return_value=None))
+    @mock.patch.object(
+        concurrency.get_green_pool_class(), "spawn", mock.MagicMock(return_value=None)
+    )
     def test_handler_retry_unexpected_error(self):
         scheduling_queue_handler = handler.ActionExecutionSchedulingQueueHandler()
         self.assertRaises(KeyError, scheduling_queue_handler.process)
