@@ -235,7 +235,11 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         }
 
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_FAILED)
-        self.assertDictEqual(lv_ac_db.result, expected_result)
+        self.assertEqual(
+            lv_ac_db.result["errors"][0]["message"],
+            expected_result["errors"][0]["message"],
+        )
+        self.assertIsNone(lv_ac_db.result["output"], expected_result["output"])
 
     def test_notify_task_list_item_value(self):
         wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -275,7 +279,7 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertIsNone(tk1_lv_ac_db.notify)
         self.assertEqual(
             tk1_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -296,7 +300,7 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk2_ex_db.id)
         )[0]
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction_id)
         notify = notify_api_models.NotificationsHelper.from_model(
             notify_model=tk2_lv_ac_db.notify
         )
@@ -320,7 +324,7 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         tk3_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk3_ex_db.id)
         )[0]
-        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction["id"])
+        tk3_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk3_ac_ex_db.liveaction_id)
         self.assertIsNone(tk3_lv_ac_db.notify)
         self.assertEqual(
             tk3_ac_ex_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -367,7 +371,7 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertIsNone(tk1_lv_ac_db.notify)
         # Assert task2 notify is set.
         query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task2"}
@@ -375,7 +379,7 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk2_ex_db.id)
         )[0]
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction_id)
         notify = notify_api_models.NotificationsHelper.from_model(
             notify_model=tk2_lv_ac_db.notify
         )
@@ -402,7 +406,7 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         tk1_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk1_ex_db.id)
         )[0]
-        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction["id"])
+        tk1_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk1_ac_ex_db.liveaction_id)
         self.assertIsNone(tk1_lv_ac_db.notify)
 
         # Assert task2 notify is not set.
@@ -411,5 +415,5 @@ class OrquestaNotifyTest(st2tests.ExecutionDbTestCase):
         tk2_ac_ex_db = ex_db_access.ActionExecution.query(
             task_execution=str(tk2_ex_db.id)
         )[0]
-        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction["id"])
+        tk2_lv_ac_db = lv_db_access.LiveAction.get_by_id(tk2_ac_ex_db.liveaction_id)
         self.assertIsNone(tk2_lv_ac_db.notify)

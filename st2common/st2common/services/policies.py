@@ -15,6 +15,9 @@
 
 from __future__ import absolute_import
 
+import sys
+import traceback
+
 from st2common.constants import action as ac_const
 from st2common import log as logging
 from st2common.persistence import policy as pc_db_access
@@ -58,9 +61,17 @@ def apply_pre_run_policies(lv_ac_db):
             LOG.info(message % (policy_db.ref, policy_db.policy_type, str(lv_ac_db.id)))
             lv_ac_db = driver.apply_before(lv_ac_db)
         except:
-            message = 'An exception occurred while applying policy "%s" (%s) for liveaction "%s".'
+            _, ex, tb = sys.exc_info()
+            traceback_var = "".join(traceback.format_tb(tb, 20))
+            message = 'An exception occurred while applying policy "%s" (%s) for liveaction "%s". traceback "%s"'
             LOG.exception(
-                message % (policy_db.ref, policy_db.policy_type, str(lv_ac_db.id))
+                message
+                % (
+                    policy_db.ref,
+                    policy_db.policy_type,
+                    str(lv_ac_db.id),
+                    traceback_var,
+                )
             )
 
         if lv_ac_db.status == ac_const.LIVEACTION_STATUS_DELAYED:

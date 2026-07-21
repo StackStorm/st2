@@ -21,7 +21,7 @@ import six
 
 from st2common.constants.action import LIVEACTION_STATUSES
 from st2common.models.api.base import BaseAPI
-from st2common.models.api.action import RunnerTypeAPI, ActionAPI, LiveActionAPI
+from st2common.models.api.action import RunnerTypeAPI, ActionAPI
 from st2common.models.db.execution import ActionExecutionDB
 from st2common import log as logging
 
@@ -31,7 +31,6 @@ LOG = logging.getLogger(__name__)
 REQUIRED_ATTR_SCHEMAS = {
     "action": copy.deepcopy(ActionAPI.schema),
     "runner": copy.deepcopy(RunnerTypeAPI.schema),
-    "liveaction": copy.deepcopy(LiveActionAPI.schema),
 }
 
 for k, v in six.iteritems(REQUIRED_ATTR_SCHEMAS):
@@ -76,7 +75,7 @@ class InquiryAPI(BaseAPI):
                 },
                 "required": True,
             },
-            "liveaction": REQUIRED_ATTR_SCHEMAS["liveaction"],
+            "liveaction_id": {"type": "string", "required": True},
             "runner": REQUIRED_ATTR_SCHEMAS["runner"],
             "status": {
                 "description": "The current status of the action execution.",
@@ -112,7 +111,7 @@ class InquiryAPI(BaseAPI):
             "id": doc["id"],
             "runner": doc.get("runner", None),
             "status": doc.get("status", None),
-            "liveaction": doc.get("liveaction", None),
+            "liveaction_id": doc.get("liveaction_id", None),
             "parent": doc.get("parent", None),
             "result": doc.get("result", None),
         }

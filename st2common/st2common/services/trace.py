@@ -197,7 +197,7 @@ def get_trace_db_by_live_action(liveaction):
                 )
             return (created, trace_db)
     # 3. Check if the action_execution associated with liveaction leads to a trace_db
-    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+    execution = ActionExecution.get(liveaction_id=str(liveaction.id))
     if execution:
         trace_db = get_trace_db_by_action_execution(action_execution=execution)
     # 4. No trace_db found, therefore create one. This typically happens

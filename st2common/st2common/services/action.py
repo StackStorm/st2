@@ -61,6 +61,7 @@ def create_request(
 ):
     """
     Create an action execution.
+    :param liveaction: LiveActionDB
 
     :param action_db: Action model to operate one. If not provided, one is retrieved from the
                       database using values from "liveaction".
@@ -167,7 +168,6 @@ def create_request(
         runnertype_db=runnertype_db,
         publish=False,
     )
-
     if trace_db:
         trace_service.add_or_update_given_trace_db(
             trace_db=trace_db,
@@ -316,7 +316,7 @@ def request_cancellation(liveaction, requester):
         liveaction, status, result=result, context=liveaction.context
     )
 
-    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+    execution = ActionExecution.get(liveaction_id=str(liveaction.id))
 
     return (liveaction, execution)
 
@@ -347,7 +347,7 @@ def request_pause(liveaction, requester):
         liveaction.status == action_constants.LIVEACTION_STATUS_PAUSING
         or liveaction.status == action_constants.LIVEACTION_STATUS_PAUSED
     ):
-        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        execution = ActionExecution.get(liveaction_id=str(liveaction.id))
         return (liveaction, execution)
 
     if liveaction.status != action_constants.LIVEACTION_STATUS_RUNNING:
@@ -363,7 +363,7 @@ def request_pause(liveaction, requester):
         context=liveaction.context,
     )
 
-    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+    execution = ActionExecution.get(liveaction_id=str(liveaction.id))
 
     return (liveaction, execution)
 
@@ -396,7 +396,7 @@ def request_resume(liveaction, requester):
     ]
 
     if liveaction.status in running_states:
-        execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+        execution = ActionExecution.get(liveaction_id=str(liveaction.id))
         return (liveaction, execution)
 
     if liveaction.status != action_constants.LIVEACTION_STATUS_PAUSED:
@@ -412,7 +412,7 @@ def request_resume(liveaction, requester):
         context=liveaction.context,
     )
 
-    execution = ActionExecution.get(liveaction__id=str(liveaction.id))
+    execution = ActionExecution.get(liveaction_id=str(liveaction.id))
 
     return (liveaction, execution)
 
@@ -433,7 +433,7 @@ def get_parent_liveaction(liveaction_db):
         return None
 
     parent_execution_db = ActionExecution.get(id=parent["execution_id"])
-    parent_liveaction_db = LiveAction.get(id=parent_execution_db.liveaction["id"])
+    parent_liveaction_db = LiveAction.get(id=parent_execution_db.liveaction_id)
 
     return parent_liveaction_db
 
@@ -541,7 +541,7 @@ def store_execution_output_data_ex(
 
 
 def is_children_active(liveaction_id):
-    execution_db = ActionExecution.get(liveaction__id=str(liveaction_id))
+    execution_db = ActionExecution.get(liveaction_id=str(liveaction_id))
 
     if execution_db.runner["name"] not in action_constants.WORKFLOW_RUNNER_TYPES:
         return False
