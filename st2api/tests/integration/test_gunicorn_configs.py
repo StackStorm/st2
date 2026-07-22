@@ -22,13 +22,10 @@ import pytest
 
 from st2common.util import concurrency
 
-subprocess = concurrency.get_subprocess_module()
-
 import st2tests.config
 from st2common.models.utils import profiling
 from st2common.util.shell import kill_process
 from st2tests.base import IntegrationTestCase
-
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, "../../../conf/st2.tests.conf")
@@ -47,7 +44,9 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         env.update(st2tests.config.db_opts_as_env_vars())
         env.update(st2tests.config.mq_opts_as_env_vars())
         env.update(st2tests.config.coord_opts_as_env_vars())
-        process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
+        process = concurrency.subprocess_popen(
+            cmd, env=env, shell=True, preexec_fn=os.setsid
+        )
         try:
             self.add_process(process=process)
             concurrency.sleep(8)
@@ -69,7 +68,9 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
         env.update(st2tests.config.db_opts_as_env_vars())
         env.update(st2tests.config.mq_opts_as_env_vars())
         env.update(st2tests.config.coord_opts_as_env_vars())
-        process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
+        process = concurrency.subprocess_popen(
+            cmd, env=env, shell=True, preexec_fn=os.setsid
+        )
         try:
             self.add_process(process=process)
             concurrency.sleep(8)

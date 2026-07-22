@@ -315,7 +315,16 @@ def wrap_ssl(socket, *args, **kwargs):
         # calling wrap_ssl() or this may block.
         import ssl
 
-        return ssl.wrap_socket(socket, *args, **kwargs)
+        server_side = kwargs.pop("server_side", False)
+        certfile = kwargs.pop("certfile", None)
+        keyfile = kwargs.pop("keyfile", None)
+
+        protocol = ssl.PROTOCOL_TLS_SERVER if server_side else ssl.PROTOCOL_TLS_CLIENT
+        context = ssl.SSLContext(protocol)
+        if certfile:
+            context.load_cert_chain(certfile, keyfile)
+
+        return context.wrap_socket(socket, *args, server_side=server_side, **kwargs)
     else:
         raise ValueError("Unsupported concurrency library")
 

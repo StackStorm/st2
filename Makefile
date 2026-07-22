@@ -250,7 +250,7 @@ check-python-packages:
 	@echo "================== CHECK PYTHON PACKAGES ===================="
 	@echo ""
 	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYBIN) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
-	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install --quiet "setuptools==$(SETUPTOOLS_VERSION)"
+	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install --quiet "setuptools==$(SETUPTOOLS_VERSION)" setuptools_scm
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
@@ -267,7 +267,7 @@ check-python-packages-nightly:
 	@echo ""
 
 	test -f $(VIRTUALENV_COMPONENTS_DIR)/bin/activate || $(PYBIN) -m venv $(VIRTUALENV_COMPONENTS_DIR) --system-site-packages
-	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install --quiet "setuptools==$(SETUPTOOLS_VERSION)" wheel
+	$(VIRTUALENV_COMPONENTS_DIR)/bin/pip install --quiet "setuptools==$(SETUPTOOLS_VERSION)" setuptools_scm wheel
 	@for component in $(COMPONENTS_WITHOUT_ST2TESTS); do \
 		echo "==========================================================="; \
 		echo "Checking component:" $$component; \
