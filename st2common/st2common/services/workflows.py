@@ -611,15 +611,27 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
             status=statuses.REQUESTED,
         )
 
-        # Prepare the result format for itemized task execution.
-        if task_ex_db.itemized:
-            task_ex_db.result = {"items": [None] * task_ex_db.items_count}
-
         # Insert new record into the database.
         task_ex_db = wf_db_access.TaskExecution.insert(task_ex_db, publish=False)
         task_ex_id = str(task_ex_db.id)
         msg = 'Task execution "%s" created for task "%s", route "%s".'
         update_progress(wf_ex_db, msg % (task_ex_id, task_id, str(task_route)))
+
+        # Prepare state storage for itemized task execution.
+        if task_ex_db.itemized and task_ex_db.items_count > 0:
+            # Create a minimal result structure in task_ex_db
+            task_ex_db.result = {"items_count": task_ex_db.items_count}
+            wf_db_access.TaskExecution.update(task_ex_db, publish=False)
+
+            # Create separate state records for each item
+            for i in range(task_ex_db.items_count):
+                item_state_db = wf_db_models.TaskItemStateDB(
+                    task_execution=str(task_ex_db.id),
+                    item_id=i,
+                    status=statuses.REQUESTED,
+                    context={},  # Will be populated when processing this specific item
+                )
+                wf_db_access.TaskItemState.insert(item_state_db, publish=False)
 
     try:
         # Return here if no action is specified in task spec.
@@ -723,6 +735,12 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
         msg = "Unable to request action execution. Identifier for the item is not provided."
         raise Exception(msg)
 
+    # For itemized tasks, fetch item context from the item state
+    if task_ex_db.itemized and item_id is not None:
+        item_state_db = wf_db_access.TaskItemState.get_by_task_and_item(
+            str(task_ex_db.id), item_id
+        )
+
     # Identify the action to execute.
     action_db = action_utils.get_action_by_ref(ref=action_ref)
 
@@ -758,6 +776,13 @@ def request_action_execution(wf_ex_db, task_ex_db, st2_ctx, ac_ex_req, delay=Non
 
     if item_id is not None:
         ac_ex_ctx["orquesta"]["item_id"] = item_id
+
+        # Update the item state context
+        item_state_db = wf_db_access.TaskItemState.get_by_task_and_item(
+            str(task_ex_db.id), item_id
+        )
+        item_state_db.context = ac_ex_ctx
+        wf_db_access.TaskItemState.update(item_state_db, publish=False)
 
     # Render action execution parameters and setup action execution object.
     ac_ex_params = param_utils.render_live_params(
@@ -1256,26 +1281,38 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
         msg = msg % (task_ex_db.task_id, str(task_ex_db.task_route), item_id)
         update_progress(wf_ex_db, msg, severity="debug")
 
-        task_ex_db.result["items"][item_id] = {
-            "status": ac_ex_status,
-            "result": ac_ex_result,
-        }
+        # Update the specific item state
+        item_state_db = wf_db_access.TaskItemState.get_by_task_and_item(
+            task_ex_id, item_id
+        )
+        item_state_db.status = ac_ex_status
+        item_state_db.result = ac_ex_result
+        wf_db_access.TaskItemState.update(item_state_db, publish=False)
 
-        item_statuses = [
-            item.get("status", statuses.UNSET) if item else statuses.UNSET
-            for item in task_ex_db.result["items"]
-        ]
+        # Check if all items are complete
+        item_state_dbs = wf_db_access.TaskItemState.query_by_task_execution(task_ex_id)
+        item_statuses = [item_state_db.status for item_state_db in item_state_dbs]
 
         task_completed = all(
             [status in statuses.COMPLETED_STATUSES for status in item_statuses]
         )
 
         if task_completed:
+            # If all items are complete, update the task status
             new_task_status = (
                 statuses.SUCCEEDED
                 if all([status == statuses.SUCCEEDED for status in item_statuses])
                 else statuses.FAILED
             )
+
+            # Also collect all item results for the main task result
+            results = []
+            for item_state_db in item_state_dbs:
+                results.append(
+                    {"status": item_state_db.status, "result": item_state_db.result}
+                )
+
+            task_ex_db.result = {"items": results}
 
             msg = 'Updating task execution from status "%s" to "%s".'
             update_progress(
