@@ -81,7 +81,8 @@
                                 "null",
                                 "number",
                                 "object",
-                                "string"
+                                "string",
+                                "raw_string"
                             ]
                         },
                         "stringArray": {
