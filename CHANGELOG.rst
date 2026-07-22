@@ -28,6 +28,7 @@ Changed
 
 Added
 ~~~~~
+* added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
 
 3.9.0 - October 10, 2025
 ------------------------
