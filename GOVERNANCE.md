@@ -99,6 +99,17 @@ between the persons involved. If a dispute cannot be decided independently, the 
 called in to decide. If the maintainers themselves cannot decide an issue, the issue will
 be resolved by voting.
 
+## Conflict of interest situations
+An example of conflict interest is a person occupying two social roles simultaneously which generate opposing benefits and actions
+regarding a primary interest will be unduly influenced by a secondary interest (example: StackStorm TSC maintainer and st2 services company employee).
+We expect maintainers to be aware when they are conflicted due to the projects they are involved in and avoid conflict of interest situations:
+abstain proposals or delegate decisions that may be seen to be self-interested as well as avoid use of administrative resources for the
+secondary interest outside of the TSC. We expect that everyone who participates in the project does so with the goal of making life better
+for the TSC and Community via fair unbiased decisions. In case of conflict of interest situations, - always discuss with the StackStorm TSC group.
+Perceived conflicts of interest are important to address; act to ensure that decisions or proposals are credible and will maintain the
+reputation of StackStorm toward its Open Source Community and Linux Foundation's vision of the cohesive, healthy project, especially
+when actions are difficult or favorable to the interests of one group over another.
+
 ## How decisions are made?
 The process of adding, promoting or removing Contributors and Maintainers is done via composing a Pull Request (PR) against `OWNERS.md`
 which includes details about contribution activities committed to the project during period of time and how that conforms with expected Maintainer responsibilities, skillset and the best interest of the project.
@@ -106,5 +117,5 @@ The decision is made based on TSC members votes in a PR.
 
 The process of voting on other Issues, Proposals and Changes is performed by creating an open Github Discussion. For decisions making history reasons and to stimulate brainstorming, it's recommended to write a detailed research/description that covers possible outcomes and pros/cons behind the change to give comprehensive context.
 
-Additions and removals of maintainers require a *2/3 majority*, while other decisions and changes
+Additions, removals, promotions of maintainers as well as changes to the GOVERNANCE (this document) require a *2/3 majority*, while other decisions and changes
 require only a simple majority. The voting period is one week.
