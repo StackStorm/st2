@@ -214,6 +214,18 @@ class ProcessSensorContainer(object):
                     # Sensor has been successfully running more than threshold seconds, clear the
                     # respawn counter so we can try to restart the sensor if it dies later on
                     self._sensor_respawn_counts[sensor_id] = 0
+                if now - sensor_start_time >= cfg.CONF.auth.service_token_ttl:
+                    sensor = self._sensors[sensor_id]
+                    self._delete_sensor(sensor_id)
+                    self._dispatch_trigger_for_sensor_exit(sensor, exit_code=status)
+                    concurrency.spawn(
+                        self._respawn_sensor,
+                        sensor_id=sensor_id,
+                        sensor=sensor,
+                        exit_code=status,
+                    )
+
+
 
     def running(self):
         return len(self._processes)
