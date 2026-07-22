@@ -30,6 +30,7 @@ LOG = logging.getLogger(__name__)
 # tab of st2web.
 SUPPORTED_FILTERS = {
     "action": "action.ref",
+    "pack": "action.pack",
     "status": "status",
     "liveaction": "liveaction.id",
     "parent": "parent",
