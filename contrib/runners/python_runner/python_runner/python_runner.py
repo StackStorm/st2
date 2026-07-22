@@ -188,7 +188,8 @@ class PythonRunner(GitWorktreeActionRunner):
         # failure to fork the wrapper process when using large parameters.
         stdin = None
         stdin_params = None
-        if len(serialized_parameters) >= MAX_PARAM_LENGTH:
+        serialized_parameters_bytes = serialized_parameters.encode('utf-8')
+        if len(serialized_parameters_bytes) >= MAX_PARAM_LENGTH:
             stdin = subprocess.PIPE
             LOG.debug("Parameters are too big...changing to stdin")
             stdin_params = '{"parameters": %s}\n' % (serialized_parameters)
