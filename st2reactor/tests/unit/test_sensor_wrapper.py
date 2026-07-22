@@ -26,6 +26,8 @@ import six
 import mock
 import eventlet
 
+from st2common.util import concurrency
+
 
 import st2tests.config as tests_config
 from st2tests.base import TESTS_CONFIG_PATH
@@ -203,6 +205,11 @@ class SensorWrapperTestCase(unittest.TestCase):
         # 'poll'" will be thrown
         import select
 
-        self.assertTrue(eventlet.patcher.is_monkey_patched(select))
-        self.assertTrue(select != eventlet.patcher.original("select"))
+        if concurrency.get_concurrency_library() == "eventlet":
+            self.assertTrue(eventlet.patcher.is_monkey_patched(select))
+            self.assertTrue(select != eventlet.patcher.original("select"))
+        else:
+            import gevent.monkey
+
+            self.assertTrue(gevent.monkey.is_module_patched("select"))
         self.assertTrue(select.poll())

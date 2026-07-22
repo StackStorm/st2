@@ -14,10 +14,11 @@ ciso8601
 cryptography==43.0.3
 decorator==5.2.1
 dnspython
-eventlet==0.40.3
+eventlet==0.40.4
+gevent==25.9.1
 gitdb==4.0.12
 gitpython==3.1.45
-greenlet==3.1.1
+greenlet==3.2.2
 importlib_resources==6.5.2
 jinja2==3.1.6
 jsonpath-rw==1.4.0

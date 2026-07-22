@@ -18,8 +18,9 @@ import os
 import sys
 import signal
 
-import eventlet
-from eventlet.green import subprocess
+from st2common.util import concurrency
+
+subprocess = concurrency.get_subprocess_module()
 
 import st2tests.config
 from st2tests.base import IntegrationTestCase
@@ -83,7 +84,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         # Verify first 4 environment related log messages
@@ -105,7 +106,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         # Verify first 4 environment related log messages
@@ -126,7 +127,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         # Verify first 4 environment related log messages
@@ -143,7 +144,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
@@ -158,7 +159,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
@@ -173,7 +174,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
@@ -188,7 +189,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         # First 6 log lines are debug messages about the environment which are always logged
@@ -207,7 +208,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))
@@ -218,7 +219,7 @@ class ServiceSetupLogLevelFilteringTestCase(IntegrationTestCase):
         self.add_process(process=process)
 
         # Give it some time to start up
-        eventlet.sleep(8)
+        concurrency.sleep(8)
         process.send_signal(signal.SIGTERM)
 
         stdout = "\n".join(process.stdout.read().decode("utf-8").split("\n"))

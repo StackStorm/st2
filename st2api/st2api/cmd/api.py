@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2020-2026 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
-
 # NOTE: It's important that we perform monkey patch as early as possible before any other modules
 # are important, otherwise SSL support for MongoDB won't work.
 # See https://github.com/StackStorm/st2/issues/4832 and https://github.com/gevent/gevent/issues/1016
@@ -24,9 +21,11 @@ from st2common.util.monkey_patch import monkey_patch
 
 monkey_patch()
 
-import eventlet
+import os
+import sys
+
 from oslo_config import cfg
-from eventlet import wsgi
+from st2common.util import concurrency
 
 from st2common import log as logging
 from st2common.service_setup import setup as common_setup
@@ -79,11 +78,11 @@ def _run_server():
 
     LOG.info("(PID=%s) ST2 API is serving on http://%s:%s.", os.getpid(), host, port)
 
-    max_pool_size = eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
-    worker_pool = eventlet.GreenPool(max_pool_size)
-    sock = eventlet.listen((host, port))
+    max_pool_size = concurrency.get_default_green_pool_size()
+    worker_pool = concurrency.get_green_pool_class()(max_pool_size)
+    sock = concurrency.listen_server(host, port)
 
-    wsgi.server(
+    concurrency.wsgi_server(
         sock, app.setup_app(), custom_pool=worker_pool, log=LOG, log_output=False
     )
     return 0

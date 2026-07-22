@@ -17,7 +17,8 @@ from __future__ import absolute_import, print_function
 
 import datetime
 import mock
-import eventlet
+
+from st2common.util import concurrency
 
 import st2common
 from st2tests import ExecutionDbTestCase
@@ -147,7 +148,7 @@ class ActionExecutionSchedulingQueueItemDBTest(ExecutionDbTestCase):
             )
 
         # Wait maximum delay seconds so the query works as expected
-        eventlet.sleep(1.0)
+        concurrency.sleep(1.0)
 
         for index in expected_order:
             test_case = test_cases[index]

@@ -1,4 +1,4 @@
-# Copyright 2020 The StackStorm Authors.
+# Copyright 2020-2026 The StackStorm Authors.
 # Copyright 2019 Extreme Networks, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ import locale
 import logging as stdlib_logging
 
 import six
-import eventlet.debug
+
 from oslo_config import cfg
 from tooz.coordination import GroupAlreadyExist
 from tooz.coordination import GroupNotCreated
@@ -38,6 +38,7 @@ from st2common.transport.bootstrap_utils import register_exchanges_with_retry
 from st2common.transport.bootstrap_utils import register_kombu_serializers
 from st2common.bootstrap import runnersregistrar
 from st2common.signal_handlers import register_common_signal_handlers
+from st2common.util.concurrency import blocking_detection
 from st2common.util.debugging import enable_debugging
 from st2common.models.utils.profiling import enable_profiling
 from st2common import triggers
@@ -285,11 +286,10 @@ def setup(
     # modules like jinja, stevedore, etc load files from disk on init which is slow and will be
     # detected as blocking operation, but this is not really an issue inside the service startup /
     # init phase.
-    if cfg.CONF.enable_eventlet_blocking_detection:
-        print("Eventlet long running / blocking operation detection logic enabled")
-        print(cfg.CONF.eventlet_blocking_detection_resolution)
-        eventlet.debug.hub_blocking_detection(
-            state=True, resolution=cfg.CONF.eventlet_blocking_detection_resolution
+    if cfg.CONF.enable_concurrency_blocking_detection:
+        blocking_detection(
+            cfg.CONF.enable_concurrency_blocking_detection,
+            cfg.CONF.concurrency_blocking_detection_resolution,
         )
 
 

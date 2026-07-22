@@ -17,9 +17,8 @@ from __future__ import absolute_import
 
 import functools
 
-import eventlet
-
 from st2common import log as logging
+from st2common.util import concurrency
 from st2common.models.db.liveaction import LiveActionDB
 import st2common.services.action as action_services
 from st2common.constants.action import LIVEACTION_STATUS_FAILED
@@ -103,7 +102,7 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         # status
         if self.delay > 0:
             re_run_live_action = functools.partial(
-                eventlet.spawn_after,
+                concurrency.spawn_after,
                 self.delay,
                 self._re_run_live_action,
                 live_action_db=live_action_db,
@@ -111,7 +110,7 @@ class ExecutionRetryPolicyApplicator(ResourcePolicyApplicator):
         else:
             # Even if delay is 0, use a small delay (0.1 seconds) to prevent busy wait
             re_run_live_action = functools.partial(
-                eventlet.spawn_after,
+                concurrency.spawn_after,
                 0.1,
                 self._re_run_live_action,
                 live_action_db=live_action_db,

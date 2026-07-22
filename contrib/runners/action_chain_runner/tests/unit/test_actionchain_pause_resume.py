@@ -14,8 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import eventlet
 import mock
+
+from st2common.util import concurrency
 import os
 import tempfile
 
@@ -120,7 +121,7 @@ class ActionChainRunnerPauseResumeTest(ExecutionDbTestCase):
         for i in range(0, retries):
             liveaction = LiveAction.get_by_id(str(liveaction.id))
             if liveaction.status != status:
-                eventlet.sleep(interval)
+                concurrency.sleep(interval)
                 continue
             else:
                 break
@@ -132,7 +133,7 @@ class ActionChainRunnerPauseResumeTest(ExecutionDbTestCase):
         for i in range(0, retries):
             execution = ActionExecution.get_by_id(str(execution.id))
             if len(getattr(execution, "children", [])) <= 0:
-                eventlet.sleep(interval)
+                concurrency.sleep(interval)
                 continue
 
         return execution

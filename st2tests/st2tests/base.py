@@ -38,6 +38,7 @@ import logging
 import six
 import eventlet
 import psutil
+from st2common.util import concurrency
 import mock
 from oslo_config import cfg
 from unittest import TestCase
@@ -186,19 +187,14 @@ class EventletTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        eventlet.monkey_patch(
-            os=True,
-            select=True,
-            socket=True,
-            thread=False if "--use-debugger" in sys.argv else True,
-            time=True,
-        )
+        monkey_patch()
 
     @classmethod
     def tearDownClass(cls):
-        eventlet.monkey_patch(
-            os=False, select=False, socket=False, thread=False, time=False
-        )
+        if concurrency.get_concurrency_library() == "eventlet":
+            eventlet.monkey_patch(
+                os=False, select=False, socket=False, thread=False, time=False
+            )
 
 
 class BaseDbTestCase(BaseTestCase):
@@ -360,7 +356,7 @@ class ExecutionDbTestCase(DbTestCase):
         assert isinstance(status, six.string_types), "%s is not of text type" % (status)
 
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
             if liveaction_db.status == status:
                 break
@@ -378,7 +374,7 @@ class ExecutionDbTestCase(DbTestCase):
         )
 
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
             if liveaction_db.status in statuses:
                 break
@@ -392,7 +388,7 @@ class ExecutionDbTestCase(DbTestCase):
         self, execution_db, status, retries=300, delay=0.1, raise_exc=True
     ):
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             execution_db = ex_db_access.ActionExecution.get_by_id(str(execution_db.id))
             if execution_db.status == status:
                 break
@@ -406,7 +402,7 @@ class ExecutionDbTestCase(DbTestCase):
         self, mocked, expected_count, retries=100, delay=0.1, raise_exc=True
     ):
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             if mocked.call_count == expected_count:
                 break
 
@@ -831,7 +827,7 @@ def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1, sleep_dela
 
     def mock_stream_readline():
         if sleep_delay:
-            eventlet.sleep(sleep_delay)
+            concurrency.sleep(sleep_delay)
 
         if mock_stream.counter >= stop_counter:
             mock_stream.closed = True

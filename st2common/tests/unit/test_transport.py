@@ -21,7 +21,8 @@ import ssl
 import random
 
 import unittest
-import eventlet
+
+from st2common.util import concurrency
 
 from bson.objectid import ObjectId
 from kombu.mixins import ConsumerMixin
@@ -77,16 +78,16 @@ class TransportUtilsTestCase(unittest.TestCase):
         with transport_utils.get_connection() as connection:
             connection.connect()
             watcher = QueueConsumer(connection=connection, queue=queue)
-            watcher_thread = eventlet.greenthread.spawn(watcher.run)
+            watcher_thread = concurrency.spawn(watcher.run)
 
         # Give it some time to start up since we are publishing on a new queue
-        eventlet.sleep(0.5)
+        concurrency.sleep(0.5)
 
         self.assertEqual(len(watcher.received_messages), 0)
 
         # 1. Verify compression is off as a default
         publisher.publish(payload=live_action_db, exchange=exchange)
-        eventlet.sleep(0.2)
+        concurrency.sleep(0.2)
 
         self.assertEqual(len(watcher.received_messages), 1)
         self.assertEqual(
@@ -105,7 +106,7 @@ class TransportUtilsTestCase(unittest.TestCase):
         cfg.CONF.set_override(name="compression", group="messaging", override="zstd")
         publisher.publish(payload=live_action_db, exchange=exchange)
 
-        eventlet.sleep(0.2)
+        concurrency.sleep(0.2)
 
         self.assertEqual(len(watcher.received_messages), 2)
         self.assertEqual(
@@ -125,7 +126,7 @@ class TransportUtilsTestCase(unittest.TestCase):
         cfg.CONF.set_override(name="compression", group="messaging", override="zstd")
         publisher.publish(payload=live_action_db, exchange=exchange, compression="gzip")
 
-        eventlet.sleep(0.2)
+        concurrency.sleep(0.2)
 
         self.assertEqual(len(watcher.received_messages), 3)
         self.assertEqual(

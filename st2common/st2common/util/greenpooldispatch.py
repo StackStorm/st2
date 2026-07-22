@@ -16,8 +16,9 @@
 from __future__ import absolute_import
 import time
 
-import eventlet
 import six.moves.queue
+
+from st2common.util import concurrency
 
 from st2common import log as logging
 
@@ -44,8 +45,8 @@ class BufferedDispatcher(object):
         name=None,
     ):
         self._pool_limit = dispatch_pool_size
-        self._dispatcher_pool = eventlet.GreenPool(dispatch_pool_size)
-        self._dispatch_monitor_thread = eventlet.greenthread.spawn(self._flush)
+        self._dispatcher_pool = concurrency.get_green_pool_class()(dispatch_pool_size)
+        self._dispatch_monitor_thread = concurrency.spawn(self._flush)
         self._monitor_thread_empty_q_sleep_time = monitor_thread_empty_q_sleep_time
         self._monitor_thread_no_workers_sleep_time = (
             monitor_thread_no_workers_sleep_time
@@ -71,13 +72,13 @@ class BufferedDispatcher(object):
     def _flush(self):
         while True:
             while self._work_buffer.empty():
-                eventlet.greenthread.sleep(self._monitor_thread_empty_q_sleep_time)
-            while self._dispatcher_pool.free() <= 0:
-                eventlet.greenthread.sleep(self._monitor_thread_no_workers_sleep_time)
+                concurrency.sleep(self._monitor_thread_empty_q_sleep_time)
+            while not concurrency.is_green_pool_free(self._dispatcher_pool):
+                concurrency.sleep(self._monitor_thread_no_workers_sleep_time)
             self._flush_now()
 
     def _flush_now(self):
-        if self._dispatcher_pool.free() <= 0:
+        if not concurrency.is_green_pool_free(self._dispatcher_pool):
             now = time.time()
 
             if (now - self._pool_last_free_ts) >= POOL_BUSY_THRESHOLD_SECONDS:
@@ -90,12 +91,14 @@ class BufferedDispatcher(object):
         # Update the time of when there were free threads available
         self._pool_last_free_ts = time.time()
 
-        while not self._work_buffer.empty() and self._dispatcher_pool.free() > 0:
+        while not self._work_buffer.empty() and concurrency.is_green_pool_free(
+            self._dispatcher_pool
+        ):
             (handler, args) = self._work_buffer.get_nowait()
             self._dispatcher_pool.spawn(handler, *args)
 
     def __repr__(self):
-        free_count = self._dispatcher_pool.free()
+        free_count = concurrency.green_pool_free_count(self._dispatcher_pool)
         values = (
             self.name,
             self._pool_limit,

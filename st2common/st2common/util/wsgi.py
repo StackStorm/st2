@@ -14,13 +14,13 @@
 # limitations under the License.
 
 """
-Eventlet WSGI server related utility functions.
+WSGI server related utility functions.
 """
 
 from __future__ import absolute_import
-import eventlet
 
 from st2common import log as logging
+from st2common.util import concurrency
 
 LOG = logging.getLogger(__name__)
 
@@ -43,17 +43,17 @@ def shutdown_server_kill_pending_requests(sock, worker_pool, wait_time=2):
     worker_pool.resize(0)
     sock.close()
 
-    active_requests = worker_pool.running()
+    active_requests = concurrency.green_pool_running_count(worker_pool)
     LOG.info("Shutting down. Requests left: %s", active_requests)
 
     # Give active requests some time to finish
     if active_requests > 0:
-        eventlet.sleep(wait_time)
+        concurrency.sleep(wait_time)
 
     # Kill requests which still didn't finish
-    running_corutines = worker_pool.coroutines_running.copy()
-    for coro in running_corutines:
-        eventlet.greenthread.kill(coro)
+    running_greenlets = concurrency.get_pool_greenlets(worker_pool).copy()
+    for coro in running_greenlets:
+        concurrency.kill(coro)
 
     LOG.info("Exiting...")
     raise SystemExit()
