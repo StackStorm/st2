@@ -55,7 +55,7 @@ LOG = logging.getLogger(__name__)
 
 class RunnerTypeAPI(BaseAPI):
     """
-    The representation of an RunnerType in the system. An RunnerType
+    The representation of a RunnerType in the system. A RunnerType
     has a one-to-one mapping to a particular ActionRunner implementation.
     """
 

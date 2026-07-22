@@ -14,7 +14,7 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import pkg_resources
+import importlib_resources
 
 import jinja2
 
@@ -42,7 +42,8 @@ def load_spec(module_name, spec_file):
 
 
 def generate_spec(module_name, spec_file):
-    spec_template = pkg_resources.resource_string(module_name, spec_file)
+    ref = importlib_resources.files(module_name).joinpath(spec_file)
+    spec_template = ref.read_bytes()
     if not isinstance(spec_template, str):
         spec_template = spec_template.decode()
     spec_string = jinja2.Template(spec_template).render(**ARGUMENTS)

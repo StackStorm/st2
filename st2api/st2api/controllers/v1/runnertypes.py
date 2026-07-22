@@ -32,7 +32,7 @@ LOG = logging.getLogger(__name__)
 class RunnerTypesController(ResourceController):
     """
     Implements the RESTful web endpoint that handles
-    the lifecycle of an RunnerType in the system.
+    the lifecycle of a RunnerType in the system.
     """
 
     model = RunnerTypeAPI

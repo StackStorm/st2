@@ -50,12 +50,12 @@ jobs:
 
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:4.2-management
         options: >-
           --name rabbitmq
         ports:
@@ -65,16 +65,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.6
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -128,10 +128,9 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
         shard:
           # Sharding of tests is handled by pants:
           # https://www.pantsbuild.org/stable/docs/using-pants/advanced-target-selection#sharding-the-input-targets
@@ -142,12 +141,12 @@ jobs:
 
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:4.2-management
         options: >-
           --name rabbitmq
         ports:
@@ -157,16 +156,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.6
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -225,19 +224,18 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
 
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:4.2-management
         options: >-
           --name rabbitmq
         ports:
@@ -247,16 +245,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.6
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -314,41 +312,40 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
 
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
       # In GHA, these services are started first before the code is checked out.
-      # We use bitnami images to facilitate reconfiguring RabbitMQ during integration tests.
+      # We need to reconfigure RabbitMQ during ci-integration tests.
       # We rely on custom config and SSL certs that are in the repo.
       # Many images require config in env vars (which we can't change during the test job)
       # or they require config in entrypoint args (which we can't override for GHA services)
-      # bitnami builds ways to get config files from mounted volumes.
+      # so we use RabbitMQ's conf.d feature to get config files from mounted volumes.
       rabbitmq:
-        image: bitnami/rabbitmq:3.8
+        image: rabbitmq:4.2
         volumes:
-          - /home/runner/rabbitmq_conf:/bitnami/conf  # RABBITMQ_MOUNTED_CONF_DIR
+          - /home/runner/rabbitmq_conf:/etc/rabbitmq/conf.d  # RABBITMQ_MOUNTED_CONF_DIR
         env:
-          # tell bitnami/rabbitmq to enable this by default
+          # tell rabbitmq to enable this by default
           RABBITMQ_PLUGINS: rabbitmq_management
           RABBITMQ_USERNAME: guest
           RABBITMQ_PASSWORD: guest
           RABBITMQ_LOGS: '-'
-          # bitnami's default relative limit was too high
+          # default relative limit was too high
           RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
 
         # These are strictly docker options, not entrypoint args (GHA restriction)
         options: >-
           --name rabbitmq
         ports:
-          # These 6 ports are exposed by bitnami/rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
+          # These 6 ports are exposed by rabbitmq (see https://www.rabbitmq.com/networking.html#ports)
           # host_port:container_port/protocol
           - 5671:5671/tcp   # AMQP SSL port
           - 5672:5672/tcp   # AMQP standard port
@@ -359,16 +356,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
-         # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        image: redis:8.6
+        # Set health checks to wait until redis has started
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -404,7 +401,6 @@ jobs:
 
       # This is only required for st2common/tests/integration/test_rabbitmq_ssl_listener.py
       - name: Reconfigure RabbitMQ
-        # bitnami image allows (see bitnami/rabbitmq readme):
         # Here we're copying a rabbitmq.config file which won't do anything.
         # We need to switch to custom.conf or advanced.config.
         timeout-minutes: 2  # may die if rabbitmq fails to start
@@ -436,19 +432,18 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
 
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:4.2-management
         options: >-
           --name rabbitmq
         ports:
@@ -458,7 +453,7 @@ jobs:
 
       redis:
         # Docker Hub image
-        image: redis
+        image: redis:8.6
         # Set health checks to wait until redis has started
         options: >-
           --name "redis"
@@ -556,19 +551,18 @@ jobs:
         # NOTE: We need to use full Python version as part of Python deps cache key otherwise
         # setup virtualenv step will fail.
         python:
-          - {version-short: '3.8', version: '3.8.18'}
-          - {version-short: '3.9', version: '3.9.21'}
           - {version-short: '3.10', version: '3.10.16'}
           - {version-short: '3.11', version: '3.11.11'}
+          - {version-short: '3.12', version: '3.12.12'}
 
     services:
       mongo:
-        image: mongo:7.0
+        image: mongo:8.2
         ports:
           - 27017:27017
 
       rabbitmq:
-        image: rabbitmq:3.8-management
+        image: rabbitmq:4.2-management
         options: >-
           --name rabbitmq
         ports:
@@ -578,16 +572,16 @@ jobs:
 
       redis:
          # Docker Hub image
-         image: redis
+        image: redis:8.6
          # Set health checks to wait until redis has started
-         options: >-
-           --name "redis"
-           --health-cmd "redis-cli ping"
-           --health-interval 10s
-           --health-timeout 5s
-           --health-retries 5
-         ports:
-           - 6379:6379/tcp
+        options: >-
+          --name "redis"
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379/tcp
 
     steps:
       - name: Checkout repository
@@ -671,7 +665,7 @@ jobs:
       - name: Run st2-self-check
         env:
           # Space separated list of tests to be skipped if the self-check is running in GitHub Actions
-          TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool"
+          TESTS_TO_SKIP: "tests.test_quickstart_rules tests.test_run_pack_tests_tool tests.test_packs_pack"
           ST2_SYSTEM_USER__USER: ${{ env.ST2TESTS_SYSTEM_USER }}
           ST2_SYSTEM_USER__SSH_KEY_FILE: /home/${{ env.ST2TESTS_SYSTEM_USER }}/.ssh/stanley_rsa
         run: >

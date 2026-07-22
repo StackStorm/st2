@@ -1206,14 +1206,19 @@ class ActionRunCommandMixin(object):
         By default, parameters are sorted using "position" parameter attribute.
         If this attribute is not available, parameter is sorted based on the
         name.
+
+        Returns a tuple (tier, value) so that parameters with a numeric position
+        sort before those without, and mixed int/str comparisons are avoided.
         """
         parameter = parameters.get(name, None)
 
         if not parameter:
-            return None
+            return (1, 0, name)
 
-        sort_value = parameter.get("position", name)
-        return sort_value
+        position = parameter.get("position", None)
+        if position is not None:
+            return (0, int(position), "")
+        return (1, 0, name)
 
     def _get_inherited_env_vars(self):
         env_vars = os.environ.copy()

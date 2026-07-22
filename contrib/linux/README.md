@@ -2,28 +2,37 @@
 
 This pack contains actions for commonly used Linux commands and tools.
 
-## Configuration
-
-* ``file_watch_sensor.file_paths`` - A list of paths to the files to monitor.
-  Note: Those need to be full paths to the files (e.g. ``/var/log/auth.log``)
-  and not directories (files don't need to exist yet when the sensor is ran
-  though).
-
-Example:
-
-```yaml
----
-file_watch_sensor:
-  file_paths:
-    - /opt/data/absolute_path_to_file.log
-```
-
 ## Sensors
 
 ### FileWatchSensor
 
-This sensor monitors specified files for new new lines. Once a new line is
+This sensor monitors files that are declared by a rule (one file per rule). Once a new line is
 detected, a trigger is emitted.
+
+### Example Rule:
+
+This example rule will register with the FileWatchSensor to watch the file `/tmp/st2_test`. When a new line is
+detected, the trigger will be emitted, and the action `core.local` will echo the trigger data.
+```
+---
+name: sample_rule_file_watch
+pack: "examples"
+description: Sample rule custom trigger type - add a file to be watched by file_watch_sensor in linux pack.
+enabled: true
+
+trigger:
+  parameters:
+    file_path: /tmp/st2_test
+  type: linux.file_watch.line
+
+criteria: {}
+
+action:
+  parameters:
+    cmd: echo "{{trigger}}"
+  ref: core.local
+
+```
 
 ### linux.file_watch.line trigger
 

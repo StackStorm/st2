@@ -18,16 +18,29 @@ from __future__ import absolute_import
 import re
 import sys
 
-from sre_parse import (  # pylint: disable=E0611
-    parse,
-    AT,
-    AT_BEGINNING,
-    AT_BEGINNING_STRING,
-    AT_END,
-    AT_END_STRING,
-    BRANCH,
-    SUBPATTERN,
-)
+if sys.version_info >= (3, 11):
+    from re._parser import (  # pylint: disable=E0611
+        parse,
+        AT,
+        AT_BEGINNING,
+        AT_BEGINNING_STRING,
+        AT_END,
+        AT_END_STRING,
+        BRANCH,
+        SUBPATTERN,
+    )
+else:
+    from sre_parse import (  # pylint: disable=E0611
+        parse,
+        AT,
+        AT_BEGINNING,
+        AT_BEGINNING_STRING,
+        AT_END,
+        AT_END_STRING,
+        BRANCH,
+        SUBPATTERN,
+    )
+
 
 from st2common.util.jinja import render_values
 from st2common.constants import keyvalue as kv_constants
@@ -45,11 +58,7 @@ __all__ = [
 
 LOG = log.getLogger(__name__)
 
-# Python 3 compatibility
-if sys.version_info > (3,):
-    SUBPATTERN_INDEX = 3
-else:
-    SUBPATTERN_INDEX = 1
+SUBPATTERN_INDEX = 3
 
 
 class ActionAliasFormatParser(object):

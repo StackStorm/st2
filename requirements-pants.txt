@@ -12,18 +12,23 @@ argparse
 ciso8601
 cryptography
 editor
-eventlet
-# flex parses the openapi 2 spec in our router
-flex
+# Gunicorn <26 requires eventlet>=0.40.3
+eventlet>=0.40.3
+# openapi-spec-validator parses the openapi 2 spec in our router
+openapi-spec-validator
 # gitpython & gitdb are used for pack management
 gitdb
 gitpython
 # st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
 greenlet
-gunicorn
+# Gunicorn dropped eventlet support as of v26. https://gunicorn.org/news/#2600-2026-05-05
+gunicorn<26
+# importlib backport to replace pkg_resource from setuptools.
+importlib-metadata
+importlib-resources
 jinja2
 jsonpath-rw
-jsonschema>=3,<4
+jsonschema
 kombu
 lockfile
 mock
@@ -33,11 +38,11 @@ mongoengine>=0.24.0,<0.30.0
 # networkx version is constrained in orquesta.
 networkx
 orjson
-orquesta @ git+https://github.com/StackStorm/orquesta.git@5ba1467614b2ef8b4709b2ca89e68baa671e8975
+orquesta @ git+https://github.com/StackStorm/orquesta.git
 # Historical reference: https://github.com/StackStorm/st2/issues/4160#issuecomment-394386433
 # Relaxed pinning for py3.10 support.
 oslo.config
-paramiko
+paramiko<4.0.0
 # we use pip at runtime
 pip
 # prance is used by st2-validate-api-spec to validate the openapi spec
@@ -68,7 +73,7 @@ routes
 semver
 # setuptools provides pkg_resources (and we need it with pip at runtime)
 # setuptools is also required for pants to build wheels.
-setuptools
+setuptools==82.0.1
 simplejson
 six
 # NOTE: we use sseclient-py instead of sseclient because sseclient
@@ -85,7 +90,8 @@ tabulate
 tooz
 udatetime
 ujson
-virtualenv
+# Pin virtualenv to match version installed by st2packaging-dockerfiles
+virtualenv==21.5.1
 webob
 webtest
 # we use pip+wheel at runtime; wheel is also required for pants to build wheels.
