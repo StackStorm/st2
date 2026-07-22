@@ -806,6 +806,11 @@ paths:
           description: Object containing the format to be matched.
           schema:
             $ref: '#/definitions/ActionAliasMatchRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Action alias match pattern
@@ -840,6 +845,11 @@ paths:
           description: Number of actions alias to offset
           type: integer
           default: 0
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Action alias match pattern
