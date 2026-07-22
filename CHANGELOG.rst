@@ -17,6 +17,7 @@ Redis       8.6
 Fixed
 ~~~~~
 * Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375
+* Fix utf-8 encode before checking paramter max size #6352
 
 Changed
 ~~~~~~~

@@ -40,6 +40,7 @@ PASCAL_ROW_ACTION_PATH = os.path.join(
 MOCK_SYS = mock.Mock()
 MOCK_SYS.argv = []
 MOCK_SYS.executable = sys.executable
+MOCK_SYS.getdefaultencoding.return_value = sys.getdefaultencoding()
 
 MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
