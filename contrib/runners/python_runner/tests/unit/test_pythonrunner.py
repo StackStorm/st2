@@ -97,6 +97,7 @@ PRINT_TO_STDOUT_STDERR_ACTION = os.path.join(
 mock_sys = mock.Mock()
 mock_sys.argv = []
 mock_sys.executable = sys.executable
+mock_sys.getdefaultencoding.return_value = sys.getdefaultencoding()
 
 MOCK_EXECUTION = mock.Mock()
 MOCK_EXECUTION.id = "598dbf0c0640fd54bffc688b"
