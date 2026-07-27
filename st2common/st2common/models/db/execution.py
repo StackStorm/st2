@@ -83,6 +83,7 @@ class ActionExecutionDB(stormbase.StormFoundationDB):
         "indexes": [
             {"fields": ["rule.ref"]},
             {"fields": ["action.ref"]},
+            {"fields": ["action.pack"]},
             {"fields": ["liveaction.id"]},
             {"fields": ["start_timestamp"]},
             {"fields": ["end_timestamp"]},

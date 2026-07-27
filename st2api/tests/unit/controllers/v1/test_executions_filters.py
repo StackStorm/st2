@@ -196,6 +196,24 @@ class TestActionExecutionFilters(FunctionalTest):
         ids = [item["id"] for item in response.json]
         self.assertListEqual(sorted(ids), sorted(refs))
 
+    def test_query_by_pack(self):
+        # All test fixtures use the "executions" pack, so filtering by it should
+        # return all executions (both chain and local types).
+        all_refs = list(self.refs.keys())
+        response = self.app.get("/v1/executions?pack=executions&limit=-1")
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertGreater(len(response.json), 0)
+        self.assertEqual(response.headers["X-Total-Count"], str(len(all_refs)))
+
+    def test_query_by_pack_no_match(self):
+        # Filtering by a pack that has no executions should return an empty list.
+        response = self.app.get("/v1/executions?pack=nonexistent_pack")
+        self.assertEqual(response.status_int, 200)
+        self.assertIsInstance(response.json, list)
+        self.assertEqual(len(response.json), 0)
+        self.assertEqual(response.headers["X-Total-Count"], "0")
+
     def test_filters(self):
         excludes = [
             "parent",
