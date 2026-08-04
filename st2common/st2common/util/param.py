@@ -117,7 +117,7 @@ def _create_graph(action_context, config):
     return G
 
 
-def _process(G, name, value):
+def _process(G, name, value, parameter_schemas=None):
     """
     Determines whether parameter is a template or a value. Adds graph nodes and edges accordingly.
     """
@@ -130,9 +130,20 @@ def _process(G, name, value):
     if isinstance(value, list) or isinstance(value, dict):
         complex_value_str = str(value)
 
-    is_jinja_expr = jinja_utils.is_jinja_expression(
-        value
-    ) or jinja_utils.is_jinja_expression(complex_value_str)
+    # Check if the parameter is of type raw_string
+    is_raw_string = False
+    if parameter_schemas:
+        for schema in parameter_schemas:
+            if name in schema and schema[name].get("type") == "raw_string":
+                is_raw_string = True
+                break
+
+    # Skip Jinja processing for raw_string type parameters
+    is_jinja_expr = False
+    if not is_raw_string:
+        is_jinja_expr = jinja_utils.is_jinja_expression(
+            value
+        ) or jinja_utils.is_jinja_expression(complex_value_str)
 
     if is_jinja_expr:
         try:
@@ -334,8 +345,12 @@ def render_live_params(
     for name, value in six.iteritems(additional_contexts):
         G.add_node(name, value=value)
 
-    [_process(G, name, value) for name, value in six.iteritems(params)]
-    _process_defaults(G, [action_parameters, runner_parameters])
+    parameter_schemas = [action_parameters, runner_parameters]
+    [
+        _process(G, name, value, parameter_schemas)
+        for name, value in six.iteritems(params)
+    ]
+    _process_defaults(G, parameter_schemas)
     _validate(G)
 
     context = _resolve_dependencies(G)
