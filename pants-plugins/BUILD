@@ -13,3 +13,7 @@ pants_requirements(
 )
 
 python_sources()
+
+python_requirements(
+    name="reqs",
+)

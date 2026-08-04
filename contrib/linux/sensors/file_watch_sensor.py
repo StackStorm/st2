@@ -14,9 +14,8 @@
 # limitations under the License.
 
 import os
-import eventlet
-
-from logshipper.tail import Tail
+import time
+import threading
 
 from st2reactor.sensor.base import Sensor
 
@@ -27,25 +26,19 @@ class FileWatchSensor(Sensor):
             sensor_service=sensor_service, config=config
         )
         self.log = self._sensor_service.get_logger(__name__)
-        self.tail = None
+        self._watchers = {}  # file_path -> (thread, stop_event)
         self.file_ref = {}
 
     def setup(self):
-        self.tail = Tail(filenames=[])
-        self.tail.handler = self._handle_line
-        self.tail.should_run = True
+        pass
 
     def run(self):
-        self.tail.run()
+        while True:
+            time.sleep(1)
 
     def cleanup(self):
-        if self.tail:
-            self.tail.should_run = False
-
-            try:
-                self.tail.notifier.stop()
-            except Exception:
-                self.log.exception("Unable to stop the tail notifier")
+        for file_path in list(self._watchers):
+            self._stop_watcher(file_path)
 
     def add_trigger(self, trigger):
         file_path = trigger["parameters"].get("file_path", None)
@@ -54,18 +47,21 @@ class FileWatchSensor(Sensor):
             self.log.error('Received trigger type without "file_path" field.')
             return
 
-        trigger = trigger.get("ref", None)
+        ref = trigger.get("ref", None)
 
-        if not trigger:
+        if not ref:
             raise Exception(f"Trigger {trigger} did not contain a ref.")
 
-        # Wait a bit to avoid initialization race in logshipper library
-        eventlet.sleep(1.0)
+        self.file_ref[file_path] = ref
 
-        self.tail.add_file(filename=file_path)
-        self.file_ref[file_path] = trigger
+        stop_event = threading.Event()
+        t = threading.Thread(
+            target=self._tail, args=(file_path, stop_event), daemon=True
+        )
+        self._watchers[file_path] = (t, stop_event)
+        t.start()
 
-        self.log.info(f"Added file '{file_path}' ({trigger}) to watch list.")
+        self.log.info(f"Added file '{file_path}' ({ref}) to watch list.")
 
     def update_trigger(self, trigger):
         pass
@@ -77,10 +73,25 @@ class FileWatchSensor(Sensor):
             self.log.error("Received trigger type without 'file_path' field.")
             return
 
-        self.tail.remove_file(filename=file_path)
-        self.file_ref.pop(file_path)
+        self._stop_watcher(file_path)
+        self.file_ref.pop(file_path, None)
 
-        self.log.info(f"Removed file '{file_path}' ({trigger}) from watch list.")
+        self.log.info(f"Removed file '{file_path}' from watch list.")
+
+    def _stop_watcher(self, file_path):
+        if file_path in self._watchers:
+            _, stop_event = self._watchers.pop(file_path)
+            stop_event.set()
+
+    def _tail(self, file_path, stop_event):
+        with open(file_path, "r") as f:
+            f.seek(0, 2)  # seek to EOF
+            while not stop_event.is_set():
+                line = f.readline()
+                if line:
+                    self._handle_line(file_path, line.strip())
+                else:
+                    time.sleep(0.1)
 
     def _handle_line(self, file_path, line):
         if file_path not in self.file_ref:
