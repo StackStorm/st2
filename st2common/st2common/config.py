@@ -21,6 +21,7 @@ import sys
 from oslo_config import cfg
 from oslo_config.sources._environment import EnvironmentConfigurationSource
 
+from st2common.constants.compression import ZSTANDARD_COMPRESS, VALID_COMPRESS
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
@@ -321,6 +322,14 @@ def register_opts(ignore_errors=False):
             help="Specifies database authentication mechanisms. "
             "By default, it use SCRAM-SHA-1 with MongoDB 3.0 and later, "
             "MONGODB-CR (MongoDB Challenge Response protocol) for older servers.",
+        ),
+        cfg.StrOpt(
+            "parameter_result_compression",
+            default=ZSTANDARD_COMPRESS,
+            required=True,
+            choices=VALID_COMPRESS,
+            help="compression for parameter and result storage in liveaction and "
+            "execution models",
         ),
         cfg.StrOpt(
             "compressors",
