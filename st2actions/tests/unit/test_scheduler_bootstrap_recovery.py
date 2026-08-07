@@ -28,10 +28,10 @@ from st2common.util import date as date_utils
 from st2tests.base import DbTestCase
 from st2tests.fixturesloader import FixturesLoader
 import st2tests.config as tests_config
+from st2tests.fixtures.generic.fixture import PACK_NAME as FIXTURES_PACK
 from st2actions.scheduler.handler import ActionExecutionSchedulingQueueHandler
 
 
-FIXTURES_PACK = "generic"
 TEST_FIXTURES = {"runners": ["run-local.yaml"], "actions": ["local.yaml"]}
 
 
