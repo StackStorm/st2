@@ -112,18 +112,30 @@ def _run_scheduler():
         try:
             # Poll threads in a loop - check if any has died/failed
             while True:
-                for thread, name in threads_to_monitor:
-                    if thread.dead:
-                        # Thread died - try to get the exception if it raised one
+                dead_threads = [
+                    (thread, name) for thread, name in threads_to_monitor if thread.dead
+                ]
+
+                if dead_threads:
+                    # If any dead thread raised an exception, propagate it. We must
+                    # check *all* dead threads (not just the first one observed) because
+                    # a failing sibling thread can trigger a linked shutdown that causes
+                    # other threads to exit cleanly in the same scheduling tick. Returning
+                    # success based on the first-seen clean exit would swallow the real
+                    # failure.
+                    for thread, name in dead_threads:
                         try:
-                            thread.wait()  # This will raise if the thread raised
+                            thread.wait()  # Raises if the thread raised.
                         except Exception as e:
                             LOG.error("Thread %s failed: %s", name, e)
                             # Re-raise to let outer exception handler deal with shutdown
                             raise
-                        # Thread completed successfully (shouldn't happen in normal operation)
+
+                    # No exceptions - all dead threads exited cleanly (shouldn't
+                    # happen in normal operation).
+                    for _, name in dead_threads:
                         LOG.info("Thread %s completed", name)
-                        return 0
+                    return 0
 
                 # Sleep briefly to avoid tight loop and allow other greenlets to run
                 eventlet.sleep(0.1)
