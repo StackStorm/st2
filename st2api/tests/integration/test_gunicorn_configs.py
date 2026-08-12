@@ -30,14 +30,19 @@ from st2tests.base import IntegrationTestCase
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, "../../../conf/st2.tests.conf")
 
+# Gunicorn's worker class must match the concurrency library the spawned process will
+# use (per ST2_CONFIG_PATH above), or the WSGI worker hangs: eventlet/gevent monkey
+# patching under the other library's gunicorn worker doesn't work.
+GUNICORN_WORKER_CLASS = concurrency._get_concurrency_library_from_conf(ST2_CONFIG_PATH)
+
 
 class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     @pytest.mark.skipif(profiling.is_enabled(), reason="Profiling is enabled")
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
         cmd = (
-            'gunicorn st2api.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1'
-            % port
+            'gunicorn st2api.wsgi:application -k %s -b "127.0.0.1:%s" --workers 1'
+            % (GUNICORN_WORKER_CLASS, port)
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
@@ -60,8 +65,8 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     def test_st2auth(self):
         port = random.randint(10000, 30000)
         cmd = (
-            'gunicorn st2auth.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1'
-            % port
+            'gunicorn st2auth.wsgi:application -k %s -b "127.0.0.1:%s" --workers 1'
+            % (GUNICORN_WORKER_CLASS, port)
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH

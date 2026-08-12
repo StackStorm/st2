@@ -41,7 +41,7 @@ from st2common.persistence.execution import ActionExecutionOutput
 from python_runner.python_action_wrapper import PythonActionWrapper
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
-from st2tests.base import blocking_eventlet_spawn
+from st2tests.base import blocking_concurrency_spawn
 from st2tests.base import make_mock_stream_readline
 from st2tests.fixtures.packs.dummy_pack_1.fixture import PACK_NAME as DUMMY_PACK_1
 from st2tests.fixtures.packs.dummy_pack_5.fixture import PACK_NAME as DUMMY_PACK_5
@@ -321,7 +321,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # Note: We need to mock spawn function so we can test everything in single event loop
         # iteration
-        mock_spawn.side_effect = blocking_eventlet_spawn
+        mock_spawn.side_effect = blocking_concurrency_spawn
 
         # No output to stdout and no result (implicit None)
         mock_stdout = [
@@ -402,7 +402,7 @@ class PythonRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # Note: We need to mock spawn function so we can test everything in single event loop
         # iteration
-        mock_spawn.side_effect = blocking_eventlet_spawn
+        mock_spawn.side_effect = blocking_concurrency_spawn
 
         # No output to stdout and no result (implicit None)
         mock_stdout = [

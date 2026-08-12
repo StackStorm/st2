@@ -242,7 +242,7 @@ class ParallelSSHClient(object):
             results[host] = self._bad_hosts[host]
 
         for host in self._hosts_client.keys():
-            while not self._pool.free():
+            while not concurrency_lib.is_green_pool_free(self._pool):
                 concurrency_lib.sleep(self._scan_interval)
             self._pool.spawn(execute_method, host=host, results=results, **kwargs)
 

@@ -35,7 +35,7 @@ from st2common.util.green import shell
 from st2common.constants.runners import LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
 from st2tests.base import RunnerTestCase
 from st2tests.base import CleanDbTestCase
-from st2tests.base import blocking_eventlet_spawn
+from st2tests.base import blocking_concurrency_spawn
 from st2tests.base import make_mock_stream_readline
 from st2tests.fixtures.generic.fixture import PACK_NAME as GENERIC_PACK
 from st2tests.fixtures.localrunner_pack.fixture import PACK_NAME as LOCALRUNNER_PACK
@@ -181,7 +181,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # Note: We need to mock spawn function so we can test everything in single event loop
         # iteration
-        mock_spawn.side_effect = blocking_eventlet_spawn
+        mock_spawn.side_effect = blocking_concurrency_spawn
 
         # No output to stdout and no result (implicit None)
         mock_stdout = [
@@ -249,7 +249,7 @@ class LocalShellCommandRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # Note: We need to mock spawn function so we can test everything in single event loop
         # iteration
-        mock_spawn.side_effect = blocking_eventlet_spawn
+        mock_spawn.side_effect = blocking_concurrency_spawn
 
         # No output to stdout and no result (implicit None)
         mock_stdout = ["stdout line 1\n", "stdout line 2\n"]
@@ -553,7 +553,7 @@ class LocalShellScriptRunnerTestCase(RunnerTestCase, CleanDbTestCase):
 
         # Note: We need to mock spawn function so we can test everything in single event loop
         # iteration
-        mock_spawn.side_effect = blocking_eventlet_spawn
+        mock_spawn.side_effect = blocking_concurrency_spawn
 
         # No output to stdout and no result (implicit None)
         mock_stdout = [

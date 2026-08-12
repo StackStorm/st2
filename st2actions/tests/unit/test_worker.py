@@ -197,7 +197,7 @@ class WorkerTestCase(DbTestCase):
         # Wait for the local runner to complete. This will activate the finally block in
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
-        runner_thread.wait()
+        concurrency.wait(runner_thread)
 
     @mock.patch.object(
         RedisDriver,
@@ -266,7 +266,7 @@ class WorkerTestCase(DbTestCase):
         # Wait for the local runner to complete. This will activate the finally block in
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
-        runner_thread.wait()
+        concurrency.wait(runner_thread)
         shutdown_thread.kill()
 
     def test_worker_graceful_shutdown_with_single_runner(self):
@@ -331,7 +331,7 @@ class WorkerTestCase(DbTestCase):
         # Wait for the local runner to complete. This will activate the finally block in
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
-        runner_thread.wait()
+        concurrency.wait(runner_thread)
         shutdown_thread.kill()
 
     @mock.patch.object(
@@ -397,5 +397,5 @@ class WorkerTestCase(DbTestCase):
         # Wait for the local runner to complete. This will activate the finally block in
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
-        runner_thread.wait()
+        concurrency.wait(runner_thread)
         shutdown_thread.kill()

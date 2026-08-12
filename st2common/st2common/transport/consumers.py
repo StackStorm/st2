@@ -200,7 +200,7 @@ class MessageHandler(object):
             self.wait()
 
     def wait(self):
-        self._consumer_thread.wait()
+        return concurrency.wait(self._consumer_thread)
 
     def shutdown(self):
         LOG.info("Shutting down %s...", self.__class__.__name__)

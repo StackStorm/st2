@@ -36,7 +36,6 @@ import shutil
 import logging
 
 import six
-import eventlet
 import psutil
 from st2common.util import concurrency
 import mock
@@ -179,10 +178,9 @@ class BaseTestCase(TestCase):
         registrar.register_from_packs(base_dirs=get_packs_base_paths())
 
 
-class EventletTestCase(TestCase):
+class GreenThreadTestCase(TestCase):
     """
-    Base test class which performs eventlet monkey patching before the tests run
-    and un-patching after the tests have finished running.
+    Base test class which performs eventlet/gevent monkey patching before the tests run.
     """
 
     @classmethod
@@ -191,10 +189,14 @@ class EventletTestCase(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        if concurrency.get_concurrency_library() == "eventlet":
-            eventlet.monkey_patch(
-                os=False, select=False, socket=False, thread=False, time=False
-            )
+        # NOTE: Intentionally does not call super().tearDownClass() - subclasses that mix this
+        # in with a DB test case (e.g. ExecutionDbTestCase) rely on this stopping the MRO chain
+        # here rather than triggering that base class' DB teardown.
+        pass
+
+
+class EventletTestCase(GreenThreadTestCase):
+    """Deprecated alias for GreenThreadTestCase, kept for external callers."""
 
 
 class BaseDbTestCase(BaseTestCase):
@@ -816,9 +818,14 @@ def get_resources_path():
     return os.path.join(os.path.dirname(__file__), "resources")
 
 
-def blocking_eventlet_spawn(func, *args, **kwargs):
+def blocking_concurrency_spawn(func, *args, **kwargs):
     func(*args, **kwargs)
     return mock.Mock()
+
+
+def blocking_eventlet_spawn(func, *args, **kwargs):
+    """Deprecated alias for blocking_concurrency_spawn(), kept for external callers."""
+    return blocking_concurrency_spawn(func, *args, **kwargs)
 
 
 # Utility function for mocking read_and_store_{stdout,stderr} functions

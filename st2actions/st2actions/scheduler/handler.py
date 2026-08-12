@@ -514,7 +514,7 @@ class ActionExecutionSchedulingQueueHandler(object):
     def wait(self):
         # Wait for the worker threads to complete. If there is an exception thrown in the thread,
         # then the exception will be propagated to the main process for a proper return code.
-        self._main_thread.wait() or self._cleanup_thread.wait()
+        concurrency.wait(self._main_thread) or concurrency.wait(self._cleanup_thread)
 
 
 def get_handler():

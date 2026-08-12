@@ -341,6 +341,9 @@ protocol = udp
 [system]
 # Base path to all st2 artifacts.
 base_path = /opt/stackstorm
+# Green thread concurrency library to use ('eventlet' or 'gevent'). NOTE: This is read directly from this config file at process startup, before oslo_config is available, so it cannot be overridden via CLI args or environment variables.
+# Valid values: eventlet, gevent
+concurrency_library = gevent
 # Enable debug mode.
 debug = False
 # True to validate action and runner output against schema.

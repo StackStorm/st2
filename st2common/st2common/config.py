@@ -123,6 +123,15 @@ def register_opts(ignore_errors=False):
             default=False,
             help="True to validate action and runner output against schema.",
         ),
+        cfg.StrOpt(
+            "concurrency_library",
+            default="gevent",
+            choices=["eventlet", "gevent"],
+            help="Green thread concurrency library to use ('eventlet' or 'gevent'). "
+            "NOTE: This is read directly from this config file at process startup, "
+            "before oslo_config is available, so it cannot be overridden via CLI args "
+            "or environment variables.",
+        ),
     ]
 
     do_register_opts(system_opts, "system", ignore_errors)

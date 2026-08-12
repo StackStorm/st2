@@ -49,7 +49,7 @@ from st2common.services import coordination
 from st2common.logging.misc import add_global_filters_for_all_loggers
 from st2common.constants.error_messages import PYTHON2_DEPRECATION
 from st2common.services.coordination import get_driver_name
-from st2common.util.profiler import setup_eventlet_profiler
+from st2common.util.profiler import setup_green_profiler
 
 # Note: This is here for backward compatibility.
 # Function has been moved in a standalone module to avoid expensive in-direct
@@ -128,7 +128,7 @@ def setup(
         config.parse_args()
 
     if cfg.CONF.enable_profiler:
-        setup_eventlet_profiler(service_name="st2" + service)
+        setup_green_profiler(service_name="st2" + service)
 
     version = "%s.%s.%s" % (
         sys.version_info[0],

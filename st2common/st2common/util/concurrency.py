@@ -20,7 +20,10 @@ It dispatches function call to the concurrency library which is configured using
 "set_concurrency_library" function.
 """
 
-import os
+import configparser
+import cProfile
+
+from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
 try:
     import eventlet  # pylint: disable=import-error
@@ -30,12 +33,27 @@ except ImportError:
 try:
     import gevent  # pylint: disable=import-error # pants: no-infer-dep
     import gevent.lock
+    import gevent.monkey
     import gevent.pool
     import gevent.queue
 except ImportError:
     gevent = None
 
-CONCURRENCY_LIBRARY = os.environ.get("ST2_CONCURRENCY_LIBRARY", "eventlet")
+
+def _get_concurrency_library_from_conf(config_path=DEFAULT_CONFIG_FILE_PATH):
+    # NOTE: We can't use st2common.config/oslo_config here because eventlet/gevent
+    # monkey patching (see st2common.util.monkey_patch) must happen before almost
+    # anything else is imported, which is earlier than oslo_config can be parsed.
+    # This minimal read only depends on the stdlib.
+    parser = configparser.ConfigParser()
+    parser.read(config_path)  # no-op if the file doesn't exist
+    try:
+        return parser.get("system", "concurrency_library")
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        return "gevent"
+
+
+CONCURRENCY_LIBRARY = _get_concurrency_library_from_conf()
 
 __all__ = [
     "set_concurrency_library",
@@ -51,6 +69,7 @@ __all__ = [
     "get_green_pool_class",
     "is_green_pool_free",
     "green_pool_wait_all",
+    "get_green_profiler",
 ]
 
 
@@ -149,7 +168,10 @@ def wait(green_thread, *args, **kwargs):
     if CONCURRENCY_LIBRARY == "eventlet":
         return green_thread.wait(*args, **kwargs)
     elif CONCURRENCY_LIBRARY == "gevent":
-        return green_thread.join(*args, **kwargs)
+        # NOTE: Greenlet.join() blocks but always returns None; .get() blocks
+        # and returns the greenlet's result (or re-raises its exception),
+        # matching eventlet's GreenThread.wait() semantics.
+        return green_thread.get(*args, **kwargs)
     else:
         raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
@@ -281,9 +303,7 @@ def green_pool_wait_all(pool):
     if CONCURRENCY_LIBRARY == "eventlet":
         return pool.waitall()
     elif CONCURRENCY_LIBRARY == "gevent":
-        # NOTE: This mimicks eventlet.waitall() functionality better than
-        # pool.join()
-        return all(gl.ready() for gl in pool.greenlets)
+        return pool.join()
     else:
         raise ValueError("Unsupported concurrency library")
 
@@ -327,6 +347,36 @@ def wrap_ssl(socket, *args, **kwargs):
         return context.wrap_socket(socket, *args, server_side=server_side, **kwargs)
     else:
         raise ValueError("Unsupported concurrency library")
+
+
+def get_green_profiler():
+    """
+    Return a (profiler, start, stop) tuple for a green-thread-aware profiler.
+
+    Only to be used with eventlet/gevent code (aka a StackStorm service minus the CLI).
+    """
+    if CONCURRENCY_LIBRARY == "eventlet":
+        if not eventlet.patcher.is_monkey_patched("os"):
+            raise ValueError(
+                "No eventlet monkey patching detected. Code may not be using eventlet"
+            )
+
+        from eventlet.green import profile
+
+        profiler = profile.Profile()
+        return profiler, profiler.start, profiler.stop
+    elif CONCURRENCY_LIBRARY == "gevent":
+        if not gevent.monkey.is_module_patched("os"):
+            raise ValueError(
+                "No gevent monkey patching detected. Code may not be using gevent"
+            )
+
+        # gevent doesn't ship a greenlet-aware profile module; regular cProfile works fine
+        # since gevent greenlets are cooperative and run on a single OS thread.
+        profiler = cProfile.Profile()
+        return profiler, profiler.enable, profiler.disable
+    else:
+        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
 
 
 def blocking_detection(enable=False, timeout=1.0):
