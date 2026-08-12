@@ -395,6 +395,39 @@ class ParamsUtilsTest(DbTestCase):
         self.assertEqual(r_runner_params, {})
         self.assertEqual(r_action_params, expected_action_params)
 
+    def test_get_finalized_params_with_raw_string_parameter(self):
+        """
+        Tests that parameters with type 'raw_string' are not processed for Jinja expressions.
+        """
+        params = {
+            "a1": "value1",
+            "a2": "{{a1}}",
+            "a3": "{{a1}} and {{a4}}",
+            "a4": "{{a1}}",
+            "a5": "{{a1}}",
+        }
+        runner_param_info = {}
+        action_param_info = {
+            "a1": {"type": "string"},
+            "a2": {"type": "string"},
+            "a3": {"type": "raw_string"},
+            "a4": {"type": "raw_string"},
+            "a5": {"type": "string"},
+        }
+        action_context = {"api_user": "noob"}
+        r_runner_params, r_action_params = param_utils.get_finalized_params(
+            runner_param_info, action_param_info, params, action_context
+        )
+
+        # Regular string parameters should have their Jinja expressions evaluated
+        self.assertEqual(r_action_params["a1"], "value1")
+        self.assertEqual(r_action_params["a2"], "value1")
+        self.assertEqual(r_action_params["a5"], "value1")
+
+        # Parameters with type 'raw_string' should not be processed for Jinja expressions
+        self.assertEqual(r_action_params["a3"], "{{a1}} and {{a4}}")
+        self.assertEqual(r_action_params["a4"], "{{a1}}")
+
     def test_get_finalized_params_with_dict(self):
         # Note : In this test runner_params.r1 has a string value. However per runner_param_info the
         # type is an integer. The expected type is considered and cast is performed accordingly.

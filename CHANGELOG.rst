@@ -3,6 +3,11 @@ Changelog
 
 in development
 --------------
+* implemented zstandard compression for parameters and results. #5995
+  contributed by @guzzijones12
+
+* removed embedded liveaction in action execution database table #5995
+  contributed by @guzzijones12
 
 This release is tested with and supports the following Python versions and 3rd party dependencies.
 
@@ -17,6 +22,7 @@ Redis       8.6
 Fixed
 ~~~~~
 * Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375
+* Fix utf-8 encode before checking paramter max size #6352
 
 Changed
 ~~~~~~~
@@ -28,6 +34,7 @@ Changed
 
 Added
 ~~~~~
+* added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
 
 3.9.0 - October 10, 2025
 ------------------------
