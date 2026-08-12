@@ -393,3 +393,77 @@ class ActionRunCommandTest(unittest.TestCase):
             )
 
         self.assertDictEqual({}, param)
+
+    def test_sort_parameters_mixed_position_types(self):
+        """Regression test for #5130.
+
+        When some parameters have a numeric 'position' attribute and others do
+        not, sorted() previously raised TypeError because the sort key returned
+        either int or str depending on the parameter. Verify that sorting now
+        succeeds and that positioned parameters come first (by position), with
+        unpositioned parameters following in alphabetical order.
+        """
+        action = Action()
+        action.ref = "test.action"
+        action.parameters = {}
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name="test")
+
+        parameters = {
+            "host": {"type": "string", "position": 0},
+            "timeout": {"type": "integer", "position": 1},
+            "verbose": {"type": "boolean"},
+            "output": {"type": "string"},
+        }
+        names = ["verbose", "output", "host", "timeout"]
+
+        # Must not raise TypeError
+        result = command._sort_parameters(parameters=parameters, names=names)
+
+        # Positioned params come first, in ascending position order
+        self.assertEqual(result[0], "host")
+        self.assertEqual(result[1], "timeout")
+        # Unpositioned params follow, alphabetically
+        self.assertEqual(result[2], "output")
+        self.assertEqual(result[3], "verbose")
+
+    def test_sort_parameters_all_positioned(self):
+        """Parameters that all have a 'position' attribute sort by position."""
+        action = Action()
+        action.ref = "test.action"
+        action.parameters = {}
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name="test")
+
+        parameters = {
+            "z_param": {"type": "string", "position": 2},
+            "a_param": {"type": "string", "position": 0},
+            "m_param": {"type": "string", "position": 1},
+        }
+        names = ["z_param", "a_param", "m_param"]
+
+        result = command._sort_parameters(parameters=parameters, names=names)
+
+        self.assertEqual(result, ["a_param", "m_param", "z_param"])
+
+    def test_sort_parameters_none_positioned(self):
+        """Parameters with no 'position' attribute sort alphabetically by name."""
+        action = Action()
+        action.ref = "test.action"
+        action.parameters = {}
+
+        subparser = mock.Mock()
+        command = ActionRunCommand(action, self, subparser, name="test")
+
+        parameters = {
+            "zebra": {"type": "string"},
+            "apple": {"type": "string"},
+            "mango": {"type": "string"},
+        }
+        names = ["zebra", "apple", "mango"]
+
+        result = command._sort_parameters(parameters=parameters, names=names)
+
+        self.assertEqual(result, ["apple", "mango", "zebra"])

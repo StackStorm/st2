@@ -46,6 +46,7 @@ import json
 
 import pytest
 import mongoengine as me
+import orjson
 
 from st2common.service_setup import db_setup
 from st2common.models.db import stormbase
@@ -62,7 +63,50 @@ from common import PYTEST_FIXTURE_FILE_PARAM_NO_8MB_DECORATOR
 LiveActionDB._meta["allow_inheritance"] = True  # pylint: disable=no-member
 
 
-# 1. Current approach aka using EscapedDynamicField
+class OldJSONDictField(JSONDictField):
+    def parse_field_value(self, value) -> dict:
+        """
+        Parse provided binary field value and return parsed value (dictionary).
+
+        For example:
+
+            - (n, o, ...) - no compression, data is serialized using orjson
+            - (z, o, ...) - zstandard compression, data is serialized using orjson
+        """
+        if not value:
+            return self.default
+
+        if isinstance(value, dict):
+            # Already deserializaed
+            return value
+
+        data = orjson.loads(value)
+        return data
+
+    def _serialize_field_value(self, value: dict) -> bytes:
+        """
+        Serialize and encode the provided field value.
+        """
+        # Orquesta workflows support toSet() YAQL operator which returns a set which used to get
+        # serialized to list by mongoengine DictField.
+        #
+        # For backward compatibility reasons, we need to support serializing set to a list as
+        # well.
+        #
+        # Based on micro benchmarks, using default function adds very little overhead (1%) so it
+        # should be safe to use default for every operation.
+        #
+        # If this turns out to be not true or it adds more overhead in other scenarios, we should
+        # revisit this decision and only use "default" argument where needed (aka Workflow models).
+        def default(obj):
+            if isinstance(obj, set):
+                return list(obj)
+            raise TypeError
+
+        return orjson.dumps(value, default=default)
+
+
+# 1. old approach aka using EscapedDynamicField
 class LiveActionDB_EscapedDynamicField(LiveActionDB):
     result = stormbase.EscapedDynamicField(default={})
 
@@ -71,46 +115,31 @@ class LiveActionDB_EscapedDynamicField(LiveActionDB):
     field3 = stormbase.EscapedDynamicField(default={})
 
 
-# 2. Current approach aka using EscapedDictField
+# 2. old approach aka using EscapedDictField
 class LiveActionDB_EscapedDictField(LiveActionDB):
     result = stormbase.EscapedDictField(default={})
 
-    field1 = stormbase.EscapedDynamicField(default={}, use_header=False)
-    field2 = stormbase.EscapedDynamicField(default={}, use_header=False)
-    field3 = stormbase.EscapedDynamicField(default={}, use_header=False)
+    field1 = stormbase.EscapedDynamicField(default={})
+    field2 = stormbase.EscapedDynamicField(default={})
+    field3 = stormbase.EscapedDynamicField(default={})
 
 
-# 3. Approach which uses new JSONDictField where value is stored as serialized JSON string / blob
+# 3. Old Approach which uses no compression where value is stored as serialized JSON string / blob
+class LiveActionDB_OLDJSONField(LiveActionDB):
+    result = OldJSONDictField(default={}, use_header=False)
+
+    field1 = OldJSONDictField(default={})
+    field2 = OldJSONDictField(default={})
+    field3 = OldJSONDictField(default={})
+
+
+# 4. Current Approach which uses new JSONDictField where value is stored as zstandard compressed serialized JSON string / blob
 class LiveActionDB_JSONField(LiveActionDB):
     result = JSONDictField(default={}, use_header=False)
 
-    field1 = JSONDictField(default={}, use_header=False)
-    field2 = JSONDictField(default={}, use_header=False)
-    field3 = JSONDictField(default={}, use_header=False)
-
-
-class LiveActionDB_JSONFieldWithHeader(LiveActionDB):
-    result = JSONDictField(default={}, use_header=True, compression_algorithm="none")
-
-    field1 = JSONDictField(default={}, use_header=True, compression_algorithm="none")
-    field2 = JSONDictField(default={}, use_header=True, compression_algorithm="none")
-    field3 = JSONDictField(default={}, use_header=True, compression_algorithm="none")
-
-
-class LiveActionDB_JSONFieldWithHeaderAndZstandard(LiveActionDB):
-    result = JSONDictField(
-        default={}, use_header=True, compression_algorithm="zstandard"
-    )
-
-    field1 = JSONDictField(
-        default={}, use_header=True, compression_algorithm="zstandard"
-    )
-    field2 = JSONDictField(
-        default={}, use_header=True, compression_algorithm="zstandard"
-    )
-    field3 = JSONDictField(
-        default={}, use_header=True, compression_algorithm="zstandard"
-    )
+    field1 = JSONDictField(default={})
+    field2 = JSONDictField(default={})
+    field3 = JSONDictField(default={})
 
 
 class LiveActionDB_StringField(LiveActionDB):
@@ -128,10 +157,8 @@ def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:
         model_cls = LiveActionDB_EscapedDictField
     elif approach == "json_dict_field":
         model_cls = LiveActionDB_JSONField
-    elif approach == "json_dict_field_with_header":
-        model_cls = LiveActionDB_JSONFieldWithHeader
-    elif approach == "json_dict_field_with_header_and_zstd":
-        model_cls = LiveActionDB_JSONFieldWithHeaderAndZstandard
+    elif approach == "old_json_dict_field":
+        model_cls = LiveActionDB_OLDJSONField
     else:
         raise ValueError("Invalid approach: %s" % (approach))
 
@@ -142,18 +169,12 @@ def get_model_class_for_approach(approach: str) -> Type[LiveActionDB]:
 @pytest.mark.parametrize(
     "approach",
     [
-        "escaped_dynamic_field",
-        "escaped_dict_field",
+        "old_json_dict_field",
         "json_dict_field",
-        "json_dict_field_with_header",
-        "json_dict_field_with_header_and_zstd",
     ],
     ids=[
-        "escaped_dynamic_field",
-        "escaped_dict_field",
+        "old_json_dict_field",
         "json_dict_field",
-        "json_dict_field_w_header",
-        "json_dict_field_w_header_and_zstd",
     ],
 )
 @pytest.mark.benchmark(group="live_action_save")
@@ -187,18 +208,12 @@ def test_save_large_execution(benchmark, fixture_file: str, approach: str) -> No
 @pytest.mark.parametrize(
     "approach",
     [
-        "escaped_dynamic_field",
-        "escaped_dict_field",
+        "old_json_dict_field",
         "json_dict_field",
-        "json_dict_field_with_header",
-        "json_dict_field_with_header_and_zstd",
     ],
     ids=[
-        "escaped_dynamic_field",
-        "escaped_dict_field",
+        "old_json_dict_field",
         "json_dict_field",
-        "json_dict_field_w_header",
-        "json_dict_field_w_header_and_zstd",
     ],
 )
 @pytest.mark.benchmark(group="live_action_save_multiple_fields")
@@ -240,18 +255,12 @@ def test_save_multiple_fields(benchmark, fixture_file: str, approach: str) -> No
 @pytest.mark.parametrize(
     "approach",
     [
-        "escaped_dynamic_field",
-        "escaped_dict_field",
+        "old_json_dict_field",
         "json_dict_field",
-        "json_dict_field_with_header",
-        "json_dict_field_with_header_and_zstd",
     ],
     ids=[
-        "escaped_dynamic_field",
-        "escaped_dict_field",
+        "old_json_dict_field",
         "json_dict_field",
-        "json_dict_field_w_header",
-        "json_dict_field_w_header_and_zstd",
     ],
 )
 @pytest.mark.benchmark(group="live_action_read")

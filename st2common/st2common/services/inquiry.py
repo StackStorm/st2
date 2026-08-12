@@ -121,12 +121,16 @@ def validate_response(inquiry, response):
 
 
 def respond(inquiry, response, requester=None):
+    """
+    :param inquiry: InquiryAPI
+    :param response: dict
+    """
     # Set requester to system user is not provided.
     if not requester:
         requester = cfg.CONF.system_user.user
 
     # Retrieve the liveaction from the database.
-    liveaction_db = lv_db_access.LiveAction.get_by_id(inquiry.liveaction.get("id"))
+    liveaction_db = lv_db_access.LiveAction.get_by_id(inquiry.liveaction_id)
 
     # Resume the parent workflow first. If the action execution for the inquiry is updated first,
     # it triggers handling of the action execution completion which will interact with the paused
