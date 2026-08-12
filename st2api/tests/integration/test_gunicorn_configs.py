@@ -40,9 +40,9 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     @pytest.mark.skipif(profiling.is_enabled(), reason="Profiling is enabled")
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
-        cmd = (
-            'gunicorn st2api.wsgi:application -k %s -b "127.0.0.1:%s" --workers 1'
-            % (GUNICORN_WORKER_CLASS, port)
+        cmd = 'gunicorn st2api.wsgi:application -k %s -b "127.0.0.1:%s" --workers 1' % (
+            GUNICORN_WORKER_CLASS,
+            port,
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
