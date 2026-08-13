@@ -132,7 +132,9 @@ def wsgi_server(
             **kwargs,
         )
     elif _state.library == "gevent":
-        server = _state.gevent.pywsgi.WSGIServer(socket, app, spawn=custom_pool, log=log)
+        server = _state.gevent.pywsgi.WSGIServer(
+            socket, app, spawn=custom_pool, log=log
+        )
         server.serve_forever()
     else:
         raise ValueError(f"Unsupported concurrency library {_state.library}")
