@@ -22,38 +22,9 @@ It dispatches function call to the concurrency library which is configured using
 
 import configparser
 import cProfile
+import types
 
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
-
-try:
-    import eventlet  # pylint: disable=import-error
-except ImportError:
-    eventlet = None
-
-try:
-    import gevent  # pylint: disable=import-error # pants: no-infer-dep
-    import gevent.lock
-    import gevent.monkey
-    import gevent.pool
-    import gevent.queue
-except ImportError:
-    gevent = None
-
-
-def _get_concurrency_library_from_conf(config_path=DEFAULT_CONFIG_FILE_PATH):
-    # NOTE: We can't use st2common.config/oslo_config here because eventlet/gevent
-    # monkey patching (see st2common.util.monkey_patch) must happen before almost
-    # anything else is imported, which is earlier than oslo_config can be parsed.
-    # This minimal read only depends on the stdlib.
-    parser = configparser.ConfigParser()
-    parser.read(config_path)  # no-op if the file doesn't exist
-    try:
-        return parser.get("system", "concurrency_library")
-    except (configparser.NoSectionError, configparser.NoOptionError):
-        return "gevent"
-
-
-CONCURRENCY_LIBRARY = _get_concurrency_library_from_conf()
 
 __all__ = [
     "set_concurrency_library",
@@ -72,41 +43,86 @@ __all__ = [
     "get_green_profiler",
 ]
 
+_state = types.SimpleNamespace(library=None, eventlet=None, gevent=None)
+
+
+def _get_concurrency_library_from_conf(config_path=DEFAULT_CONFIG_FILE_PATH):
+    # NOTE: We can't use st2common.config/oslo_config here because eventlet/gevent
+    # monkey patching (see st2common.util.monkey_patch) must happen before almost
+    # anything else is imported, which is earlier than oslo_config can be parsed.
+    # This minimal read only depends on the stdlib.
+    parser = configparser.ConfigParser()
+    parser.read(config_path)  # no-op if the file doesn't exist
+    try:
+        return parser.get("system", "concurrency_library")
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        return "gevent"
+
+
+def _import_eventlet():
+    try:
+        import eventlet  # pylint: disable=import-error
+        import eventlet.debug
+        import eventlet.green.profile
+        import eventlet.green.subprocess
+        import eventlet.wsgi
+
+        return eventlet
+    except ImportError:
+        return None
+
+
+def _import_gevent():
+    try:
+        import gevent  # pylint: disable=import-error # pants: no-infer-dep
+        import gevent.lock
+        import gevent.monkey
+        import gevent.pool
+        import gevent.pywsgi
+        import gevent.queue
+        import gevent.subprocess
+
+        return gevent
+    except ImportError:
+        return None
+
 
 def set_concurrency_library(library):
-    global CONCURRENCY_LIBRARY
-
-    if library not in ["eventlet", "gevent"]:
+    if library not in ("eventlet", "gevent"):
         raise ValueError("Unsupported concurrency library: %s" % (library))
 
-    CONCURRENCY_LIBRARY = library
+    # Only import the library that's actually active. Importing eventlet unconditionally
+    # eagerly loads eventlet.green.ssl, subclassing ssl.SSLContext before
+    # gevent.monkey.patch_all() runs, which triggers a spurious MonkeyPatchWarning.
+    if library == "eventlet" and _state.eventlet is None:
+        _state.eventlet = _import_eventlet()
+    elif library == "gevent" and _state.gevent is None:
+        _state.gevent = _import_gevent()
+
+    _state.library = library
 
 
 def get_concurrency_library():
-    global CONCURRENCY_LIBRARY
-    return CONCURRENCY_LIBRARY
+    return _state.library
+
+
+set_concurrency_library(_get_concurrency_library_from_conf())
 
 
 def get_subprocess_module():
-    if CONCURRENCY_LIBRARY == "eventlet":
-        from eventlet.green import subprocess  # pylint: disable=import-error
-
-        return subprocess
-    elif CONCURRENCY_LIBRARY == "gevent":
-        from gevent import subprocess  # pylint: disable=import-error
-
-        return subprocess
+    if _state.library == "eventlet":
+        return _state.eventlet.green.subprocess
+    elif _state.library == "gevent":
+        return _state.gevent.subprocess
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def wsgi_server(
     socket, app, custom_pool=None, log=None, log_output=True, *args, **kwargs
 ):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        from eventlet import wsgi
-
-        wsgi.server(
+    if _state.library == "eventlet":
+        _state.eventlet.wsgi.server(
             socket,
             app,
             custom_pool=custom_pool,
@@ -115,83 +131,77 @@ def wsgi_server(
             *args,
             **kwargs,
         )
-    elif CONCURRENCY_LIBRARY == "gevent":
-        from gevent import pywsgi
-
-        server = pywsgi.WSGIServer(socket, app, spawn=custom_pool, log=log)
+    elif _state.library == "gevent":
+        server = _state.gevent.pywsgi.WSGIServer(socket, app, spawn=custom_pool, log=log)
         server.serve_forever()
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def subprocess_popen(*args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        from eventlet.green import subprocess  # pylint: disable=import-error
-
-        return subprocess.Popen(*args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
-        from gevent import subprocess  # pylint: disable=import-error
-
-        return subprocess.Popen(*args, **kwargs)
+    if _state.library == "eventlet":
+        return _state.eventlet.green.subprocess.Popen(*args, **kwargs)
+    elif _state.library == "gevent":
+        return _state.gevent.subprocess.Popen(*args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def spawn_after(seconds, func, *args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.spawn_after(seconds, func, *args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.spawn_later(seconds, func, *args, **kwargs)
+    if _state.library == "eventlet":
+        return _state.eventlet.spawn_after(seconds, func, *args, **kwargs)
+    elif _state.library == "gevent":
+        return _state.gevent.spawn_later(seconds, func, *args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def Semaphore(*args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.Semaphore(*args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.lock.Semaphore(*args, **kwargs)
+    if _state.library == "eventlet":
+        return _state.eventlet.Semaphore(*args, **kwargs)
+    elif _state.library == "gevent":
+        return _state.gevent.lock.Semaphore(*args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def spawn(func, *args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.spawn(func, *args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.spawn(func, *args, **kwargs)
+    if _state.library == "eventlet":
+        return _state.eventlet.spawn(func, *args, **kwargs)
+    elif _state.library == "gevent":
+        return _state.gevent.spawn(func, *args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def wait(green_thread, *args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         return green_thread.wait(*args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
+    elif _state.library == "gevent":
         # NOTE: Greenlet.join() blocks but always returns None; .get() blocks
         # and returns the greenlet's result (or re-raises its exception),
         # matching eventlet's GreenThread.wait() semantics.
         return green_thread.get(*args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def cancel(green_thread, *args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         return green_thread.cancel(*args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
+    elif _state.library == "gevent":
         return green_thread.kill(*args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def kill(green_thread, *args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         return green_thread.kill(*args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
+    elif _state.library == "gevent":
         return green_thread.kill(*args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def listen(host, port):
@@ -199,45 +209,45 @@ def listen(host, port):
 
 
 def Queue(*args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.Queue(*args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.queue.Queue(*args, **kwargs)
+    if _state.library == "eventlet":
+        return _state.eventlet.Queue(*args, **kwargs)
+    elif _state.library == "gevent":
+        return _state.gevent.queue.Queue(*args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def get_queue_empty_exception():
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.queue.Empty
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.queue.Empty
+    if _state.library == "eventlet":
+        return _state.eventlet.queue.Empty
+    elif _state.library == "gevent":
+        return _state.gevent.queue.Empty
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def sleep(*args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.sleep(*args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.sleep(*args, **kwargs)
+    if _state.library == "eventlet":
+        return _state.eventlet.sleep(*args, **kwargs)
+    elif _state.library == "gevent":
+        return _state.gevent.sleep(*args, **kwargs)
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def get_greenlet_exit_exception_class():
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.support.greenlets.GreenletExit
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.GreenletExit
+    if _state.library == "eventlet":
+        return _state.eventlet.support.greenlets.GreenletExit
+    elif _state.library == "gevent":
+        return _state.gevent.GreenletExit
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def get_default_green_pool_size():
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
-    elif CONCURRENCY_LIBRARY == "gevent":
+    if _state.library == "eventlet":
+        return _state.eventlet.wsgi.DEFAULT_MAX_SIMULTANEOUS_REQUESTS
+    elif _state.library == "gevent":
         # matches what DEFAULT_MAX_SIMULTANEOUS_REQUESTS is for eventlet
         return 1024
     else:
@@ -245,24 +255,24 @@ def get_default_green_pool_size():
 
 
 def get_green_pool_class():
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.GreenPool
-    elif CONCURRENCY_LIBRARY == "gevent":
-        return gevent.pool.Pool
+    if _state.library == "eventlet":
+        return _state.eventlet.GreenPool
+    elif _state.library == "gevent":
+        return _state.gevent.pool.Pool
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def green_pool_free_count(pool):
     """
     Return the number of free slots in the pool.
     """
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         return pool.free()
-    elif CONCURRENCY_LIBRARY == "gevent":
+    elif _state.library == "gevent":
         return pool.free_count()
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def is_green_pool_free(pool):
@@ -276,9 +286,9 @@ def green_pool_running_count(pool):
     """
     Return the number of greenlets currently running in the pool.
     """
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         return pool.running()
-    elif CONCURRENCY_LIBRARY == "gevent":
+    elif _state.library == "gevent":
         return len(pool.greenlets)
     else:
         raise ValueError("Unsupported concurrency library")
@@ -288,9 +298,9 @@ def get_pool_greenlets(pool):
     """
     Return the set of currently running greenlets in the pool.
     """
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         return pool.coroutines_running
-    elif CONCURRENCY_LIBRARY == "gevent":
+    elif _state.library == "gevent":
         return pool.greenlets
     else:
         raise ValueError("Unsupported concurrency library")
@@ -300,9 +310,9 @@ def green_pool_wait_all(pool):
     """
     Wait for all the green threads in the pool to finish.
     """
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         return pool.waitall()
-    elif CONCURRENCY_LIBRARY == "gevent":
+    elif _state.library == "gevent":
         return pool.join()
     else:
         raise ValueError("Unsupported concurrency library")
@@ -313,9 +323,9 @@ def listen_server(host, port, backlog=50, **kwargs):
     Start listening on the host:port.
     :backlog: the number of unaccepted connections that the system will allow before refusing new connections.
     """
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.listen((host, port), backlog=backlog, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
+    if _state.library == "eventlet":
+        return _state.eventlet.listen((host, port), backlog=backlog, **kwargs)
+    elif _state.library == "gevent":
         import socket
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -328,9 +338,9 @@ def listen_server(host, port, backlog=50, **kwargs):
 
 
 def wrap_ssl(socket, *args, **kwargs):
-    if CONCURRENCY_LIBRARY == "eventlet":
-        return eventlet.wrap_ssl(socket, *args, **kwargs)
-    elif CONCURRENCY_LIBRARY == "gevent":
+    if _state.library == "eventlet":
+        return _state.eventlet.wrap_ssl(socket, *args, **kwargs)
+    elif _state.library == "gevent":
         # Monkey patching in the caller module is required prior to
         # calling wrap_ssl() or this may block.
         import ssl
@@ -355,18 +365,16 @@ def get_green_profiler():
 
     Only to be used with eventlet/gevent code (aka a StackStorm service minus the CLI).
     """
-    if CONCURRENCY_LIBRARY == "eventlet":
-        if not eventlet.patcher.is_monkey_patched("os"):
+    if _state.library == "eventlet":
+        if not _state.eventlet.patcher.is_monkey_patched("os"):
             raise ValueError(
                 "No eventlet monkey patching detected. Code may not be using eventlet"
             )
 
-        from eventlet.green import profile
-
-        profiler = profile.Profile()
+        profiler = _state.eventlet.green.profile.Profile()
         return profiler, profiler.start, profiler.stop
-    elif CONCURRENCY_LIBRARY == "gevent":
-        if not gevent.monkey.is_module_patched("os"):
+    elif _state.library == "gevent":
+        if not _state.gevent.monkey.is_module_patched("os"):
             raise ValueError(
                 "No gevent monkey patching detected. Code may not be using gevent"
             )
@@ -376,20 +384,20 @@ def get_green_profiler():
         profiler = cProfile.Profile()
         return profiler, profiler.enable, profiler.disable
     else:
-        raise ValueError(f"Unsupported concurrency library {CONCURRENCY_LIBRARY}")
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
 def blocking_detection(enable=False, timeout=1.0):
-    if CONCURRENCY_LIBRARY == "eventlet":
+    if _state.library == "eventlet":
         print(
             f"Eventlet long running / blocking operation detection logic enabled.  Block timeout ({timeout})."
         )
-        eventlet.debug.hub_blocking_detection(state=enable, resolution=timeout)
-    elif CONCURRENCY_LIBRARY == "gevent":
+        _state.eventlet.debug.hub_blocking_detection(state=enable, resolution=timeout)
+    elif _state.library == "gevent":
         print(
             f"gEvent long running / blocking operation detection logic enabled.  Block timeout ({timeout})."
         )
-        gevent.config.monitor_thread = enable
-        gevent.config.max_blocking_time = timeout
+        _state.gevent.config.monitor_thread = enable
+        _state.gevent.config.max_blocking_time = timeout
     else:
         raise ValueError("Unsupported concurrency library")
