@@ -63,7 +63,7 @@ class ActionsQueueConsumerTestCase(TestCase):
         publisher.publish(payload=body, exchange=exchange)
         # Second published message won't be consumed.
         self.assertEqual(self.message_count, 1)
-        watcher_thread.kill()
+        concurrency.kill(watcher_thread)
 
     def process(self, liveaction):
         self.message_count = self.message_count + 1

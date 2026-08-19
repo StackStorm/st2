@@ -159,7 +159,8 @@ def main():
 
     for trigger in triggers:
         payload = trigger_payload_schema.get(trigger, {})
-        dispatcher_pool.spawn(
+        concurrency.pool_spawn(
+            dispatcher_pool,
             _inject_instances,
             trigger,
             rate_per_trigger,

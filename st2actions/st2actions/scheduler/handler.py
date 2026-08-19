@@ -83,7 +83,9 @@ class ActionExecutionSchedulingQueueHandler(object):
         execution_queue_item_db = self._get_next_execution()
 
         if execution_queue_item_db:
-            self._pool.spawn(self._handle_execution, execution_queue_item_db)
+            concurrency.pool_spawn(
+                self._pool, self._handle_execution, execution_queue_item_db
+            )
 
     def cleanup(self):
         LOG.debug("Starting scheduler garbage collection...")
@@ -504,8 +506,8 @@ class ActionExecutionSchedulingQueueHandler(object):
         # Link the threads to the shutdown function. If either of the threads exited with error,
         # then initiate shutdown which will allow the waits below to throw exception to the
         # main process.
-        self._main_thread.link(self.shutdown)
-        self._cleanup_thread.link(self.shutdown)
+        concurrency.link(self._main_thread, self.shutdown)
+        concurrency.link(self._cleanup_thread, self.shutdown)
 
     def shutdown(self, *args, **kwargs):
         if not self._shutdown:

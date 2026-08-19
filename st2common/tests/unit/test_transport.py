@@ -142,7 +142,7 @@ class TransportUtilsTestCase(unittest.TestCase):
         )
         self.assertEqual(watcher.received_messages[2][0].id, live_action_db.id)
 
-        watcher_thread.kill()
+        concurrency.kill(watcher_thread)
 
     def test_get_ssl_kwargs(self):
         # 1. No SSL kwargs provided

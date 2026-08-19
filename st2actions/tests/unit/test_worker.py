@@ -267,7 +267,7 @@ class WorkerTestCase(DbTestCase):
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
         concurrency.wait(runner_thread)
-        shutdown_thread.kill()
+        concurrency.kill(shutdown_thread)
 
     def test_worker_graceful_shutdown_with_single_runner(self):
         self.reset_config(
@@ -332,7 +332,7 @@ class WorkerTestCase(DbTestCase):
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
         concurrency.wait(runner_thread)
-        shutdown_thread.kill()
+        concurrency.kill(shutdown_thread)
 
     @mock.patch.object(
         RedisDriver,
@@ -398,4 +398,4 @@ class WorkerTestCase(DbTestCase):
         # _run_action but will not result in KeyError because the discard method is used to
         # to remove the liveaction from _running_liveactions.
         concurrency.wait(runner_thread)
-        shutdown_thread.kill()
+        concurrency.kill(shutdown_thread)

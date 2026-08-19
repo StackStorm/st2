@@ -67,7 +67,7 @@ class BufferedDispatcher(object):
         self._flush_now()
 
     def shutdown(self):
-        self._dispatch_monitor_thread.kill()
+        concurrency.kill(self._dispatch_monitor_thread)
 
     def _flush(self):
         while True:
@@ -95,7 +95,7 @@ class BufferedDispatcher(object):
             self._dispatcher_pool
         ):
             (handler, args) = self._work_buffer.get_nowait()
-            self._dispatcher_pool.spawn(handler, *args)
+            concurrency.pool_spawn(self._dispatcher_pool, handler, *args)
 
     def __repr__(self):
         free_count = concurrency.green_pool_free_count(self._dispatcher_pool)

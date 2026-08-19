@@ -35,9 +35,12 @@ __all__ = [
     "wait",
     "cancel",
     "kill",
+    "link",
     "sleep",
     "get_greenlet_exit_exception_class",
     "get_green_pool_class",
+    "pool_spawn",
+    "resize_green_pool",
     "is_green_pool_free",
     "green_pool_wait_all",
     "get_green_profiler",
@@ -197,6 +200,17 @@ def cancel(green_thread, *args, **kwargs):
         raise ValueError(f"Unsupported concurrency library {_state.library}")
 
 
+def link(green_thread, callback):
+    """
+    Register a callback to run once the green thread finishes (whether it succeeded, failed,
+    or was killed).
+    """
+    if _state.library in ("eventlet", "gevent"):
+        return green_thread.link(callback)
+    else:
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
+
+
 def kill(green_thread, *args, **kwargs):
     if _state.library == "eventlet":
         return green_thread.kill(*args, **kwargs)
@@ -261,6 +275,35 @@ def get_green_pool_class():
         return _state.eventlet.GreenPool
     elif _state.library == "gevent":
         return _state.gevent.pool.Pool
+    else:
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
+
+
+def pool_spawn(pool, func, *args, **kwargs):
+    """
+    Spawn a green thread inside the given green pool (bounded concurrency), unlike spawn()
+    which spawns an unbounded green thread.
+    """
+    if _state.library in ("eventlet", "gevent"):
+        return pool.spawn(func, *args, **kwargs)
+    else:
+        raise ValueError(f"Unsupported concurrency library {_state.library}")
+
+
+def resize_green_pool(pool, size):
+    """
+    Resize a green pool's concurrency limit.
+
+    gevent's Pool has no equivalent of eventlet's GreenPool.resize(): its internal semaphore
+    is fixed at construction time and never re-reads the (otherwise inert) .size attribute
+    afterwards, so this is a no-op under gevent. Callers that use this to stop a pool from
+    accepting new work should also close the pool's listening socket, which is what actually
+    prevents new work from arriving under either library.
+    """
+    if _state.library == "eventlet":
+        pool.resize(size)
+    elif _state.library == "gevent":
+        pass
     else:
         raise ValueError(f"Unsupported concurrency library {_state.library}")
 

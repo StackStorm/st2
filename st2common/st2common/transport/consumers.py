@@ -207,7 +207,7 @@ class MessageHandler(object):
         self._queue_consumer.shutdown()
 
     def kill(self):
-        self._consumer_thread.kill(SystemExit())
+        concurrency.kill(self._consumer_thread, SystemExit())
 
     @abc.abstractmethod
     def process(self, message):

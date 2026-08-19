@@ -106,7 +106,8 @@ class ParallelSSHClient(object):
         for host in self._hosts:
             while not concurrency_lib.is_green_pool_free(self._pool):
                 concurrency_lib.sleep(self._scan_interval)
-            self._pool.spawn(
+            concurrency_lib.pool_spawn(
+                self._pool,
                 self._connect,
                 host=host,
                 results=results,
@@ -244,7 +245,9 @@ class ParallelSSHClient(object):
         for host in self._hosts_client.keys():
             while not concurrency_lib.is_green_pool_free(self._pool):
                 concurrency_lib.sleep(self._scan_interval)
-            self._pool.spawn(execute_method, host=host, results=results, **kwargs)
+            concurrency_lib.pool_spawn(
+                self._pool, execute_method, host=host, results=results, **kwargs
+            )
 
         concurrency_lib.green_pool_wait_all(self._pool)
         return results

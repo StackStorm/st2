@@ -40,7 +40,7 @@ def shutdown_server_kill_pending_requests(sock, worker_pool, wait_time=2):
                       forcefully killing them.
     :type wait_time: ``int``
     """
-    worker_pool.resize(0)
+    concurrency.resize_green_pool(worker_pool, 0)
     sock.close()
 
     active_requests = concurrency.green_pool_running_count(worker_pool)
