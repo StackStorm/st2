@@ -3,7 +3,7 @@ Changelog
 
 in development
 --------------
-* Added support for gevent to replace eventlet. Going forward, the default will be gevent, and can be overriden in the conf file `system.concurrency_library = gevent|eventlet`
+* Added support for gevent to replace eventlet. Going forward, the default will be gevent, and can be overriden in the conf file `system.concurrency_library = gevent|eventlet` @jzufelt #6372
 
 * implemented zstandard compression for parameters and results. #5995
   contributed by @guzzijones12
