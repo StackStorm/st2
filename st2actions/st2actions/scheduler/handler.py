@@ -30,12 +30,14 @@ from st2common.services import action as action_service
 from st2common.services import coordination as coordination_service
 from st2common.services import executions as execution_service
 from st2common.services import policies as policy_service
+from st2common.models.db.execution_queue import ActionExecutionSchedulingQueueItemDB
 from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.util import action_db as action_utils
 from st2common.metrics import base as metrics
 from st2common.exceptions import db as db_exc
+
 
 __all__ = ["ActionExecutionSchedulingQueueHandler", "get_handler"]
 
@@ -145,6 +147,65 @@ class ActionExecutionSchedulingQueueHandler(object):
             LOG.info(msg, str(execution_db.id), str(entry.id))
             entry.action_execution_id = str(execution_db.id)
             ActionExecutionSchedulingQueue.add_or_update(entry, publish=False)
+
+    def _bootstrap_missing_scheduling_queue_items(self):
+        """
+        Bootstrap ActionExecutionSchedulingQueue entries for LiveActions in 'requested'
+        status that don't have a corresponding queue entry. This handles recovery from
+        RabbitMQ failures where the SchedulerEntrypoint never received the message.
+
+        Note: We only handle 'requested' status because:
+        - 'delayed' status already has queue entries (created at initial request time)
+        - Policy-delayed executions update existing queue entries
+        """
+        requested_liveactions = (
+            LiveAction.query(status=action_constants.LIVEACTION_STATUS_REQUESTED) or []
+        )
+
+        for liveaction_db in requested_liveactions:
+            # Check if this liveaction already has a queue entry
+            ex_que_qry = {"liveaction_id": str(liveaction_db.id)}
+            existing_queue_items = (
+                ActionExecutionSchedulingQueue.query(**ex_que_qry) or []
+            )
+
+            if len(existing_queue_items) > 0:
+                # Queue entry already exists, skip
+                continue
+
+            # Get the associated ActionExecution
+            execution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
+
+            # Skip if no execution exists (orphaned liveaction)
+            if not execution_db:
+                LOG.warning(
+                    'Skipping LiveAction "%s" - no ActionExecution found',
+                    str(liveaction_db.id),
+                )
+                continue
+
+            # Create the missing queue entry
+            execution_queue_item_db = ActionExecutionSchedulingQueueItemDB()
+            execution_queue_item_db.action_execution_id = str(execution_db.id)
+            execution_queue_item_db.liveaction_id = str(liveaction_db.id)
+            execution_queue_item_db.original_start_timestamp = (
+                liveaction_db.start_timestamp
+            )
+            execution_queue_item_db.scheduled_start_timestamp = (
+                date.append_milliseconds_to_time(
+                    liveaction_db.start_timestamp, liveaction_db.delay or 0
+                )
+            )
+            execution_queue_item_db.delay = liveaction_db.delay
+
+            ActionExecutionSchedulingQueue.add_or_update(
+                execution_queue_item_db, publish=False
+            )
+            LOG.info(
+                '[%s] Bootstrapped missing scheduling queue entry for LiveAction "%s".',
+                str(execution_db.id),
+                str(liveaction_db.id),
+            )
 
     # TODO: Remove this function for cleanup policy-delayed in v3.2.
     # This is a temporary cleanup to remove executions in deprecated policy-delayed status.
@@ -373,6 +434,14 @@ class ActionExecutionSchedulingQueueHandler(object):
                 )
 
             return
+
+        # Complete cancellation transition: CANCELING → CANCELED
+        if liveaction_db.status == action_constants.LIVEACTION_STATUS_CANCELING:
+            liveaction_db = action_service.update_status(
+                liveaction_db,
+                action_constants.LIVEACTION_STATUS_CANCELED,
+                publish=True,
+            )
 
         if (
             liveaction_db.status in action_constants.LIVEACTION_COMPLETED_STATES

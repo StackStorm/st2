@@ -372,6 +372,29 @@ def register_opts(ignore_errors=False):
             default=10000,
             help="How long should we wait between connection retries.",
         ),
+        cfg.IntOpt(
+            "connection_retry_max_attempts",
+            default=10,
+            help="Maximum number of retry attempts for broker connection and reconnection. "
+            "This prevents infinite retry loops when the broker is unavailable. "
+            "Applies to both initial connection and reconnection during message publishing. "
+            "Set to 0 to retry indefinitely (not recommended).",
+        ),
+        cfg.IntOpt(
+            "connection_retry_interval_start",
+            default=1,
+            help="Starting retry interval in seconds for broker connection attempts.",
+        ),
+        cfg.IntOpt(
+            "connection_retry_interval_step",
+            default=1,
+            help="Increment for retry interval after each attempt (seconds).",
+        ),
+        cfg.IntOpt(
+            "connection_retry_interval_max",
+            default=30,
+            help="Maximum retry interval in seconds for broker connection attempts.",
+        ),
         cfg.BoolOpt(
             "ssl",
             default=False,

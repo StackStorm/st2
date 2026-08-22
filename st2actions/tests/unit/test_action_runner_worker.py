@@ -17,6 +17,8 @@ from __future__ import absolute_import
 from unittest import TestCase
 from mock import Mock
 
+from oslo_config import cfg
+
 from st2common.transport.consumers import ActionsQueueConsumer
 from st2common.models.db.liveaction import LiveActionDB
 
@@ -30,6 +32,36 @@ class ActionsQueueConsumerTestCase(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         tests_config.parse_args()
+
+    def test_connection_retry_attributes_initialized(self):
+        """Test that ActionsQueueConsumer properly inherits connection retry attributes"""
+        handler = Mock()
+        handler.message_type = LiveActionDB
+        consumer = ActionsQueueConsumer(connection=None, queues=None, handler=handler)
+
+        # Verify inherited attributes from QueueConsumer are present
+        self.assertTrue(hasattr(consumer, "_connection_retry_count"))
+        self.assertTrue(hasattr(consumer, "_max_connection_retries"))
+        self.assertEqual(consumer._connection_retry_count, 0)
+        self.assertEqual(
+            consumer._max_connection_retries,
+            cfg.CONF.messaging.connection_retry_max_attempts,
+        )
+
+    def test_on_connection_revived_works(self):
+        """Test that on_connection_revived method works correctly for ActionsQueueConsumer"""
+        handler = Mock()
+        handler.message_type = LiveActionDB
+        consumer = ActionsQueueConsumer(connection=None, queues=None, handler=handler)
+
+        # Simulate some failed connection attempts
+        consumer._connection_retry_count = 3
+
+        # Call inherited method
+        consumer.on_connection_revived()
+
+        # Should reset counter to 0
+        self.assertEqual(consumer._connection_retry_count, 0)
 
     def test_process_right_dispatcher_is_used(self):
         handler = Mock()

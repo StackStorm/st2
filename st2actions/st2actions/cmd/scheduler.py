@@ -91,12 +91,58 @@ def _run_scheduler():
             "(PID=%s) Scheduler unable to populate action_execution_id.", os.getpid()
         )
 
+    # Bootstrap missing scheduling queue entries for requested LiveActions.
+    # This handles recovery from RabbitMQ failures where messages were never consumed.
+    handler._bootstrap_missing_scheduling_queue_items()
+
     try:
         handler.start()
         entrypoint.start()
 
-        # Wait on handler first since entrypoint is more durable.
-        handler.wait() or entrypoint.wait()
+        # Wait on both handler and entrypoint. If either fails, we want to shut down gracefully.
+        # Poll the threads to detect when any of them fails
+        import eventlet
+
+        threads_to_monitor = [
+            (handler._main_thread, "handler_main"),
+            (handler._cleanup_thread, "handler_cleanup"),
+            (entrypoint._consumer_thread, "entrypoint_consumer"),
+        ]
+
+        try:
+            # Poll threads in a loop - check if any has died/failed
+            while True:
+                dead_threads = [
+                    (thread, name) for thread, name in threads_to_monitor if thread.dead
+                ]
+
+                if dead_threads:
+                    # If any dead thread raised an exception, propagate it. We must
+                    # check *all* dead threads (not just the first one observed) because
+                    # a failing sibling thread can trigger a linked shutdown that causes
+                    # other threads to exit cleanly in the same scheduling tick. Returning
+                    # success based on the first-seen clean exit would swallow the real
+                    # failure.
+                    for thread, name in dead_threads:
+                        try:
+                            thread.wait()  # Raises if the thread raised.
+                        except Exception as e:
+                            LOG.error("Thread %s failed: %s", name, e)
+                            # Re-raise to let outer exception handler deal with shutdown
+                            raise
+
+                    # No exceptions - all dead threads exited cleanly (shouldn't
+                    # happen in normal operation).
+                    for _, name in dead_threads:
+                        LOG.info("Thread %s completed", name)
+                    return 0
+
+                # Sleep briefly to avoid tight loop and allow other greenlets to run
+                eventlet.sleep(0.1)
+        except Exception as e:
+            # If we caught an exception, it's already been logged and components shut down
+            # Re-raise it so tests and monitoring can detect the failure
+            raise e
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) Scheduler stopped.", os.getpid())
 
@@ -121,7 +167,7 @@ def _run_scheduler():
         except:
             LOG.exception("Unable to shutdown scheduler.")
 
-        return 1
+        raise
 
     return 0
 

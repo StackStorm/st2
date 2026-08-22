@@ -23,6 +23,7 @@ Fixed
 ~~~~~
 * Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375
 * Fix utf-8 encode before checking paramter max size #6352
+* Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)
 
 Changed
 ~~~~~~~

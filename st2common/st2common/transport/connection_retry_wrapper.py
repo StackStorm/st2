@@ -21,41 +21,44 @@ from st2common.util import concurrency
 
 __all__ = ["ConnectionRetryWrapper", "ClusterRetryContext"]
 
+# Higher-level exception tuple that covers all connection-related errors
+
 
 class ClusterRetryContext(object):
     """
-    Stores retry context for cluster retries. It makes certain assumptions
-    on how cluster_size and retry should be determined.
+    Stores retry context for cluster retries.
     """
 
-    def __init__(self, cluster_size):
-        # No of nodes in a cluster
+    def __init__(self, cluster_size, max_retries=2, wait_between_retry=10):
         self.cluster_size = cluster_size
-        # No of times to retry in a cluster
-        self.cluster_retry = 2
-        # time to wait between retry in a cluster
-        self.wait_between_cluster = 10
+        self.max_retries = max_retries
+        self.wait_between_retry = wait_between_retry
+        self._attempt_count = 0
+        self._max_attempts = cluster_size * (max_retries + 1)
 
-        # No of nodes attempted. Starts at 1 since the
-        self._nodes_attempted = 1
+    def should_stop(self, e=None):
+        """
+        Determine if retry should stop and how long to wait before next attempt.
 
-    def test_should_stop(self, e=None):
-        # Special workaround for "(504) CHANNEL_ERROR - second 'channel.open' seen" which happens
-        # during tests on Travis and block and slown down the tests
-        # NOTE: This error is not fatal during tests and we can simply switch to a next connection
-        # without sleeping.
+        Returns:
+            tuple: (should_stop, wait_seconds)
+        """
+        self._attempt_count += 1
+
+        # Special workaround for non-fatal test errors
         if "second 'channel.open' seen" in six.text_type(e):
-            return False, -1
+            return False, 0
 
-        should_stop = True
-        if self._nodes_attempted > self.cluster_size * self.cluster_retry:
-            return should_stop, -1
-        wait = 0
-        should_stop = False
-        if self._nodes_attempted % self.cluster_size == 0:
-            wait = self.wait_between_cluster
-        self._nodes_attempted += 1
-        return should_stop, wait
+        if self._attempt_count >= self._max_attempts:
+            return True, 0
+
+        # Wait before retrying after cycling through all cluster nodes
+        wait = (
+            self.wait_between_retry
+            if self._attempt_count % self.cluster_size == 0
+            else 0
+        )
+        return False, wait
 
 
 class ConnectionRetryWrapper(object):
@@ -103,11 +106,11 @@ class ConnectionRetryWrapper(object):
 
     """
 
-    def __init__(self, cluster_size, logger, ensure_max_retries=3):
-        self._retry_context = ClusterRetryContext(cluster_size=cluster_size)
+    def __init__(self, cluster_size, logger, max_retries=2, ensure_max_retries=3):
+        self._retry_context = ClusterRetryContext(
+            cluster_size=cluster_size, max_retries=max_retries
+        )
         self._logger = logger
-        # How many times to try to retrying establishing a connection in a place where we are
-        # calling connection.ensure_connection
         self._ensure_max_retries = ensure_max_retries
 
     def errback(self, exc, interval):
@@ -124,38 +127,32 @@ class ConnectionRetryWrapper(object):
                                  method. Expected signature of callback -
                                  ``def func(connection, channel)``
         """
-        should_stop = False
         channel = None
-        while not should_stop:
+        while True:
             try:
                 channel = connection.channel()
                 wrapped_callback(connection=connection, channel=channel)
-                should_stop = True
-            except connection.connection_errors + connection.channel_errors as e:
-                should_stop, wait = self._retry_context.test_should_stop(e)
-                # reset channel to None to avoid any channel closing errors. At this point
-                # in case of an exception there should be no channel but that is better to
-                # guarantee.
-                channel = None
-                # All attempts to re-establish connections have failed. This error needs to
-                # be notified so raise.
+                break  # Success - exit the retry loop
+            except Exception as e:
+                channel = None  # Reset channel to avoid closing errors
+                should_stop, wait = self._retry_context.should_stop(e)
+
                 if should_stop:
+                    self._logger.error(
+                        "Failed to execute operation after exhausting all retry attempts"
+                    )
                     raise
 
-                # -1, 0 and 1+ are handled properly by eventlet.sleep
-                self._logger.debug(
-                    "Received RabbitMQ server error, sleeping for %s seconds "
-                    "before retrying: %s" % (wait, six.text_type(e))
-                )
-                concurrency.sleep(wait)
+                if wait > 0:
+                    self._logger.debug(
+                        "Received RabbitMQ server error, sleeping for %s seconds "
+                        "before retrying: %s" % (wait, six.text_type(e))
+                    )
+                    concurrency.sleep(wait)
 
                 connection.close()
-                # ensure_connection will automatically switch to an alternate. Other connections
-                # in the pool will be fixed independently. It would be nice to cut-over the
-                # entire ConnectionPool simultaneously but that would require writing our own
-                # ConnectionPool. If a server recovers it could happen that the same process
-                # ends up talking to separate nodes in a cluster.
 
+                # ensure_connection will automatically switch to an alternate node
                 def log_error_on_conn_failure(exc, interval):
                     self._logger.debug(
                         "Failed to re-establish connection to RabbitMQ server, "
@@ -163,31 +160,16 @@ class ConnectionRetryWrapper(object):
                     )
 
                 try:
-                    # NOTE: This function blocks and tries to restablish a connection for
-                    # indefinetly if "max_retries" argument is not specified
                     connection.ensure_connection(
                         max_retries=self._ensure_max_retries,
                         errback=log_error_on_conn_failure,
                     )
                 except Exception:
-                    self._logger.exception(
-                        "Connections to RabbitMQ cannot be re-established: %s",
-                        six.text_type(e),
-                    )
+                    self._logger.error("Failed to re-establish connection to RabbitMQ")
                     raise
-            except Exception as e:
-                self._logger.exception(
-                    "Connections to RabbitMQ cannot be re-established: %s",
-                    six.text_type(e),
-                )
-                # Not being able to publish a message could be a significant issue for an app.
-                raise
             finally:
-                if should_stop and channel:
-                    try:
-                        channel.close()
-                    except Exception:
-                        self._logger.warning("Error closing channel.", exc_info=True)
+                if channel:
+                    channel.close()
 
     def ensured(self, connection, obj, to_ensure_func, **kwargs):
         """

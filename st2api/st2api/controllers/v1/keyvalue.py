@@ -178,7 +178,6 @@ class KeyValuePairController(ResourceController):
         user = user or requester_user.name
 
         rbac_utils = get_rbac_backend().get_utils_class()
-
         # Validate that the authenticated user is admin if user query param is provided
         rbac_utils.assert_user_is_admin_if_user_query_param_is_provided(
             user_db=requester_user, user=user, require_rbac=True
@@ -451,7 +450,6 @@ class KeyValuePairController(ResourceController):
             scope=scope,
             name=key_ref,
         )
-
         # Check that user has permission to the key value pair.
         # If RBAC is enabled, this check will verify if user has system role with all access.
         # If RBAC is enabled, this check guards against a user accessing another user's kvp.
