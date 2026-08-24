@@ -19,11 +19,11 @@ connection failures occur, rather than hanging indefinitely.
 
 from __future__ import absolute_import
 
-import eventlet
 import mock
 
 from kombu.exceptions import OperationalError as KombuOperationalError
 
+from st2common.util import concurrency
 from st2reactor.cmd.rulesengine import _run_worker
 from st2reactor.rules.worker import TriggerInstanceDispatcher
 from st2tests.base import CleanDbTestCase
@@ -47,11 +47,11 @@ class RulesEngineShutdownOnRabbitMQFailureTestCase(CleanDbTestCase):
         mock_get_connection.side_effect = KombuOperationalError("Connection refused")
 
         # Run the worker in a greenthread
-        run_thread = eventlet.spawn(_run_worker)
+        run_thread = concurrency.spawn(_run_worker)
 
         # The worker should raise the connection error
         with self.assertRaises(KombuOperationalError) as cm:
-            run_thread.wait()
+            concurrency.wait(run_thread)
 
         self.assertIn("Connection refused", str(cm.exception))
 
@@ -67,17 +67,17 @@ class RulesEngineShutdownOnRabbitMQFailureTestCase(CleanDbTestCase):
 
         def mock_start_that_fails():
             # Simulate the worker thread starting but then failing
-            eventlet.sleep(0.1)
+            concurrency.sleep(0.1)
             raise RuntimeError("Worker thread failed")
 
         mock_start.side_effect = mock_start_that_fails
 
         # Run the worker
-        run_thread = eventlet.spawn(_run_worker)
+        run_thread = concurrency.spawn(_run_worker)
 
         # Should raise the RuntimeError from the worker thread
         with self.assertRaises(RuntimeError) as cm:
-            run_thread.wait()
+            concurrency.wait(run_thread)
 
         self.assertIn("Worker thread failed", str(cm.exception))
 
@@ -98,10 +98,10 @@ class RulesEngineShutdownOnRabbitMQFailureTestCase(CleanDbTestCase):
             "Failed to connect after 10 attempts"
         )
 
-        run_thread = eventlet.spawn(_run_worker)
+        run_thread = concurrency.spawn(_run_worker)
 
         # Should raise the connection error
         with self.assertRaises(KombuOperationalError) as cm:
-            run_thread.wait()
+            concurrency.wait(run_thread)
 
         self.assertIn("Failed to connect", str(cm.exception))

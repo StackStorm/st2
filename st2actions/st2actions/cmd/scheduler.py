@@ -29,6 +29,7 @@ from st2common import log as logging
 from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import deregister_service
+from st2common.util import concurrency
 
 __all__ = ["main"]
 
@@ -101,8 +102,6 @@ def _run_scheduler():
 
         # Wait on both handler and entrypoint. If either fails, we want to shut down gracefully.
         # Poll the threads to detect when any of them fails
-        import eventlet
-
         threads_to_monitor = [
             (handler._main_thread, "handler_main"),
             (handler._cleanup_thread, "handler_cleanup"),
@@ -125,7 +124,7 @@ def _run_scheduler():
                     # failure.
                     for thread, name in dead_threads:
                         try:
-                            thread.wait()  # Raises if the thread raised.
+                            concurrency.wait(thread)  # Raises if the thread raised.
                         except Exception as e:
                             LOG.error("Thread %s failed: %s", name, e)
                             # Re-raise to let outer exception handler deal with shutdown
@@ -138,7 +137,7 @@ def _run_scheduler():
                     return 0
 
                 # Sleep briefly to avoid tight loop and allow other greenlets to run
-                eventlet.sleep(0.1)
+                concurrency.sleep(0.1)
         except Exception as e:
             # If we caught an exception, it's already been logged and components shut down
             # Re-raise it so tests and monitoring can detect the failure
