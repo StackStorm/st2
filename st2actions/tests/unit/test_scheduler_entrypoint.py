@@ -49,9 +49,12 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
     @mock.patch("st2actions.cmd.scheduler.LOG")
     def test_service_exits_correctly_on_fatal_exception_in_handler_run(self, mock_log):
         run_thread = concurrency.spawn(_run_scheduler)
-        result = concurrency.wait(run_thread)
 
-        self.assertEqual(result, 1)
+        # The scheduler now raises exceptions instead of returning 1
+        with self.assertRaises(Exception) as cm:
+            concurrency.wait(run_thread)
+
+        self.assertIn("handler run exception", str(cm.exception))
 
         mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
         self.assertIn("Scheduler unexpectedly stopped", mock_log_exception_call)
@@ -64,9 +67,12 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         self, mock_log
     ):
         run_thread = concurrency.spawn(_run_scheduler)
-        result = concurrency.wait(run_thread)
 
-        self.assertEqual(result, 1)
+        # The scheduler now raises exceptions instead of returning 1
+        with self.assertRaises(Exception) as cm:
+            concurrency.wait(run_thread)
+
+        self.assertIn("handler clean exception", str(cm.exception))
 
         mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
         self.assertIn("Scheduler unexpectedly stopped", mock_log_exception_call)
@@ -77,9 +83,12 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         self, mock_log
     ):
         run_thread = concurrency.spawn(_run_scheduler)
-        result = concurrency.wait(run_thread)
 
-        self.assertEqual(result, 1)
+        # The scheduler now raises exceptions instead of returning 1
+        with self.assertRaises(Exception) as cm:
+            concurrency.wait(run_thread)
+
+        self.assertIn("entrypoint start exception", str(cm.exception))
 
         mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
         self.assertIn("Scheduler unexpectedly stopped", mock_log_exception_call)

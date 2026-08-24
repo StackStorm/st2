@@ -15,12 +15,19 @@
 
 from __future__ import absolute_import
 
-from st2common.transport import liveaction, actionexecutionstate, execution, workflow
+from st2common.transport import (
+    actionalias,
+    liveaction,
+    actionexecutionstate,
+    execution,
+    workflow,
+)
 from st2common.transport import publishers, reactor, utils, connection_retry_wrapper
 
 # TODO(manas) : Exchanges, Queues and RoutingKey design discussion pending.
 
 __all__ = [
+    "actionalias",
     "liveaction",
     "actionexecutionstate",
     "execution",

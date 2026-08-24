@@ -23,7 +23,10 @@ import abc
 import six
 
 from st2common import log as logging
-from st2common.exceptions.db import StackStormDBObjectConflictError
+from st2common.exceptions.db import (
+    StackStormDBObjectConflictError,
+    StackStormDBObjectNotFoundError,
+)
 from st2common.models.system.common import ResourceReference
 
 
@@ -151,21 +154,25 @@ class Access(object):
                 message=message, conflict_id=conflict_id, model_object=model_object
             )
 
-        # Publish internal event on the message bus
-        if publish:
-            try:
+        try:
+            # Publish internal event on the message bus
+            if publish:
                 cls.publish_create(model_object)
-            except:
-                LOG.exception("Publish failed.")
 
-        # Dispatch trigger
-        if dispatch_trigger:
-            try:
+            # Dispatch trigger
+            if dispatch_trigger:
                 cls.dispatch_create_trigger(model_object)
-            except:
-                LOG.exception("Trigger dispatch failed.")
 
-        return model_object
+            return model_object
+        except Exception:
+            # RabbitMQ connection error - rollback the database insert
+            LOG.warning(
+                "RabbitMQ publish failed for object %s, rolling back database insert",
+                model_object.id,
+            )
+            # Delete the newly inserted object
+            cls._get_impl().delete(model_object)
+            raise
 
     @classmethod
     def add_or_update(
@@ -181,6 +188,15 @@ class Access(object):
         from mongoengine import NotUniqueError
 
         pre_persist_id = model_object.id
+
+        # For updates, save the original state for potential rollback
+        original_object = None
+        if pre_persist_id and (publish or dispatch_trigger):
+            try:
+                original_object = cls.get_by_id(pre_persist_id)
+            except StackStormDBObjectNotFoundError:
+                pass
+
         try:
             model_object = cls._get_impl().add_or_update(model_object, validate=True)
         except NotUniqueError as e:
@@ -199,27 +215,36 @@ class Access(object):
 
         is_update = str(pre_persist_id) == str(model_object.id)
 
-        # Publish internal event on the message bus
-        if publish:
-            try:
+        try:
+            # Publish internal event on the message bus
+            if publish:
                 if is_update:
                     cls.publish_update(model_object)
                 else:
                     cls.publish_create(model_object)
-            except:
-                LOG.exception("Publish failed.")
 
-        # Dispatch trigger
-        if dispatch_trigger:
-            try:
+            # Dispatch trigger
+            if dispatch_trigger:
                 if is_update:
                     cls.dispatch_update_trigger(model_object)
                 else:
                     cls.dispatch_create_trigger(model_object)
-            except:
-                LOG.exception("Trigger dispatch failed.")
 
-        return model_object
+            return model_object
+        except Exception:
+            # RabbitMQ connection error - rollback the database operation
+            LOG.warning(
+                "RabbitMQ publish failed for object %s, rolling back database operation",
+                model_object.id,
+            )
+
+            if is_update and original_object:
+                # Restore the original state for updates
+                cls._get_impl().add_or_update(original_object, validate=False)
+            else:
+                # Delete the newly created object for inserts
+                cls._get_impl().delete(model_object)
+            raise
 
     @classmethod
     def update(cls, model_object, publish=True, dispatch_trigger=True, **kwargs):
@@ -227,28 +252,50 @@ class Access(object):
         Use this method when -
         * upsert=False is desired
         * special operators like push, push_all are to be used.
+
+        NOTE: If publish fails due to RabbitMQ connection errors, the database update
+        will be rolled back by restoring the original object state.
         """
+
+        # Save the original state before update for potential rollback
+        original_object = cls.get_by_id(model_object.id)
+
+        # Perform the database update
         cls._get_impl().update(model_object, **kwargs)
         # update does not return the object but a flag; likely success/fail but docs
         # are not very good on this one so ignoring. Explicitly get the object from
-        # DB abd return.
-        model_object = cls.get_by_id(model_object.id)
+        # DB and return.
+        updated_object = cls.get_by_id(model_object.id)
 
-        # Publish internal event on the message bus
-        if publish:
-            try:
-                cls.publish_update(model_object)
-            except:
-                LOG.exception("Publish failed.")
+        try:
+            # Publish internal event on the message bus
+            if publish:
+                cls.publish_update(updated_object)
 
-        # Dispatch trigger
-        if dispatch_trigger:
-            try:
-                cls.dispatch_update_trigger(model_object)
-            except:
-                LOG.exception("Trigger dispatch failed.")
+            # Dispatch trigger
+            if dispatch_trigger:
+                cls.dispatch_update_trigger(updated_object)
 
-        return model_object
+            return updated_object
+        except Exception:
+            # RabbitMQ connection error - rollback the database update
+            if original_object:
+                LOG.warning(
+                    "RabbitMQ publish failed for object %s, rolling back database update",
+                    model_object.id,
+                )
+                # Build rollback kwargs from the original state
+                rollback_kwargs = {}
+                for key, value in kwargs.items():
+                    if key.startswith("set__"):
+                        field_name = key[5:]  # Remove 'set__' prefix
+                        original_value = getattr(original_object, field_name, None)
+                        rollback_kwargs[key] = original_value
+                    # For other operators, we'd need to handle them appropriately
+                    # For now, only handling set__ which is the most common case
+
+                cls._get_impl().update(model_object, **rollback_kwargs)
+            raise
 
     @classmethod
     def delete(cls, model_object, publish=True, dispatch_trigger=True):
@@ -256,17 +303,11 @@ class Access(object):
 
         # Publish internal event on the message bus
         if publish:
-            try:
-                cls.publish_delete(model_object)
-            except Exception:
-                LOG.exception("Publish failed.")
+            cls.publish_delete(model_object)
 
         # Dispatch trigger
         if dispatch_trigger:
-            try:
-                cls.dispatch_delete_trigger(model_object)
-            except Exception:
-                LOG.exception("Trigger dispatch failed.")
+            cls.dispatch_delete_trigger(model_object)
 
         return persisted_object
 

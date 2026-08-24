@@ -77,10 +77,12 @@ def run_server():
         LOG.info("(PID=%s) Workflow engine stopped.", os.getpid())
         deregister_service(service=workflows.WORKFLOW_ENGINE)
         engine.shutdown()
+        return 0
     except:
         LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())
+        deregister_service(service=workflows.WORKFLOW_ENGINE)
+        engine.shutdown()
         return 1
-    return 0
 
 
 def teardown():

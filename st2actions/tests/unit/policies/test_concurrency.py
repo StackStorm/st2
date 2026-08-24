@@ -367,7 +367,17 @@ class ConcurrencyPolicyTestCase(GreenThreadTestCase, ExecutionDbTestCase):
 
         # Cancel execution.
         action_service.request_cancellation(scheduled[0], "stanley")
-        expected_num_pubs += 2  # Tally the canceling and canceled states.
+
+        # Verify the action was actually cancelled.
+        cancelled_action = LiveAction.get_by_id(str(scheduled[0].id))
+        self.assertEqual(
+            cancelled_action.status, action_constants.LIVEACTION_STATUS_CANCELED
+        )
+
+        # Since the action has no parent workflow context and is in RUNNING state,
+        # request_cancellation transitions directly to CANCELED (skipping CANCELING state).
+        # This results in only 1 state publication instead of 2.
+        expected_num_pubs += 1  # Tally the canceled state.
         self.assertEqual(
             expected_num_pubs, LiveActionPublisher.publish_state.call_count
         )
