@@ -102,6 +102,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         exit_still_active_check=None,  # default is 300 (st2common.config)
         still_active_check_interval=None,  # default is 2 (st2common.config)
         service_registry=None,  # default is False (st2common.config)
+        bootstrap_enabled=False,  # default off; opt-in per test
+        bootstrap_interval=None,
+        bootstrap_duration=None,
+        bootstrap_lookback_days=None,
     ):
         tests_config.reset()
         tests_config.parse_args()
@@ -126,6 +130,29 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         if service_registry is not None:
             cfg.CONF.set_override(
                 name="service_registry", override=service_registry, group="coordination"
+            )
+        cfg.CONF.set_override(
+            name="bootstrap_enabled",
+            override=bootstrap_enabled,
+            group="workflow_engine",
+        )
+        if bootstrap_interval is not None:
+            cfg.CONF.set_override(
+                name="bootstrap_interval",
+                override=bootstrap_interval,
+                group="workflow_engine",
+            )
+        if bootstrap_duration is not None:
+            cfg.CONF.set_override(
+                name="bootstrap_duration",
+                override=bootstrap_duration,
+                group="workflow_engine",
+            )
+        if bootstrap_lookback_days is not None:
+            cfg.CONF.set_override(
+                name="bootstrap_lookback_days",
+                override=bootstrap_lookback_days,
+                group="workflow_engine",
             )
 
     def test_process(self):
@@ -282,7 +309,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         )
 
         self.assertTrue(
-            workflows.WorkflowExecutionHandler.fail_workflow_execution.called
+            workflows.WorkflowExecutionHandler.fail_workflow_execution.called  # pylint: disable=no-member
         )
         mock_get_lock.side_effect = coordination_service.NoOpLock(name="noop")
 
@@ -419,7 +446,14 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
     def test_workflow_engine_shutdown_first_then_start(self):
         import time
 
-        self.reset_config(service_registry=True, exit_still_active_check=0)
+        self.reset_config(
+            service_registry=True,
+            exit_still_active_check=0,
+            bootstrap_enabled=True,
+            bootstrap_interval=5,
+            bootstrap_duration=60,
+            bootstrap_lookback_days=7,
+        )
 
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
@@ -447,7 +481,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         # Initiate shutdown first
         LOG.info("-" * 80)
         LOG.info("TEST DEBUG: Initiating Shutdown")
-        LOG.info("Engine delay: %s", workflow_engine._delay)
+        LOG.info(
+            "Engine delay (unused, retained for log parity): %s", workflow_engine._delay
+        )
         eventlet.spawn(workflow_engine.shutdown)
 
         # Sleep long enough for shutdown to complete
@@ -578,3 +614,134 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         eventlet.sleep(workflow_engine._delay + 5)
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+    def test_bootstrap_disabled_by_default(self):
+        self.reset_config(service_registry=True, exit_still_active_check=0)
+
+        workflow_engine = workflows.get_engine()
+        with mock.patch.object(
+            workflow_engine,
+            "_resume_workflows_paused_during_shutdown",
+        ) as mock_resume:
+            eventlet.spawn(workflow_engine.start, False)
+            eventlet.sleep(1.0)
+            workflow_engine.shutdown()
+
+            self.assertEqual(mock_resume.call_count, 0)
+
+        self.assertIsNone(workflow_engine._bootstrap_thread)
+
+    def test_bootstrap_runs_periodically_when_enabled(self):
+        self.reset_config(
+            service_registry=True,
+            exit_still_active_check=0,
+            bootstrap_enabled=True,
+            bootstrap_interval=1,
+            bootstrap_duration=60,
+        )
+
+        workflow_engine = workflows.get_engine()
+
+        with mock.patch.object(
+            workflow_engine,
+            "_resume_workflows_paused_during_shutdown",
+        ) as mock_resume:
+            eventlet.spawn(workflow_engine.start, False)
+            eventlet.sleep(3.5)
+            workflow_engine.shutdown()
+
+            self.assertGreaterEqual(mock_resume.call_count, 2)
+
+        self.assertIsNone(workflow_engine._bootstrap_thread)
+
+    def test_bootstrap_stops_after_duration(self):
+        self.reset_config(
+            service_registry=True,
+            exit_still_active_check=0,
+            bootstrap_enabled=True,
+            bootstrap_interval=1,
+            bootstrap_duration=2,
+        )
+
+        workflow_engine = workflows.get_engine()
+
+        with mock.patch.object(
+            workflow_engine,
+            "_resume_workflows_paused_during_shutdown",
+        ) as mock_resume:
+            thread = eventlet.spawn(workflow_engine.start, False)
+            # Sleep long past the 2s bootstrap window so the loop exits on its own.
+            eventlet.sleep(5)
+            # Loop should have exited on its own (deadline). No calls after ~2s.
+            call_count_after_deadline = mock_resume.call_count
+            eventlet.sleep(2)
+            self.assertEqual(mock_resume.call_count, call_count_after_deadline)
+            workflow_engine.shutdown()
+            thread.wait()
+
+    def test_bootstrap_survives_transient_errors(self):
+        import pymongo
+
+        self.reset_config(
+            service_registry=True,
+            exit_still_active_check=0,
+            bootstrap_enabled=True,
+            bootstrap_interval=1,
+            bootstrap_duration=60,
+        )
+
+        workflow_engine = workflows.get_engine()
+
+        with mock.patch.object(
+            workflow_engine,
+            "_resume_workflows_paused_during_shutdown",
+            side_effect=[
+                pymongo.errors.ConnectionFailure("boom"),
+                None,
+                None,
+                None,
+            ],
+        ) as mock_resume:
+            eventlet.spawn(workflow_engine.start, False)
+            eventlet.sleep(3.5)
+            workflow_engine.shutdown()
+
+            self.assertGreaterEqual(mock_resume.call_count, 3)
+
+    def test_bootstrap_lookback_filters_ancient(self):
+        import datetime as _dt
+
+        from st2common.services import workflows as wf_svc
+        from st2common.util import date as date_utils
+
+        self.reset_config(
+            service_registry=True,
+            exit_still_active_check=0,
+            bootstrap_lookback_days=1,
+        )
+
+        # Two paused-by-shutdown LiveActions: one recent, one ancient.
+        recent = lv_db_models.LiveActionDB(
+            action="core.local",
+            status=action_constants.LIVEACTION_STATUS_PAUSED,
+            context={"paused_by": wf_svc.WORKFLOW_ENGINE_START_STOP_SEQ},
+            start_timestamp=date_utils.get_datetime_utc_now(),
+        )
+        ancient = lv_db_models.LiveActionDB(
+            action="core.local",
+            status=action_constants.LIVEACTION_STATUS_PAUSED,
+            context={"paused_by": wf_svc.WORKFLOW_ENGINE_START_STOP_SEQ},
+            start_timestamp=date_utils.get_datetime_utc_now() - _dt.timedelta(days=5),
+        )
+        recent = lv_db_access.LiveAction.add_or_update(recent, publish=False)
+        ancient = lv_db_access.LiveAction.add_or_update(ancient, publish=False)
+
+        try:
+            engine = workflows.get_engine()
+            results = engine._get_workflows_paused_during_shutdown()
+            result_ids = {str(x.id) for x in results}
+            self.assertIn(str(recent.id), result_ids)
+            self.assertNotIn(str(ancient.id), result_ids)
+        finally:
+            lv_db_access.LiveAction.delete(recent)
+            lv_db_access.LiveAction.delete(ancient)

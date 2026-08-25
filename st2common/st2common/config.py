@@ -934,6 +934,35 @@ def register_opts(ignore_errors=False):
             default=2,
             help="Time interval between subsequent queries to check executions handled by WFE.",
         ),
+        cfg.BoolOpt(
+            "bootstrap_enabled",
+            default=False,
+            help="Enable the periodic bootstrap that resumes workflows paused "
+            "by prior engine shutdowns. Off by default; enable in "
+            "clustered/k8s environments where rolling restarts can leave "
+            "shutdown-paused workflows behind.",
+        ),
+        cfg.IntOpt(
+            "bootstrap_interval",
+            default=900,
+            help="Interval in seconds between bootstrap passes while the "
+            "bootstrap window is active.",
+        ),
+        cfg.IntOpt(
+            "bootstrap_duration",
+            default=3600,
+            help="Total wall-clock seconds after engine startup to keep running "
+            "periodic bootstrap passes. After this elapses the loop exits and "
+            "no further automatic bootstraps run until the next engine start.",
+        ),
+        cfg.IntOpt(
+            "bootstrap_lookback_days",
+            default=1,
+            help="Only auto-bootstrap workflows whose LiveAction.start_timestamp "
+            "is within this many days. Prevents accidentally resuming ancient "
+            "paused workflows. The manual st2-bootstrap-workflow CLI ignores "
+            "this filter.",
+        ),
     ]
 
     do_register_opts(

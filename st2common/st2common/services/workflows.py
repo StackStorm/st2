@@ -55,6 +55,12 @@ from st2common.util import param as param_utils
 
 LOG = logging.getLogger(__name__)
 
+# Marker written into LiveAction.context.paused_by when the workflow engine
+# pauses running workflows during its own shutdown. The bootstrap loop and the
+# manual st2-bootstrap-workflow CLI both use this marker to identify eligible
+# workflows.
+WORKFLOW_ENGINE_START_STOP_SEQ = "workflow_engine_start_stop_seq"
+
 LOG_FUNCTIONS = {
     "audit": LOG.audit,
     "debug": LOG.debug,
@@ -1638,3 +1644,140 @@ def identify_orphaned_workflows():
             continue
 
     return orphaned
+
+
+def sync_completed_tasks_to_conductor(wf_ex_id):
+    """
+    Synchronize task executions from database to conductor state.
+
+    Two scenarios are handled:
+    1. Completed tasks: sync their completion into the conductor state so it
+       stops thinking they are still running.
+    2. Running tasks: re-stage them so get_next_tasks() finds them.
+
+    This is required after a workflow was paused during engine shutdown but
+    tasks continued to complete or transitioned to running before the pause was
+    fully processed.
+    """
+    LOG.debug("Starting task synchronization for workflow execution %s", wf_ex_id)
+
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    conductor = deserialize_conductor(wf_ex_db)
+
+    task_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=wf_ex_id)
+    LOG.debug("Found %d task execution(s) for workflow %s", len(task_ex_dbs), wf_ex_id)
+
+    updated = False
+    restaged_count = 0
+
+    for task_ex_db in task_ex_dbs:
+        if task_ex_db.status in statuses.COMPLETED_STATUSES:
+            task_state = conductor.get_task_state_entry(
+                task_ex_db.task_id, task_ex_db.task_route
+            )
+            if (
+                task_state
+                and task_state.get("status") not in statuses.COMPLETED_STATUSES
+            ):
+                ac_ex_event = events.ActionExecutionEvent(
+                    task_ex_db.status, result=task_ex_db.result
+                )
+                conductor.update_task_state(
+                    task_ex_db.task_id, task_ex_db.task_route, ac_ex_event
+                )
+                updated = True
+                LOG.debug(
+                    'Synchronized completed task "%s" (status: %s) to conductor state',
+                    task_ex_db.task_id,
+                    task_ex_db.status,
+                )
+
+        elif task_ex_db.status == statuses.RUNNING:
+            staged_task = conductor.workflow_state.get_staged_task(
+                task_ex_db.task_id, task_ex_db.task_route
+            )
+
+            if not staged_task:
+                task_state = conductor.get_task_state_entry(
+                    task_ex_db.task_id, task_ex_db.task_route
+                )
+
+                if task_state:
+                    ctxs_in = task_state.get("ctxs", {}).get("in", [0])
+                    conductor.workflow_state.add_staged_task(
+                        task_ex_db.task_id,
+                        task_ex_db.task_route,
+                        ctxs=ctxs_in,
+                        prev=task_state.get("prev", {}),
+                        ready=True,
+                    )
+                    updated = True
+                    restaged_count += 1
+                    LOG.debug(
+                        'Re-staged running task "%s" (route: %s) to conductor',
+                        task_ex_db.task_id,
+                        task_ex_db.task_route,
+                    )
+                else:
+                    LOG.warning(
+                        'Cannot re-stage task "%s" - no task state entry found',
+                        task_ex_db.task_id,
+                    )
+
+    if updated:
+        wf_ex_db.state = conductor.workflow_state.serialize()
+        wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+        completed_count = len(
+            [t for t in task_ex_dbs if t.status in statuses.COMPLETED_STATUSES]
+        )
+        if completed_count > 0:
+            LOG.info(
+                'Synchronized %d completed task(s) to conductor for workflow "%s"',
+                completed_count,
+                wf_ex_id,
+            )
+        if restaged_count > 0:
+            LOG.info(
+                'Re-staged %d running task(s) to conductor for workflow "%s"',
+                restaged_count,
+                wf_ex_id,
+            )
+    else:
+        LOG.debug(
+            "No tasks needed synchronization for workflow %s (all tasks already in sync)",
+            wf_ex_id,
+        )
+
+
+def bootstrap_resume_execution(lv_ac_db):
+    """
+    Resume a single LiveAction that was paused during a prior engine shutdown.
+
+    Clears the paused_by marker, syncs any tasks that changed state while the
+    workflow was paused, then calls request_resume. Raises on failure so the
+    caller (bootstrap loop or manual CLI) can log/report per-execution.
+    """
+    LOG.debug(
+        "[%s] Bootstrap-resume starting; LiveAction status: %s",
+        str(lv_ac_db.id),
+        lv_ac_db.status,
+    )
+
+    if "paused_by" in lv_ac_db.context:
+        del lv_ac_db.context["paused_by"]
+        lv_ac_db = lv_db_access.LiveAction.add_or_update(lv_ac_db, publish=False)
+
+    ac_ex_db = ex_db_access.ActionExecution.get(liveaction_id=str(lv_ac_db.id))
+    wf_ex_id = ac_ex_db.context.get("workflow_execution")
+
+    if wf_ex_id:
+        sync_completed_tasks_to_conductor(wf_ex_id)
+    else:
+        LOG.warning(
+            "[%s] No workflow_execution ID in context; skipping task sync.",
+            str(ac_ex_db.id),
+        )
+
+    request_resume(ac_ex_db)
+    LOG.info('Bootstrap-resumed workflow execution "%s".', str(ac_ex_db.id))

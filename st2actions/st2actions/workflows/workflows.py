@@ -14,13 +14,16 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+import datetime
+
 from oslo_config import cfg
 
 from orquesta import statuses
 from tooz.coordination import GroupNotCreated
+from tooz.coordination import ToozError
 from st2common.services import coordination
 from eventlet.semaphore import Semaphore
-from eventlet import spawn_after
+from eventlet import spawn
 from st2common.constants import action as ac_const
 from st2common import log as logging
 from st2common.metrics import base as metrics
@@ -31,11 +34,13 @@ from st2common.persistence import workflow as wf_db_access
 from st2common.persistence import execution as ex_db_access
 from st2common.services import policies as pc_svc
 from st2common.services import workflows as wf_svc
+from st2common.services.workflows import WORKFLOW_ENGINE_START_STOP_SEQ
 from st2common.transport import consumers
 from st2common.transport import queues
 from st2common.transport import utils as txpt_utils
 from st2common.util import concurrency
 from st2common.util import action_db as action_utils
+from st2common.util import date as date_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -47,7 +52,6 @@ WORKFLOW_EXECUTION_QUEUES = [
 ]
 
 WORKFLOW_ENGINE = "workflow_engine"
-WORKFLOW_ENGINE_START_STOP_SEQ = "workflow_engine_start_stop_seq"
 
 
 class WorkflowExecutionHandler(consumers.VariableMessageHandler):
@@ -55,8 +59,8 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         super(WorkflowExecutionHandler, self).__init__(connection, queues)
         self._active_messages = 0
         self._semaphore = Semaphore()
-        # This is required to ensure workflows stuck in pausing state after shutdown transition to paused state after engine startup.
-        self._delay = 30
+        self._shutdown = False
+        self._bootstrap_thread = None
 
         def handle_workflow_execution_with_instrumentation(wf_ex_db):
             with metrics.CounterWithTimer(key="orquesta.workflow.executions"):
@@ -212,10 +216,18 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 self._active_messages -= 1
 
     def start(self, wait):
-        spawn_after(self._delay, self._resume_workflows_paused_during_shutdown)
+        if cfg.CONF.workflow_engine.bootstrap_enabled:
+            self._bootstrap_thread = spawn(self._run_bootstrap_loop)
         super(WorkflowExecutionHandler, self).start(wait=wait)
 
     def shutdown(self):
+        # Stop the bootstrap loop before the shutdown pause path so a bootstrap
+        # pass cannot fire between the drain and
+        # _pause_running_workflows_on_connection_loss().
+        self._shutdown = True
+        if self._bootstrap_thread is not None:
+            self._bootstrap_thread.kill()
+            self._bootstrap_thread = None
         super(WorkflowExecutionHandler, self).shutdown()
         exit_timeout = cfg.CONF.workflow_engine.exit_still_active_check
         sleep_delay = cfg.CONF.workflow_engine.still_active_check_interval
@@ -236,152 +248,35 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         return ex_db_access.ActionExecution.query(**query_filters)
 
     def _get_workflows_paused_during_shutdown(self):
+        lookback_days = cfg.CONF.workflow_engine.bootstrap_lookback_days
+        start_timestamp_gte = date_utils.get_datetime_utc_now() - datetime.timedelta(
+            days=lookback_days
+        )
         query_filters = {
             "status": ac_const.LIVEACTION_STATUS_PAUSED,
             "context__paused_by": WORKFLOW_ENGINE_START_STOP_SEQ,
+            "start_timestamp__gte": start_timestamp_gte,
         }
         return lv_db_access.LiveAction.query(**query_filters)
-
-    def _sync_completed_tasks_to_conductor(self, wf_ex_id):
-        """
-        Synchronize task executions from database to conductor state.
-
-        This handles two scenarios:
-        1. Completed tasks: Sync their completion to conductor state
-        2. Running tasks: Re-stage them so get_next_tasks() can find them
-
-        This is needed when tasks complete or are running during shutdown but the
-        conductor state wasn't updated. Without this, the conductor may think tasks
-        are still running when they're done, or may not identify running tasks as
-        next tasks to execute.
-        """
-        from orquesta import events, statuses
-
-        LOG.debug("Starting task synchronization for workflow execution %s", wf_ex_id)
-
-        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-        conductor = wf_svc.deserialize_conductor(wf_ex_db)
-
-        # Query all task executions for this workflow
-        task_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=wf_ex_id)
-
-        LOG.debug(
-            "Found %d task execution(s) for workflow %s", len(task_ex_dbs), wf_ex_id
-        )
-
-        updated = False
-        restaged_count = 0
-
-        for task_ex_db in task_ex_dbs:
-            # Handle completed tasks
-            if task_ex_db.status in statuses.COMPLETED_STATUSES:
-                # Check if conductor has this task in non-completed state
-                task_state = conductor.get_task_state_entry(
-                    task_ex_db.task_id, task_ex_db.task_route
-                )
-                if (
-                    task_state
-                    and task_state.get("status") not in statuses.COMPLETED_STATUSES
-                ):
-                    # Update conductor with the completion
-                    ac_ex_event = events.ActionExecutionEvent(
-                        task_ex_db.status, result=task_ex_db.result
-                    )
-                    conductor.update_task_state(
-                        task_ex_db.task_id, task_ex_db.task_route, ac_ex_event
-                    )
-                    updated = True
-                    LOG.debug(
-                        'Synchronized completed task "%s" (status: %s) to conductor state',
-                        task_ex_db.task_id,
-                        task_ex_db.status,
-                    )
-
-            # Handle running tasks - need to re-stage them
-            elif task_ex_db.status == statuses.RUNNING:
-                # Check if task is already staged
-                staged_task = conductor.workflow_state.get_staged_task(
-                    task_ex_db.task_id, task_ex_db.task_route
-                )
-
-                if not staged_task:
-                    # Task is running but not staged - re-stage it
-                    task_state = conductor.get_task_state_entry(
-                        task_ex_db.task_id, task_ex_db.task_route
-                    )
-
-                    if task_state:
-                        # Re-stage using context from task state
-                        # ctxs should be a list of context indices, extract from task_state
-                        ctxs_in = task_state.get("ctxs", {}).get("in", [0])
-                        conductor.workflow_state.add_staged_task(
-                            task_ex_db.task_id,
-                            task_ex_db.task_route,
-                            ctxs=ctxs_in,
-                            prev=task_state.get("prev", {}),
-                            ready=True,
-                        )
-                        updated = True
-                        restaged_count += 1
-                        LOG.debug(
-                            'Re-staged running task "%s" (route: %s) to conductor',
-                            task_ex_db.task_id,
-                            task_ex_db.task_route,
-                        )
-                    else:
-                        LOG.warning(
-                            'Cannot re-stage task "%s" - no task state entry found',
-                            task_ex_db.task_id,
-                        )
-
-        # If we updated the conductor, save it back to the database
-        if updated:
-            wf_ex_db.state = conductor.workflow_state.serialize()
-            wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
-
-            completed_count = len(
-                [t for t in task_ex_dbs if t.status in statuses.COMPLETED_STATUSES]
-            )
-            if completed_count > 0:
-                LOG.info(
-                    'Synchronized %d completed task(s) to conductor for workflow "%s"',
-                    completed_count,
-                    wf_ex_id,
-                )
-            if restaged_count > 0:
-                LOG.info(
-                    'Re-staged %d running task(s) to conductor for workflow "%s"',
-                    restaged_count,
-                    wf_ex_id,
-                )
-        else:
-            LOG.debug(
-                "No tasks needed synchronization for workflow %s (all tasks already in sync)",
-                wf_ex_id,
-            )
 
     def _resume_workflows_paused_during_shutdown(self):
         """
         Resume workflows that were paused during engine shutdown.
 
-        This method includes health checks to ensure the system is stable before
-        automatically resuming workflows. This prevents resume loops when critical
-        services are unavailable.
+        Runs pre-flight checks — coordination enabled, system healthy, this
+        instance is the first-elected engine — and then delegates the
+        per-execution work to wf_svc.bootstrap_resume_execution.
 
         Auto-resume behavior matrix:
         | Scenario         | RabbitMQ | Database | Auto-Resume? |
         |------------------|----------|----------|--------------|
-        | Normal restart   | ✅ Up    | ✅ Up    | ✅ Yes       |
-        | RabbitMQ down    | ❌ Down  | ✅ Up    | ❌ No        |
-        | Database down    | ✅ Up    | ❌ Down  | ❌ No        |
-        | Both down        | ❌ Down  | ❌ Down  | ❌ No        |
-
-        Workflows that fail auto-resume remain paused and can be manually resumed
-        using: st2 execution resume <execution-id>
+        | Normal restart   | up       | up       | yes          |
+        | RabbitMQ down    | down     | up       | no           |
+        | Database down    | up       | down     | no           |
+        | Both down        | down     | down     | no           |
         """
         coordinator = coordination.get_coordinator()
 
-        # Only resume workflows if coordination service is enabled
         if not cfg.CONF.coordination.service_registry:
             LOG.warning(
                 "Coordination service not enabled. Cannot safely determine if this is the first engine. "
@@ -389,7 +284,6 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             )
             return
 
-        # Check system health before attempting to resume workflows
         if not self._check_system_health():
             LOG.warning(
                 "System health check failed. Skipping automatic workflow resume. "
@@ -404,14 +298,9 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             except GroupNotCreated:
                 member_ids = []
 
-            # Sort member IDs for deterministic ordering
             member_ids_sorted = sorted(member_ids)
-
-            # Get our own member_id
             our_member_id = coordination.get_member_id()
 
-            # Only resume if we're the first member in the sorted list
-            # This prevents race conditions when multiple engines start simultaneously
             if not member_ids_sorted or member_ids_sorted[0] != our_member_id:
                 LOG.info(
                     "Not the first workflow engine. Skipping workflow resume. "
@@ -426,97 +315,51 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 "This is the first workflow engine (member_id: %s). Checking for workflows to resume.",
                 our_member_id,
             )
+
         lv_ac_dbs = self._get_workflows_paused_during_shutdown()
         if lv_ac_dbs:
             LOG.info(
                 "System health check passed. Auto-resuming %d paused workflow(s).",
                 len(lv_ac_dbs),
             )
+
         for lv_ac_db in lv_ac_dbs:
             try:
-                LOG.debug(
-                    "[%s] DEBUG: Starting resume - LiveAction status: %s",
-                    str(lv_ac_db.id),
-                    lv_ac_db.status,
-                )
-
-                # Clear the paused_by marker before resuming
-                if "paused_by" in lv_ac_db.context:
-                    LOG.debug(
-                        "[%s] DEBUG: Clearing paused_by marker from context",
-                        str(lv_ac_db.id),
-                    )
-                    del lv_ac_db.context["paused_by"]
-                    lv_ac_db = lv_db_access.LiveAction.add_or_update(
-                        lv_ac_db, publish=False
-                    )
-                    LOG.debug(
-                        "[%s] DEBUG: After clearing paused_by - LiveAction status: %s",
-                        str(lv_ac_db.id),
-                        lv_ac_db.status,
-                    )
-
-                # Refresh the ActionExecution to get updated liveaction reference
-                ac_ex_db = ex_db_access.ActionExecution.get(
-                    liveaction_id=str(lv_ac_db.id)
-                )
-                LOG.debug(
-                    "[%s] DEBUG: ActionExecution before resume: %s",
-                    str(ac_ex_db.id),
-                    ac_ex_db,
-                )
-
-                # Get the WorkflowExecution to sync completed tasks before resuming
-                wf_ex_id = ac_ex_db.context.get("workflow_execution")
-                LOG.debug(
-                    "[%s] DEBUG: Workflow execution ID from context: %s",
-                    str(ac_ex_db.id),
-                    wf_ex_id or "None",
-                )
-
-                if wf_ex_id:
-                    # Synchronize any completed tasks to the conductor state
-                    # This fixes the issue where tasks completed during shutdown
-                    # but the conductor still thinks they are running
-                    LOG.debug(
-                        "[%s] DEBUG: Calling _sync_completed_tasks_to_conductor for workflow %s",
-                        str(ac_ex_db.id),
-                        wf_ex_id,
-                    )
-                    self._sync_completed_tasks_to_conductor(wf_ex_id)
-                    LOG.debug(
-                        "[%s] DEBUG: Completed _sync_completed_tasks_to_conductor for workflow %s",
-                        str(ac_ex_db.id),
-                        wf_ex_id,
-                    )
-                else:
-                    LOG.warning(
-                        "[%s] No workflow_execution ID found in context. Skipping task synchronization.",
-                        str(ac_ex_db.id),
-                    )
-
-                # Call workflow-specific resume - this handles everything:
-                # - Checks if workflow is in PAUSED status
-                # - Identifies next tasks to execute
-                # - Updates status to RUNNING (calls ac_svc.request_resume internally)
-                # - Publishes workflow for processing
-                LOG.debug(
-                    "[%s] DEBUG: Calling wf_svc.request_resume()",
-                    str(ac_ex_db.id),
-                )
-                wf_svc.request_resume(ac_ex_db)
-
-                LOG.info(
-                    'Successfully resumed workflow execution "%s" after shutdown.',
-                    str(ac_ex_db.id),
-                )
+                wf_svc.bootstrap_resume_execution(lv_ac_db)
             except Exception as e:
                 LOG.error(
-                    "Failed to resume workflow %s: %s",
+                    "Failed to bootstrap-resume workflow %s: %s",
                     str(lv_ac_db.id),
                     str(e),
                     exc_info=True,
                 )
+
+    def _run_bootstrap_loop(self):
+        """Bootstrap loop: run every bootstrap_interval seconds for up to
+        bootstrap_duration seconds, then exit. Survives transient DB and
+        coordination errors; any other exception kills the greenthread so
+        real bugs surface."""
+        import pymongo
+
+        interval = cfg.CONF.workflow_engine.bootstrap_interval
+        duration = cfg.CONF.workflow_engine.bootstrap_duration
+        deadline = date_utils.get_datetime_utc_now() + datetime.timedelta(
+            seconds=duration
+        )
+        LOG.info(
+            "Workflow bootstrap loop started; interval=%ds, duration=%ds",
+            interval,
+            duration,
+        )
+        while not self._shutdown and date_utils.get_datetime_utc_now() < deadline:
+            concurrency.sleep(interval)
+            if self._shutdown or date_utils.get_datetime_utc_now() >= deadline:
+                break
+            try:
+                self._resume_workflows_paused_during_shutdown()
+            except (pymongo.errors.PyMongoError, ToozError):
+                LOG.exception("Bootstrap pass failed; will retry next interval.")
+        LOG.info("Workflow bootstrap loop exiting.")
 
     def _check_system_health(self):
         """
