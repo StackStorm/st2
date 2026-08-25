@@ -386,38 +386,131 @@ def request_resume(ac_ex_db):
 
     wf_ex_db = wf_ex_dbs[0]
 
-    if wf_ex_db.status in statuses.COMPLETED_STATUSES:
-        raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
+    # Serialize with handle_action_execution_completion (which also takes this
+    # lock). Without it, a resume request can race with an in-flight completion
+    # and either double-write conductor state or silently no-op below.
+    with coord_svc.get_coordinator(start_heart=True).get_lock(
+        str(wf_ex_db.id).encode()
+    ):
+        # Re-read under the lock — status may have changed since the query.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
 
-    if wf_ex_db.status in statuses.RUNNING_STATUSES:
-        msg = (
-            '[%s] Workflow execution "%s" is not resumed because it is already active.'
+        LOG.debug(
+            "[%s] DEBUG: WorkflowExecution found - ID: %s, DB status: %s",
+            wf_ac_ex_id,
+            str(wf_ex_db.id),
+            wf_ex_db.status,
         )
-        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id))
-        return
-
-    conductor = deserialize_conductor(wf_ex_db)
-
-    if conductor.get_workflow_status() in statuses.COMPLETED_STATUSES:
-        raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
-
-    if conductor.get_workflow_status() in statuses.RUNNING_STATUSES:
-        msg = (
-            '[%s] Workflow execution "%s" is not resumed because it is already active.'
+        LOG.debug(
+            "[%s] DEBUG: WorkflowExecution state status: %s",
+            wf_ac_ex_id,
+            wf_ex_db.state.get("status") if wf_ex_db.state else "N/A",
         )
-        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id))
-        return
+        LOG.debug(
+            "[%s] DEBUG: RUNNING_STATUSES: %s",
+            wf_ac_ex_id,
+            statuses.RUNNING_STATUSES,
+        )
 
-    conductor.request_workflow_status(statuses.RESUMING)
+        if wf_ex_db.status in statuses.COMPLETED_STATUSES:
+            raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
-    # Write the updated workflow status and task flow to the database.
-    wf_ex_db.status = conductor.get_workflow_status()
-    wf_ex_db.state = conductor.workflow_state.serialize()
-    wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
-    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+        # RESUMING is intentionally treated as "still resumable". Previously
+        # this branch silently returned on RESUMING because RESUMING is in
+        # RUNNING_STATUSES, which made the state self-trapping: if the first
+        # resume attempt failed to cascade (crash, orphaned message, etc.),
+        # every subsequent resume was a no-op. Now RESUMING falls through and
+        # we re-drive the transition below.
+        active_but_not_resuming = [
+            s for s in statuses.RUNNING_STATUSES if s != statuses.RESUMING
+        ]
 
-    # Publish status change.
-    wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
+        LOG.debug(
+            "[%s] DEBUG: Checking if wf_ex_db.status (%s) is in RUNNING_STATUSES: %s",
+            wf_ac_ex_id,
+            wf_ex_db.status,
+            wf_ex_db.status in statuses.RUNNING_STATUSES,
+        )
+
+        if wf_ex_db.status in active_but_not_resuming:
+            msg = (
+                '[%s] Workflow execution "%s" is not resumed because it is already active. '
+                "(DB status check: %s is in RUNNING_STATUSES)"
+            )
+            LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id), wf_ex_db.status)
+            return
+
+        LOG.debug("[%s] DEBUG: Deserializing conductor...", wf_ac_ex_id)
+        conductor = deserialize_conductor(wf_ex_db)
+        conductor_status = conductor.get_workflow_status()
+
+        LOG.debug(
+            "[%s] DEBUG: Conductor deserialized - conductor.get_workflow_status(): %s",
+            wf_ac_ex_id,
+            conductor_status,
+        )
+
+        if conductor.get_workflow_status() in statuses.COMPLETED_STATUSES:
+            raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
+
+        LOG.debug(
+            "[%s] DEBUG: Checking if conductor status (%s) is in RUNNING_STATUSES: %s",
+            wf_ac_ex_id,
+            conductor_status,
+            conductor_status in statuses.RUNNING_STATUSES,
+        )
+
+        if conductor.get_workflow_status() in active_but_not_resuming:
+            msg = (
+                '[%s] Workflow execution "%s" is not resumed because it is already active. '
+                "(Conductor status check: %s is in RUNNING_STATUSES)"
+            )
+            LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id), conductor_status)
+            return
+
+        # If we're re-driving a stuck RESUMING, roll the conductor back to
+        # PAUSED first. Orquesta dedupes redundant transitions, so requesting
+        # RESUMING while already in RESUMING is a no-op inside the state
+        # machine — the transition must actually fire this time.
+        if conductor.get_workflow_status() == statuses.RESUMING:
+            LOG.warning(
+                '[%s] Workflow execution "%s" is already in RESUMING. Rolling '
+                "conductor back to PAUSED and re-issuing resume to break out "
+                "of a stuck resume.",
+                wf_ac_ex_id,
+                str(wf_ex_db.id),
+            )
+            conductor.request_workflow_status(statuses.PAUSED)
+
+        LOG.debug(
+            "[%s] DEBUG: Requesting workflow status change to RESUMING",
+            wf_ac_ex_id,
+        )
+        conductor.request_workflow_status(statuses.RESUMING)
+
+        LOG.debug(
+            "[%s] DEBUG: After requesting RESUMING - conductor status: %s",
+            wf_ac_ex_id,
+            conductor.get_workflow_status(),
+        )
+
+        # Write the updated workflow status and task flow to the database.
+        wf_ex_db.status = conductor.get_workflow_status()
+        wf_ex_db.state = conductor.workflow_state.serialize()
+        LOG.debug(
+            "[%s] DEBUG: Updating WorkflowExecution in database with status: %s",
+            wf_ac_ex_id,
+            wf_ex_db.status,
+        )
+        wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
+
+        # Publish status change.
+        LOG.debug(
+            "[%s] DEBUG: Publishing workflow status change",
+            wf_ac_ex_id,
+        )
+        wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
 
     LOG.info("[%s] Completed processing resume request for workflow.", wf_ac_ex_id)
 
