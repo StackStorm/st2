@@ -20,6 +20,7 @@ import datetime
 import retrying
 import six
 import sys
+import time
 import traceback
 
 from orquesta import conducting
@@ -1183,6 +1184,8 @@ def update_task_state(
 )
 def request_next_tasks(wf_ex_db, task_ex_id=None):
     iteration = 0
+    deadline_sec = cfg.CONF.workflow_engine.request_next_tasks_deadline_sec
+    deadline = time.time() + deadline_sec
 
     # Refresh records.
     conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
@@ -1237,6 +1240,33 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
     # task with no action execution defined, the task execution will complete
     # immediately with a new set of tasks available.
     while next_tasks:
+        # Deadline guard. request_next_tasks holds the per-workflow coord lock
+        # via handle_action_execution_completion, so a runaway loop here blocks
+        # every other message for this workflow until the lock is released.
+        # Fail loudly instead of holding forever. Typical calls take
+        # milliseconds; the default deadline is generous.
+        if time.time() > deadline:
+            msg = (
+                'request_next_tasks for workflow "%s" exceeded deadline of %ss '
+                "at iteration %s. Failing the workflow to release the "
+                "coordination lock. Undispatched task set: %s"
+            )
+            tasks_list = ", ".join(
+                ["%s (route %s)" % (t["id"], str(t["route"])) for t in next_tasks]
+            )
+            update_progress(
+                wf_ex_db,
+                msg % (str(wf_ex_db.id), deadline_sec, iteration, tasks_list),
+                severity="error",
+            )
+            fail_workflow_execution(
+                str(wf_ex_db.id),
+                wf_exc.WorkflowExecutionRequestNextTasksException(
+                    str(wf_ex_db.id), deadline_sec, iteration
+                ),
+            )
+            return
+
         msg = "Identified the following set of tasks to execute next: %s"
         tasks_list = ", ".join(
             ["%s (route %s)" % (t["id"], str(t["route"])) for t in next_tasks]

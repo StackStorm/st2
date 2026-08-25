@@ -93,3 +93,17 @@ class WorkflowExecutionIsRunningException(st2_exc.StackStormBaseException):
 class WorkflowExecutionRerunException(st2_exc.StackStormBaseException):
     def __init__(self, msg):
         Exception.__init__(self, msg)
+
+
+class WorkflowExecutionRequestNextTasksException(st2_exc.StackStormBaseException):
+    def __init__(self, wf_ex_id, deadline_sec, iterations):
+        Exception.__init__(
+            self,
+            'Workflow execution "%s" did not converge within %s seconds '
+            "(after %s iterations) of request_next_tasks. Failing to release "
+            "the per-workflow coordination lock."
+            % (wf_ex_id, deadline_sec, iterations),
+        )
+        self.wf_ex_id = wf_ex_id
+        self.deadline_sec = deadline_sec
+        self.iterations = iterations

@@ -931,6 +931,16 @@ def register_opts(ignore_errors=False):
             default=2,
             help="Time interval between subsequent queries to check executions handled by WFE.",
         ),
+        cfg.IntOpt(
+            "request_next_tasks_deadline_sec",
+            default=120,
+            help="Maximum wall-clock seconds a single request_next_tasks() call "
+            "may run before the workflow is failed to release the per-workflow "
+            "coordination lock. Guards against runaway conductor state or a "
+            "pathological chain of no-op tasks holding the lock indefinitely. "
+            "Typical calls complete in milliseconds; the default is intentionally "
+            "generous.",
+        ),
     ]
 
     do_register_opts(
