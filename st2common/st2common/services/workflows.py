@@ -984,24 +984,32 @@ def handle_action_execution_resume(ac_ex_db):
     wf_ex_id = ac_ex_db.context["orquesta"]["workflow_execution_id"]
     task_ex_id = ac_ex_db.context["orquesta"]["task_execution_id"]
 
-    # Get execution records for logging purposes.
-    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
-    task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
+    # Serialize with handle_action_execution_completion / request_resume, which
+    # also take this lock. Without it, resume_workflow_execution can race with
+    # a concurrent completion and both write conductor state with stale
+    # revisions — producing thrash under contention and, worst case, leaving
+    # the workflow in an inconsistent RESUMING/RUNNING split.
+    with coord_svc.get_coordinator(start_heart=True).get_lock(str(wf_ex_id).encode()):
+        # Get execution records for logging purposes.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+        task_ex_db = wf_db_access.TaskExecution.get_by_id(task_ex_id)
 
-    msg = 'Handling resume of action execution "%s" for task "%s", route "%s".'
-    update_progress(
-        wf_ex_db,
-        msg % (str(ac_ex_db.id), task_ex_db.task_id, str(task_ex_db.task_route)),
-    )
+        msg = 'Handling resume of action execution "%s" for task "%s", route "%s".'
+        update_progress(
+            wf_ex_db,
+            msg % (str(ac_ex_db.id), task_ex_db.task_id, str(task_ex_db.task_route)),
+        )
 
-    # Updat task execution to running.
-    resume_task_execution(task_ex_id)
+        # Updat task execution to running.
+        resume_task_execution(task_ex_id)
 
-    # Update workflow execution to running.
-    resume_workflow_execution(wf_ex_id, task_ex_id)
+        # Update workflow execution to running.
+        resume_workflow_execution(wf_ex_id, task_ex_id)
 
-    # If action execution has a parent, cascade status change upstream and do not publish
-    # the status change because we do not want to trigger resume of other peer subworkflows.
+    # Cascade upstream OUTSIDE the current lock. The recursive call acquires
+    # the parent's own per-workflow lock; releasing ours first avoids holding
+    # a chain of N locks in deeply nested subworkflow scenarios. Direction is
+    # child → parent only, so no deadlock cycle.
     if "parent" in ac_ex_db.context:
         parent_ac_ex_id = ac_ex_db.context["parent"]["execution_id"]
         parent_ac_ex_db = ex_db_access.ActionExecution.get_by_id(parent_ac_ex_id)
