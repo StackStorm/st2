@@ -1179,8 +1179,19 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
     # Refresh records.
     conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
 
-    # If workflow is in requested status, set it to running.
-    if conductor.get_workflow_status() in [statuses.REQUESTED, statuses.SCHEDULED]:
+    # If workflow is in requested, scheduled, or resuming, set it to running.
+    # RESUMING is included so the engine can self-drive a resumed workflow
+    # forward when the normal child-cascade path (handle_action_execution_resume)
+    # never fires — e.g. inquiry responses, or a resume where the child status
+    # change failed to publish. refresh_conductor above pulls the latest state,
+    # so if a child cascade already transitioned to RUNNING this block is a
+    # no-op. The cascade's task-level update_task_state work is orthogonal and
+    # still runs when the cascade eventually fires.
+    if conductor.get_workflow_status() in [
+        statuses.REQUESTED,
+        statuses.SCHEDULED,
+        statuses.RESUMING,
+    ]:
         update_progress(
             wf_ex_db, "Requesting conductor to start running workflow execution."
         )
