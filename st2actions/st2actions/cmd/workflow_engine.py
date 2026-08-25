@@ -74,10 +74,16 @@ def run_server():
         deregister_service(service=workflows.WORKFLOW_ENGINE)
         engine.shutdown()
         return 0
-    except:
+    except Exception:
+        # Pause workflows before terminating due to fatal error
+        try:
+            LOG.info("Pausing running workflows due to connection failure...")
+            engine._pause_running_workflows_on_connection_loss()
+        except Exception as pause_error:
+            LOG.error("Failed to pause workflows: %s", pause_error, exc_info=True)
+
         LOG.exception("(PID=%s) Workflow engine unexpectedly stopped.", os.getpid())
         deregister_service(service=workflows.WORKFLOW_ENGINE)
-        engine.shutdown()
         return 1
 
 

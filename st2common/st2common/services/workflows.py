@@ -386,37 +386,97 @@ def request_resume(ac_ex_db):
 
     wf_ex_db = wf_ex_dbs[0]
 
+    LOG.debug(
+        "[%s] DEBUG: WorkflowExecution found - ID: %s, DB status: %s",
+        wf_ac_ex_id,
+        str(wf_ex_db.id),
+        wf_ex_db.status,
+    )
+    LOG.debug(
+        "[%s] DEBUG: WorkflowExecution state status: %s",
+        wf_ac_ex_id,
+        wf_ex_db.state.get("status") if wf_ex_db.state else "N/A",
+    )
+    LOG.debug(
+        "[%s] DEBUG: RUNNING_STATUSES: %s",
+        wf_ac_ex_id,
+        statuses.RUNNING_STATUSES,
+    )
+
     if wf_ex_db.status in statuses.COMPLETED_STATUSES:
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
+    LOG.debug(
+        "[%s] DEBUG: Checking if wf_ex_db.status (%s) is in RUNNING_STATUSES: %s",
+        wf_ac_ex_id,
+        wf_ex_db.status,
+        wf_ex_db.status in statuses.RUNNING_STATUSES,
+    )
+
     if wf_ex_db.status in statuses.RUNNING_STATUSES:
         msg = (
-            '[%s] Workflow execution "%s" is not resumed because it is already active.'
+            '[%s] Workflow execution "%s" is not resumed because it is already active. '
+            "(DB status check: %s is in RUNNING_STATUSES)"
         )
-        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id))
+        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id), wf_ex_db.status)
         return
 
+    LOG.debug("[%s] DEBUG: Deserializing conductor...", wf_ac_ex_id)
     conductor = deserialize_conductor(wf_ex_db)
+    conductor_status = conductor.get_workflow_status()
+
+    LOG.debug(
+        "[%s] DEBUG: Conductor deserialized - conductor.get_workflow_status(): %s",
+        wf_ac_ex_id,
+        conductor_status,
+    )
 
     if conductor.get_workflow_status() in statuses.COMPLETED_STATUSES:
         raise wf_exc.WorkflowExecutionIsCompletedException(str(wf_ex_db.id))
 
+    LOG.debug(
+        "[%s] DEBUG: Checking if conductor status (%s) is in RUNNING_STATUSES: %s",
+        wf_ac_ex_id,
+        conductor_status,
+        conductor_status in statuses.RUNNING_STATUSES,
+    )
+
     if conductor.get_workflow_status() in statuses.RUNNING_STATUSES:
         msg = (
-            '[%s] Workflow execution "%s" is not resumed because it is already active.'
+            '[%s] Workflow execution "%s" is not resumed because it is already active. '
+            "(Conductor status check: %s is in RUNNING_STATUSES)"
         )
-        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id))
+        LOG.info(msg, wf_ac_ex_id, str(wf_ex_db.id), conductor_status)
         return
 
+    LOG.debug(
+        "[%s] DEBUG: Requesting workflow status change to RESUMING",
+        wf_ac_ex_id,
+    )
     conductor.request_workflow_status(statuses.RESUMING)
+
+    LOG.debug(
+        "[%s] DEBUG: After requesting RESUMING - conductor status: %s",
+        wf_ac_ex_id,
+        conductor.get_workflow_status(),
+    )
 
     # Write the updated workflow status and task flow to the database.
     wf_ex_db.status = conductor.get_workflow_status()
     wf_ex_db.state = conductor.workflow_state.serialize()
+    LOG.debug(
+        "[%s] DEBUG: Updating WorkflowExecution in database with status: %s",
+        wf_ac_ex_id,
+        wf_ex_db.status,
+    )
     wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
     wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
 
     # Publish status change.
+    LOG.debug(
+        "[%s] DEBUG: Publishing workflow status change",
+        wf_ac_ex_id,
+    )
     wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
 
     LOG.info("[%s] Completed processing resume request for workflow.", wf_ac_ex_id)
@@ -1086,8 +1146,11 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
     # Refresh records.
     conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
 
-    # If workflow is in requested status, set it to running.
-    if conductor.get_workflow_status() in [statuses.REQUESTED, statuses.SCHEDULED]:
+    # If workflow is in requested, scheduled, set it to running.
+    if conductor.get_workflow_status() in [
+        statuses.REQUESTED,
+        statuses.SCHEDULED,
+    ]:
         update_progress(
             wf_ex_db, "Requesting conductor to start running workflow execution."
         )

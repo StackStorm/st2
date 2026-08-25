@@ -373,7 +373,9 @@ def _register_scheduler_opts():
         ),
     ]
 
-    _register_opts(scheduler_opts, group="scheduler")
+    common_config.do_register_opts(
+        scheduler_opts, group="scheduler", ignore_errors=True
+    )
 
 
 def _register_sensor_container_opts():
