@@ -319,6 +319,7 @@ def request(wf_def, ac_ex_db, st2_ctx, notify_cfg=None):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -364,6 +365,7 @@ def request_pause(ac_ex_db):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -520,6 +522,7 @@ def request_resume(ac_ex_db):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -577,6 +580,7 @@ def request_cancellation(ac_ex_db):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -807,6 +811,7 @@ def eval_action_execution_delay(task_ex_req, ac_ex_req, itemized=False):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -1114,6 +1119,7 @@ def refresh_conductor(wf_ex_id):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -1173,6 +1179,7 @@ def update_task_state(
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -1365,6 +1372,7 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -1452,6 +1460,7 @@ def update_task_execution(task_ex_id, ac_ex_status, ac_ex_result=None, ac_ex_ctx
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -1478,6 +1487,7 @@ def resume_task_execution(task_ex_id):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -1500,6 +1510,7 @@ def update_workflow_execution(wf_ex_id):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
@@ -1525,6 +1536,7 @@ def resume_workflow_execution(wf_ex_id, task_ex_id):
 
 @retrying.retry(
     retry_on_exception=wf_exc.retry_on_transient_db_errors,
+    stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec,
     wait_fixed=cfg.CONF.workflow_engine.retry_wait_fixed_msec,
     wait_jitter_max=cfg.CONF.workflow_engine.retry_max_jitter_msec,
 )
