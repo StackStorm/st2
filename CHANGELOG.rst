@@ -3,6 +3,125 @@ Changelog
 
 in development
 --------------
+* Workflow engine race condition and pool-wedge fixes
+  Contributed by @guzzijones12.
+
+  **Symptom.** The workflow engine's ``BufferedDispatcher`` would log
+  ``BufferedDispatcher pool "<id>" has been busy with no free threads for
+  more than 60 seconds`` repeatedly, and the engine's 50-thread green
+  pool would remain saturated. The trigger was one workflow — often one
+  paused at an inquiry — whose in-flight action-execution completions
+  raced with concurrent workflow-level status messages, causing every
+  affected worker to spin on Mongo write conflicts under the per-workflow
+  coordination lock.
+
+  **Root cause.** Under high load the ``retry_on_transient_db_errors``
+  decorators (which cover ``StackStormDBObjectWriteConflictError``) had
+  no ``stop_max_delay`` — so once two engines started colliding on a hot
+  workflow's document they retried each other forever, holding coord
+  locks the entire time. Eventlet scheduler pressure from all those
+  spinning greenthreads then starved the tooz heartbeat greenthread,
+  which in turn caused the Valkey/Redis lock TTL to expire while the
+  holder was still executing — a second engine could then acquire the
+  supposedly-held lock, producing more write conflicts, and the feedback
+  loop escalated until the pool was fully wedged.
+
+  **Fixes** (in cherry-pick order):
+
+  * ``request_resume`` — wrap body in the per-workflow coord lock and
+    re-read the workflow under the lock. Remove ``RESUMING`` from the
+    "already active, silently skip" short-circuit so a workflow stuck
+    mid-resume (previous attempt crashed after writing
+    ``status=resuming`` but before completing) can be re-driven instead
+    of silently no-op'd. If the conductor is already in ``RESUMING`` when
+    a fresh resume arrives, transition it to ``PAUSED`` first and then
+    re-request ``RESUMING`` — orquesta dedupes redundant transitions and
+    would otherwise treat the second request as a no-op inside its state
+    machine.
+
+  * ``request_next_tasks`` — auto-transition ``RESUMING`` to ``RUNNING``
+    at the top of the function. Previously the engine relied entirely on
+    a child-cascade path to escape ``RESUMING``. For workflows paused at
+    an inquiry (inquiry LiveAction goes ``PENDING`` → ``SUCCEEDED``
+    without ever passing through ``RESUMING``) no child cascade ever
+    fires, so the workflow stayed in ``RESUMING`` indefinitely.
+    ``refresh_conductor`` above reads the latest state, so if a
+    legitimate child cascade reached ``RUNNING`` before us the
+    transition is a no-op.
+
+  * ``handle_action_execution_resume`` — coord-locked local work,
+    cascade released outside the lock. ``resume_task_execution`` and
+    ``resume_workflow_execution`` now run under the per-workflow lock;
+    the upstream ``handle_action_execution_resume(parent_ac_ex_db)``
+    cascade is called *after* the lock is released. Direction is
+    child → parent only, so no deadlock cycle from releasing early.
+    Prevents holding a chain of N locks up the parent tree in deeply
+    nested subworkflow scenarios.
+
+  * ``request_next_tasks`` — wall-clock deadline. New config
+    ``workflow_engine.request_next_tasks_deadline_sec`` (default 120).
+    When exceeded, the workflow is failed via ``fail_workflow_execution``
+    and the coord lock releases through the normal error-return path.
+    Catches: infinite no-op-task chains, non-converging conductor state,
+    orquesta+DB divergence caused by a stuck resume.
+
+  * ``WorkflowExecutionHandler.handle_workflow_execution`` — take the
+    per-workflow coord lock so it serializes against
+    ``handle_action_execution_completion`` (which already took the same
+    lock). Eliminates the inquiry-response race where a workflow-level
+    ``RESUMING`` message and an action-execution ``SUCCEEDED`` message
+    for the same workflow processed concurrently. Wraps the whole body:
+    re-reads the workflow under the lock (in case the queued message is
+    stale), then calls ``request_next_tasks``.
+
+  * ``stop_max_delay=cfg.CONF.workflow_engine.retry_stop_max_msec``
+    (60 s default) added to every ``retry_on_transient_db_errors``
+    decorator in ``st2common.services.workflows`` — 10 call sites
+    including ``request``, ``request_pause``, ``request_resume``,
+    ``request_cancellation``, ``update_task_state``,
+    ``update_task_execution``, ``resume_task_execution``,
+    ``update_workflow_execution``, ``resume_workflow_execution``,
+    ``fail_workflow_execution``. When the ceiling is hit, the last
+    ``StackStormDBObjectWriteConflictError`` propagates out to
+    ``WorkflowExecutionHandler.process``, which routes it to
+    ``fail_workflow_execution`` and releases the coordination lock —
+    freeing every other message waiting behind that workflow.
+
+  * Widened ``retry_on_connection_errors`` in
+    ``st2common.exceptions.workflow`` to also match
+    ``pymongo.errors.ConnectionFailure``. That covers ``AutoReconnect``,
+    ``NotPrimaryError``, ``ServerSelectionTimeoutError`` and
+    ``NetworkTimeout``. Mongo replica-set failovers now retry cleanly
+    under the same 60 s ceiling instead of failing the workflow on the
+    first failover-induced exception.
+
+  **Design note: Mongo vs. RabbitMQ failure handling.** The engine's
+  response to a lost dependency is intentionally asymmetric:
+
+  * **RabbitMQ:** the consumer connection has bounded retries built into
+    kombu. After the retry envelope gives up, the exception propagates
+    out of the consumer thread, the engine process exits, and the
+    container orchestrator (Kubernetes, systemd, …) restarts it. A
+    fresh process gives the cleanest recovery path when the broker
+    comes back.
+  * **Mongo:** the workflow-service retry decorators are bounded per-call
+    (60 s via ``retry_stop_max_msec``), but the outer consumer loop nacks
+    failed messages back to RabbitMQ for redelivery. Individual workflows
+    fail gracefully after 60 s of exhausted Mongo retries; the engine
+    process itself stays alive. Short blips (replica-set failover, brief
+    network hiccup) are absorbed by the per-call retry envelope. Longer
+    outages produce failed workflows, not a crashed engine.
+
+  **Operator note — the "BufferedDispatcher pool busy" log.** Prior to
+  these fixes, the pool-busy message was almost always the visible
+  symptom of the deadlock class described above. After these fixes
+  worker dwell time is bounded (60 s retry ceilings on Mongo/tooz plus a
+  120 s ``request_next_tasks_deadline_sec`` guard), so a stuck workflow
+  can no longer camp a worker slot forever. If the log fires again,
+  treat it as **real load** — 50+ workflows genuinely doing work
+  concurrently for more than a minute — and scale the workflow-engine
+  replicas out or raise the dispatcher pool size.
+
 * implemented zstandard compression for parameters and results. #5995
   contributed by @guzzijones12
 
