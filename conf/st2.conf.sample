@@ -394,6 +394,8 @@ exit_still_active_check = 300
 gc_max_idle_sec = 0
 # Location of the logging configuration file.
 logging = /etc/st2/logging.workflowengine.conf
+# Maximum wall-clock seconds a single request_next_tasks() call may run before the workflow is failed to release the per-workflow coordination lock. Guards against runaway conductor state or a pathological chain of no-op tasks holding the lock indefinitely. Typical calls complete in milliseconds; the default is intentionally generous.
+request_next_tasks_deadline_sec = 120
 # Max jitter interval to smooth out retries.
 retry_max_jitter_msec = 1000
 # Max time to stop retrying.
