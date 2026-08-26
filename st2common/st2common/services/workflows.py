@@ -508,12 +508,20 @@ def request_resume(ac_ex_db):
         wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
         wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(str(wf_ex_db.id))
 
-        # Publish status change.
-        LOG.debug(
-            "[%s] DEBUG: Publishing workflow status change",
-            wf_ac_ex_id,
-        )
-        wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
+    # Publish the status change OUTSIDE the per-workflow lock. Publishing a
+    # WorkflowExecutionDB re-dispatches into handle_workflow_execution, which
+    # takes this same per-workflow lock. In the engine that is a separate
+    # message/greenthread, but the unit-test transport (MockWorkflowExecution-
+    # Publisher) invokes the handler synchronously on this thread — so a publish
+    # while still holding the lock would re-enter and self-deadlock on a real
+    # (non-reentrant) tooz backend. Releasing first keeps the critical section
+    # to the DB write and lets the resulting RESUMING message acquire the lock
+    # cleanly.
+    LOG.debug(
+        "[%s] DEBUG: Publishing workflow status change",
+        wf_ac_ex_id,
+    )
+    wf_db_access.WorkflowExecution.publish_status(wf_ex_db)
 
     LOG.info("[%s] Completed processing resume request for workflow.", wf_ac_ex_id)
 
