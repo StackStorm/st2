@@ -3,6 +3,75 @@ Changelog
 
 in development
 --------------
+* Automatic bootstrap of workflows paused by prior engine shutdown
+  Contributed by @guzzijones12.
+
+  When ``st2workflowengine`` shuts down gracefully it marks the
+  workflows it was actively processing as PAUSED with a
+  ``paused_by=workflow_engine_start_stop_seq`` marker on the
+  ``LiveAction.context``. Prior to this change those workflows would
+  remain paused until an operator manually resumed each one.
+
+  This adds an automatic bootstrap loop that runs periodically after
+  engine startup, plus a manual ``st2-bootstrap-workflow`` CLI as an
+  operator escape hatch.
+
+  **Behavior.**
+
+  * At engine startup, after the initial health check passes, spawn a
+    bootstrap greenthread that iterates every ``bootstrap_interval``
+    seconds (default 900) for up to ``bootstrap_duration`` seconds
+    (default 3600). Each pass queries LiveActions with
+    ``status=paused`` and
+    ``context.paused_by=workflow_engine_start_stop_seq``, filtered by
+    ``bootstrap_lookback_days`` (default 1 day). For each match, syncs
+    conductor state and calls ``request_resume``.
+  * A leader-election lock
+    (``coordinator.get_lock(WORKFLOW_ENGINE_START_STOP_SEQ)``) ensures
+    only one engine per bootstrap pass runs the resume — no duplicated
+    work when multiple engines start together.
+  * The manual ``st2-bootstrap-workflow <execution-id>`` CLI bypasses
+    the leader election and the lookback filter. Operators use it when
+    the automatic loop skipped a workflow (``coordination.service_registry``
+    disabled, this engine not the sorted-first member, marker cleared
+    by a prior crashed attempt, or the bootstrap window elapsed before
+    the workflow was reached).
+
+  **New service-layer helpers** in ``st2common.services.workflows``:
+
+  * ``sync_completed_tasks_to_conductor(wf_ex_id)`` — walks every
+    ``TaskExecution`` for the workflow and syncs completed-task status
+    into conductor state (so the conductor stops thinking a done task
+    is still running), and re-stages ``RUNNING`` tasks that aren't
+    currently staged (so ``get_next_tasks()`` finds them). Needed
+    because tasks that completed or transitioned between "shutdown
+    started" and "pause fully processed" would otherwise be invisible
+    to the conductor when resume runs.
+  * ``bootstrap_resume_execution(lv_ac_db)`` — single-LiveAction
+    resume helper. Clears the ``paused_by`` marker, calls
+    ``sync_completed_tasks_to_conductor``, then invokes
+    ``request_resume``. Called by both the automatic loop and the CLI.
+
+  **New config options** under ``[workflow_engine]``:
+
+  * ``bootstrap_enabled`` (default ``False``) — off by default; enable
+    in clustered/k8s environments where rolling restarts can leave
+    shutdown-paused workflows behind.
+  * ``bootstrap_interval`` (default 900) — seconds between passes
+    inside the bootstrap window.
+  * ``bootstrap_duration`` (default 3600) — total wall-clock seconds
+    the loop runs after startup. After this elapses the loop exits and
+    no further automatic bootstraps run until the next engine start.
+  * ``bootstrap_lookback_days`` (default 1) — only automatically
+    bootstrap workflows whose ``LiveAction.start_timestamp`` is within
+    this window. Prevents accidentally resuming very old paused
+    workflows. The manual CLI ignores this filter.
+
+  **New shared constant** ``WORKFLOW_ENGINE_START_STOP_SEQ`` moved to
+  ``st2common.services.workflows`` so the engine, the bootstrap loop,
+  the shutdown-pause code, and the CLI all reference the same marker
+  string.
+
 * implemented zstandard compression for parameters and results. #5995
   contributed by @guzzijones12
 
