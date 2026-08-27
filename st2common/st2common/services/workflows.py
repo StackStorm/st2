@@ -1112,7 +1112,7 @@ def _apply_default_with_items_concurrency(conductor):
     # per-workflow coordination lock. This mutation is in-memory only —
     # update_execution_records never writes wf_ex_db.spec, so the stored workflow
     # definition stays pristine and this is re-applied fresh on each deserialize.
-    cap = cfg.CONF.workflow_engine.max_with_items_concurrency
+    cap = cfg.CONF.workflow_engine.default_with_items_concurrency
 
     if not cap or cap <= 0:
         return conductor

@@ -334,17 +334,17 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
 
     def test_with_items_default_concurrency(self):
         # The workflow definition sets no concurrency on the with items task. The
-        # configured max_with_items_concurrency is injected as the default so the
+        # configured default_with_items_concurrency is injected as the default so the
         # engine dispatches items in bounded batches instead of all at once.
         num_items = 3
         concurrency = 2
 
         cfg.CONF.set_override(
-            "max_with_items_concurrency", concurrency, group="workflow_engine"
+            "default_with_items_concurrency", concurrency, group="workflow_engine"
         )
         self.addCleanup(
             cfg.CONF.clear_override,
-            "max_with_items_concurrency",
+            "default_with_items_concurrency",
             group="workflow_engine",
         )
 

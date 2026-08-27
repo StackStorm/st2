@@ -932,7 +932,7 @@ def register_opts(ignore_errors=False):
             help="Time interval between subsequent queries to check executions handled by WFE.",
         ),
         cfg.IntOpt(
-            "max_with_items_concurrency",
+            "default_with_items_concurrency",
             default=0,
             help="Default concurrency applied to with-items tasks that do not "
             "specify their own concurrency. This bounds how many item action "

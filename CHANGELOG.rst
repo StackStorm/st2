@@ -52,7 +52,7 @@ in development
     ``concurrency`` previously had every item's action execution
     dispatched synchronously in a single ``request_next_tasks`` pass while
     the per-workflow coord lock was held. New config
-    ``workflow_engine.max_with_items_concurrency`` (default 0 = disabled)
+    ``workflow_engine.default_with_items_concurrency`` (default 0 = disabled)
     is injected as the default ``concurrency`` for such tasks when set, so
     orquesta's existing concurrency machinery dispatches items in bounded
     batches. Tasks that specify their own ``concurrency`` are left
