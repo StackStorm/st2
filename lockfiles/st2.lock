@@ -3085,7 +3085,7 @@
           "artifacts": [
             {
               "algorithm": "sha256",
-              "hash": "491767e81c1bb11a54fb68d1a24119bdeede593a2beccca5bc09bfed36fdb35c",
+              "hash": "b9feb1769b48102061fe4fc59b2f5ad600bc2ac0b55cf12ef5fe49464ac0d230",
               "url": "git+https://github.com/StackStorm/orquesta.git"
             }
           ],
