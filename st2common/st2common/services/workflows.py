@@ -20,7 +20,6 @@ import datetime
 import retrying
 import six
 import sys
-import time
 import traceback
 
 from orquesta import conducting
@@ -1104,6 +1103,43 @@ def handle_action_execution_completion(ac_ex_db):
         update_workflow_execution(wf_ex_id)
 
 
+def _apply_default_with_items_concurrency(conductor):
+    # Inject a default concurrency into with-items tasks that don't specify one,
+    # so orquesta's conductor dispatches items in bounded batches (via its native
+    # availability = concurrency - active_items math) instead of handing back every
+    # item at once. Without this, an unbounded with-items dispatches all N item
+    # action executions in a single request_next_tasks pass while holding the
+    # per-workflow coordination lock. This mutation is in-memory only —
+    # update_execution_records never writes wf_ex_db.spec, so the stored workflow
+    # definition stays pristine and this is re-applied fresh on each deserialize.
+    cap = cfg.CONF.workflow_engine.max_with_items_concurrency
+
+    if not cap or cap <= 0:
+        return conductor
+
+    try:
+        task_specs = conductor.spec.tasks
+    except AttributeError:
+        return conductor
+
+    for _, task_spec in task_specs.items():
+        if not task_spec.has_items():
+            continue
+
+        items_spec = task_spec.get_items_spec()
+
+        # Read concurrency from the underlying spec dict (orquesta's __getattr__
+        # resolves the scalar from there) and, when absent, write the default back
+        # into that same dict. The conductor evaluates concurrency off a .copy() of
+        # the task spec (conducting.py get_task), and copy() round-trips through
+        # serialize()/deserialize() using the raw spec dict — a plain Python
+        # attribute would be dropped, so the dict is the only thing that survives.
+        if items_spec is not None and items_spec.spec.get("concurrency") is None:
+            items_spec.spec["concurrency"] = cap
+
+    return conductor
+
+
 def deserialize_conductor(wf_ex_db):
     data = {
         "spec": wf_ex_db.spec,
@@ -1115,7 +1151,9 @@ def deserialize_conductor(wf_ex_db):
         "errors": wf_ex_db.errors,
     }
 
-    return conducting.WorkflowConductor.deserialize(data)
+    conductor = conducting.WorkflowConductor.deserialize(data)
+
+    return _apply_default_with_items_concurrency(conductor)
 
 
 def refresh_conductor(wf_ex_id):
@@ -1199,8 +1237,6 @@ def update_task_state(
 )
 def request_next_tasks(wf_ex_db, task_ex_id=None):
     iteration = 0
-    deadline_sec = cfg.CONF.workflow_engine.request_next_tasks_deadline_sec
-    deadline = time.time() + deadline_sec
 
     # Refresh records.
     conductor, wf_ex_db = refresh_conductor(str(wf_ex_db.id))
@@ -1255,33 +1291,6 @@ def request_next_tasks(wf_ex_db, task_ex_id=None):
     # task with no action execution defined, the task execution will complete
     # immediately with a new set of tasks available.
     while next_tasks:
-        # Deadline guard. request_next_tasks holds the per-workflow coord lock
-        # via handle_action_execution_completion, so a runaway loop here blocks
-        # every other message for this workflow until the lock is released.
-        # Fail loudly instead of holding forever. Typical calls take
-        # milliseconds; the default deadline is generous.
-        if time.time() > deadline:
-            msg = (
-                'request_next_tasks for workflow "%s" exceeded deadline of %ss '
-                "at iteration %s. Failing the workflow to release the "
-                "coordination lock. Undispatched task set: %s"
-            )
-            tasks_list = ", ".join(
-                ["%s (route %s)" % (t["id"], str(t["route"])) for t in next_tasks]
-            )
-            update_progress(
-                wf_ex_db,
-                msg % (str(wf_ex_db.id), deadline_sec, iteration, tasks_list),
-                severity="error",
-            )
-            fail_workflow_execution(
-                str(wf_ex_db.id),
-                wf_exc.WorkflowExecutionRequestNextTasksException(
-                    str(wf_ex_db.id), deadline_sec, iteration
-                ),
-            )
-            return
-
         msg = "Identified the following set of tasks to execute next: %s"
         tasks_list = ", ".join(
             ["%s (route %s)" % (t["id"], str(t["route"])) for t in next_tasks]

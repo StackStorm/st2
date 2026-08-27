@@ -932,14 +932,15 @@ def register_opts(ignore_errors=False):
             help="Time interval between subsequent queries to check executions handled by WFE.",
         ),
         cfg.IntOpt(
-            "request_next_tasks_deadline_sec",
-            default=120,
-            help="Maximum wall-clock seconds a single request_next_tasks() call "
-            "may run before the workflow is failed to release the per-workflow "
-            "coordination lock. Guards against runaway conductor state or a "
-            "pathological chain of no-op tasks holding the lock indefinitely. "
-            "Typical calls complete in milliseconds; the default is intentionally "
-            "generous.",
+            "max_with_items_concurrency",
+            default=0,
+            help="Default concurrency applied to with-items tasks that do not "
+            "specify their own concurrency. This bounds how many item action "
+            "executions the engine dispatches per pass while holding the "
+            "per-workflow coordination lock, instead of dispatching every item at "
+            "once. Tasks that set concurrency in the workflow definition are left "
+            "untouched. A value of zero disables this and preserves unbounded "
+            "(spec-defined only) behavior. This is disabled by default.",
         ),
     ]
 

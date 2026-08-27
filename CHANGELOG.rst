@@ -3,28 +3,17 @@ Changelog
 
 in development
 --------------
-* Workflow engine race condition and pool-wedge fixes
+* Workflow engine race condition fixes
   Contributed by @guzzijones12.
 
-  **Symptom.** The workflow engine's ``BufferedDispatcher`` would log
-  ``BufferedDispatcher pool "<id>" has been busy with no free threads for
-  more than 60 seconds`` repeatedly, and the engine's 50-thread green
-  pool would remain saturated. The trigger was one workflow — often one
-  paused at an inquiry — whose in-flight action-execution completions
-  raced with concurrent workflow-level status messages, causing every
-  affected worker to spin on Mongo write conflicts under the per-workflow
-  coordination lock.
-
-  **Root cause.** Under high load the ``retry_on_transient_db_errors``
-  decorators (which cover ``StackStormDBObjectWriteConflictError``) had
-  no ``stop_max_delay`` — so once two engines started colliding on a hot
-  workflow's document they retried each other forever, holding coord
-  locks the entire time. Eventlet scheduler pressure from all those
-  spinning greenthreads then starved the tooz heartbeat greenthread,
-  which in turn caused the Valkey/Redis lock TTL to expire while the
-  holder was still executing — a second engine could then acquire the
-  supposedly-held lock, producing more write conflicts, and the feedback
-  loop escalated until the pool was fully wedged.
+  A set of fixes for concurrency races in the orquesta workflow engine,
+  centered on the resume paths and per-workflow serialization. They
+  harden the engine against interleaved action-execution completions and
+  workflow-level status messages for the same workflow — the classic
+  trigger being an inquiry response, which publishes a workflow
+  ``RESUMING`` and an action-execution ``SUCCEEDED`` nearly
+  simultaneously — and bound how long the per-workflow coordination lock
+  is held when an unbounded ``with-items`` task fans out.
 
   **Fixes** (in cherry-pick order):
 
@@ -58,12 +47,20 @@ in development
     Prevents holding a chain of N locks up the parent tree in deeply
     nested subworkflow scenarios.
 
-  * ``request_next_tasks`` — wall-clock deadline. New config
-    ``workflow_engine.request_next_tasks_deadline_sec`` (default 120).
-    When exceeded, the workflow is failed via ``fail_workflow_execution``
-    and the coord lock releases through the normal error-return path.
-    Catches: infinite no-op-task chains, non-converging conductor state,
-    orquesta+DB divergence caused by a stuck resume.
+  * ``request_next_tasks`` / ``deserialize_conductor`` — bound
+    ``with-items`` fan-out. A ``with-items`` task that does not set
+    ``concurrency`` previously had every item's action execution
+    dispatched synchronously in a single ``request_next_tasks`` pass while
+    the per-workflow coord lock was held. New config
+    ``workflow_engine.max_with_items_concurrency`` (default 0 = disabled)
+    is injected as the default ``concurrency`` for such tasks when set, so
+    orquesta's existing concurrency machinery dispatches items in bounded
+    batches. Tasks that specify their own ``concurrency`` are left
+    untouched, and the injection is in-memory only (the stored workflow
+    spec is not modified). Replaces the earlier wall-clock
+    ``request_next_tasks_deadline_sec`` guard, which only bounded the
+    outer conductor-step loop (not the item fan-out) and failed otherwise
+    healthy workflows on expiry; it has been removed.
 
   * ``WorkflowExecutionHandler.handle_workflow_execution`` — take the
     per-workflow coord lock so it serializes against
@@ -111,16 +108,6 @@ in development
     process itself stays alive. Short blips (replica-set failover, brief
     network hiccup) are absorbed by the per-call retry envelope. Longer
     outages produce failed workflows, not a crashed engine.
-
-  **Operator note — the "BufferedDispatcher pool busy" log.** Prior to
-  these fixes, the pool-busy message was almost always the visible
-  symptom of the deadlock class described above. After these fixes
-  worker dwell time is bounded (60 s retry ceilings on Mongo/tooz plus a
-  120 s ``request_next_tasks_deadline_sec`` guard), so a stuck workflow
-  can no longer camp a worker slot forever. If the log fires again,
-  treat it as **real load** — 50+ workflows genuinely doing work
-  concurrently for more than a minute — and scale the workflow-engine
-  replicas out or raise the dispatcher pool size.
 
 * implemented zstandard compression for parameters and results. #5995
   contributed by @guzzijones12
