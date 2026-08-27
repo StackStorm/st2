@@ -388,6 +388,8 @@ logging = /etc/st2/logging.timersengine.conf
 webui_base_url = https://localhost
 
 [workflow_engine]
+# Default concurrency applied to with-items tasks that do not specify their own concurrency. This bounds how many item action executions the engine dispatches per pass while holding the per-workflow coordination lock, instead of dispatching every item at once. Tasks that set concurrency in the workflow definition are left untouched. A value of zero disables this and preserves unbounded (spec-defined only) behavior. This is disabled by default.
+default_with_items_concurrency = 0
 # How long to wait for process (in seconds) to exit after receiving shutdown signal.
 exit_still_active_check = 300
 # Max seconds to allow workflow execution be idled before it is identified as orphaned and cancelled by the garbage collector. A value of zero means the feature is disabled. This is disabled by default.

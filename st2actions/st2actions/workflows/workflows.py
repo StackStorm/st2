@@ -197,9 +197,23 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         wf_svc.fail_workflow_execution(wf_ex_id, exception, task=task)
 
     def handle_workflow_execution(self, wf_ex_db):
-        # Request the next set of tasks to execute.
-        wf_svc.update_progress(wf_ex_db, "Processing request for workflow execution.")
-        wf_svc.request_next_tasks(wf_ex_db)
+        # Serialize with handle_action_execution_completion (which also takes
+        # this per-workflow lock). Without it, a workflow-level message (e.g.
+        # RESUMING published by wf_svc.request_resume, or REQUESTED at start)
+        # can race with an in-flight ActionExecution completion for the same
+        # workflow — both call request_next_tasks and interleave conductor
+        # state writes. The classic trigger is an inquiry response, which
+        # publishes both a workflow RESUMING and an ac_ex SUCCEEDED nearly
+        # simultaneously.
+        wf_ex_id = str(wf_ex_db.id)
+        with coordination.get_coordinator(start_heart=True).get_lock(wf_ex_id.encode()):
+            # Re-read under the lock — the queued message may be stale.
+            wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+            # Request the next set of tasks to execute.
+            wf_svc.update_progress(
+                wf_ex_db, "Processing request for workflow execution."
+            )
+            wf_svc.request_next_tasks(wf_ex_db)
 
     def handle_action_execution(self, ac_ex_db):
         # Exit if action execution is not executed under an orquesta workflow.

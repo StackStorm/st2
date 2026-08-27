@@ -332,6 +332,86 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
 
+    def test_with_items_default_concurrency(self):
+        # The workflow definition sets no concurrency on the with items task. The
+        # configured default_with_items_concurrency is injected as the default so the
+        # engine dispatches items in bounded batches instead of all at once.
+        num_items = 3
+        concurrency = 2
+
+        cfg.CONF.set_override(
+            "default_with_items_concurrency", concurrency, group="workflow_engine"
+        )
+        self.addCleanup(
+            cfg.CONF.clear_override,
+            "default_with_items_concurrency",
+            group="workflow_engine",
+        )
+
+        wf_meta = base.get_wf_fixture_meta_data(TEST_PACK_PATH, "with-items.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+
+        # Only the first batch (== configured default concurrency) is dispatched,
+        # not every item at once.
+        query_filters = {"workflow_execution": str(wf_ex_db.id), "task_id": "task1"}
+        t1_ex_db = wf_db_access.TaskExecution.query(**query_filters)[0]
+        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )
+
+        self.assertEqual(len(t1_ac_ex_dbs), concurrency)
+
+        status = [
+            ac_ex.status == action_constants.LIVEACTION_STATUS_SUCCEEDED
+            for ac_ex in t1_ac_ex_dbs
+        ]
+
+        self.assertTrue(all(status))
+
+        for t1_ac_ex_db in t1_ac_ex_dbs:
+            workflows.get_engine().process(t1_ac_ex_db)
+
+        t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
+        self.assertEqual(t1_ex_db.status, wf_statuses.RUNNING)
+
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.RUNNING)
+
+        # The remaining items are dispatched once the first batch completes.
+        t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
+            task_execution=str(t1_ex_db.id)
+        )
+
+        self.assertEqual(len(t1_ac_ex_dbs), num_items)
+
+        status = [
+            ac_ex.status == action_constants.LIVEACTION_STATUS_SUCCEEDED
+            for ac_ex in t1_ac_ex_dbs
+        ]
+
+        self.assertTrue(all(status))
+
+        for t1_ac_ex_db in t1_ac_ex_dbs[concurrency:]:
+            workflows.get_engine().process(t1_ac_ex_db)
+
+        t1_ex_db = wf_db_access.TaskExecution.get_by_id(t1_ex_db.id)
+        self.assertEqual(t1_ex_db.status, wf_statuses.SUCCEEDED)
+
+        # Assert the main workflow is completed.
+        wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_db.id)
+        self.assertEqual(wf_ex_db.status, wf_statuses.SUCCEEDED)
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_SUCCEEDED)
+
     @mock.patch.object(
         local_shell_command_runner.LocalShellCommandRunner,
         "run",
