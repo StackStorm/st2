@@ -25,6 +25,7 @@ from mongoengine.errors import InvalidQueryError
 from st2common.constants import action as action_constants
 from st2common.persistence.workflow import WorkflowExecution
 from st2common.persistence.workflow import TaskExecution
+from st2common.persistence.workflow import TaskItemState
 
 
 __all__ = ["purge_workflow_executions", "purge_task_executions"]
@@ -132,6 +133,42 @@ def purge_task_executions(logger, timestamp, purge_incomplete=False):
         filters["status"] = {"$in": DONE_STATES}
 
     exec_filters = copy.copy(filters)
+
+    # Collect the ids of the task executions that are about to be deleted so we can also
+    # purge the per-item state records (TaskItemStateDB) that belong to them. These
+    # records are keyed by the string form of the task execution id.
+    to_delete_task_execution_ids = [
+        str(task_ex_db.id)
+        for task_ex_db in TaskExecution.query(
+            only_fields=["id"], no_dereference=True, **exec_filters
+        )
+    ]
+
+    # 1. Delete the per-item state records associated with these task executions.
+    if to_delete_task_execution_ids:
+        try:
+            deleted_item_count = TaskItemState.delete_by_query(
+                task_execution__in=to_delete_task_execution_ids
+            )
+        except InvalidQueryError as e:
+            msg = (
+                "Bad query (%s) used to delete task item state instances: %s"
+                "Please contact support."
+                % (
+                    {"task_execution__in": to_delete_task_execution_ids},
+                    six.text_type(e),
+                )
+            )
+            raise InvalidQueryError(msg)
+        except:
+            logger.exception(
+                "Deletion of task item state models failed for task executions: %s.",
+                to_delete_task_execution_ids,
+            )
+        else:
+            logger.info("Deleted %s task item state objects" % deleted_item_count)
+
+    # 2. Delete the task execution objects.
     try:
         deleted_count = TaskExecution.delete_by_query(**exec_filters)
     except InvalidQueryError as e:

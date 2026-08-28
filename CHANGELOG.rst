@@ -165,6 +165,8 @@ Added
   significantly improves the performance of workflows that use `with: items` over large item sets.
   Run the `st2common/bin/migrations/v3.10/st2-add-task-item-state-collection` migration to create the
   new collection and its indexes before running itemized tasks.
+  The `st2-purge-task-executions` script and the garbage collector now also delete the associated
+  `TaskItemStateDB` records when their parent task executions are purged.
   Contributed by @guzzijones12
 
 * Pinned DOCKER_API_VERSION in the circleci build to make sure the docker-cli api version does not exceed what

@@ -635,6 +635,12 @@ def request_task_execution(wf_ex_db, st2_ctx, task_ex_req):
                     context={},  # Will be populated when processing this specific item
                 )
                 wf_db_access.TaskItemState.insert(item_state_db, publish=False)
+        elif task_ex_db.itemized:
+            # Itemized task over an empty list has no items to process, but the result
+            # must still expose an (empty) "items" list so expressions that reference
+            # `task(...).result.items` can resolve.
+            task_ex_db.result = {"items": []}
+            wf_db_access.TaskExecution.update(task_ex_db, publish=False)
 
     try:
         # Return here if no action is specified in task spec.
@@ -1070,8 +1076,16 @@ def update_task_state(
     if not ac_ex_ctx or "item_id" not in ac_ex_ctx or ac_ex_ctx["item_id"] < 0:
         ac_ex_event = events.ActionExecutionEvent(ac_ex_status, result=ac_ex_result)
     else:
+        # Build the accumulated result from the per-item state records. The item results
+        # are no longer stored inline on task_ex_db.result["items"] (that key only exists
+        # once the itemized task has fully completed); they live in TaskItemState records.
+        item_state_dbs = wf_db_access.TaskItemState.query_by_task_execution(task_ex_id)
+        results_by_id = {
+            item_state_db.item_id: item_state_db.result
+            for item_state_db in item_state_dbs
+        }
         accumulated_result = [
-            item.get("result") if item else None for item in task_ex_db.result["items"]
+            results_by_id.get(item_id) for item_id in range(len(item_state_dbs))
         ]
 
         ac_ex_event = events.TaskItemActionExecutionEvent(
