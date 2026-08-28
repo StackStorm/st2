@@ -133,8 +133,8 @@ case "$1" in
         extract_st2_pack examples --target /usr/share/doc/st2/examples || :
 
         # Setup sudo configuration based on security mode
-        if [ -x /opt/stackstorm/st2/bin/st2-setup-sudo.sh ]; then
-            /opt/stackstorm/st2/bin/st2-setup-sudo.sh || :
+        if [ -x /opt/stackstorm/st2/bin/st2-setup-sudo ]; then
+            /opt/stackstorm/st2/bin/st2-setup-sudo || :
         fi
 
         # Fix file permissions for st2 user
