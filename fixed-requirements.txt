@@ -10,7 +10,8 @@ amqp==5.3.1
 apscheduler==3.11.3
 chardet==7.6.0
 cffi==2.1.1
-cryptography==50.0.1
+# range (not ==) so lockfiles_to_reqs.py won't auto-bump past pyOpenSSL's cryptography<46 ceiling
+cryptography>=41.0.5,<46
 eventlet==0.41.2
 # Note: installs gitpython==3.1.37 (security fixed) under py3.8 and gitpython==3.1.18 (latest available, vulnerable) under py3.6
 gitpython==3.1.61

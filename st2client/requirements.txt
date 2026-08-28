@@ -8,7 +8,7 @@
 argcomplete==3.7.2
 cffi==2.1.1
 chardet==7.6.0
-cryptography==50.0.1
+cryptography>=41.0.5,<46
 editor==1.8.0
 importlib-metadata
 jsonpath-rw==1.4.0

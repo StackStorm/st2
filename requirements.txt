@@ -14,7 +14,7 @@ bcrypt==5.0.0
 cffi==2.1.1
 chardet==7.6.0
 ciso8601
-cryptography==50.0.1
+cryptography>=41.0.5,<46
 decorator==5.3.1
 dnspython
 editor==1.8.0
