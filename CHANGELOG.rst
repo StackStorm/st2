@@ -24,6 +24,10 @@ Fixed
 * Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375
 * Fix utf-8 encode before checking paramter max size #6352
 * Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)
+* Fix workflow engine shutdown stranding running workflows in ``running`` state. On shutdown the
+  engine now excludes its own coordination member id when deciding whether another engine is still
+  available, so it pauses running workflows only when no other engine remains to take them over
+  (last-engine shutdown), and leaves them running when a peer engine is still up. (by @guzzijones12@gmail.com)
 
 Changed
 ~~~~~~~
@@ -32,10 +36,17 @@ Changed
  * Replaced deprecated `pkg_resources` module with `importlib-metadata` and `importlib-resources`.
  * Replaced abandoned `flex` module by `openapi-spec-validator`
  * Replaced Stackstorm/logshipper (stops working with Python 3.12) and eventlet in the `linux.file_watch_sensor` with threading. (by @skiedude)
+ * Bumped the pinned ``orquesta`` git revision in ``lockfiles/st2.lock`` to pick up the workflow engine race-condition fix. (by @guzzijones12@gmail.com)
 
 Added
 ~~~~~
 * added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
+* added ``[workflow_engine].bootstrap_enabled`` option (default ``False``) to make resuming
+  shutdown-paused workflows on engine startup opt-in. Enable it in clustered/rolling-restart
+  environments where a shutdown can leave shutdown-paused workflows behind. (by @guzzijones12@gmail.com)
+* added ``[workflow_engine].bootstrap_lookback_days`` option (default ``1``) to bound resume-on-startup
+  to workflows whose ``start_timestamp`` is within the given number of days, preventing accidental
+  resumption of ancient paused workflows. (by @guzzijones12@gmail.com)
 
 3.9.0 - October 10, 2025
 ------------------------
