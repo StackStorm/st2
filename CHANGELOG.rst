@@ -119,6 +119,14 @@ Added
 * Cherry-pick changes to runners.sh from st2-packages git repo. #6302
   Cherry-picked by @cognifloyd
 
+* Added persistent storage for "with items" (itemized) tasks via the new `TaskItemStateDB` model.
+  Each item's state is stored as a separate document, so individual item states can be read and
+  written without serializing / deserializing the entire task context for every item. This
+  significantly improves the performance of workflows that use `with: items` over large item sets.
+  Run the `st2common/bin/migrations/v3.10/st2-add-task-item-state-collection` migration to create the
+  new collection and its indexes before running itemized tasks.
+  Contributed by @guzzijones12
+
 3.8.1 - December 13, 2023
 -------------------------
 Fixed
