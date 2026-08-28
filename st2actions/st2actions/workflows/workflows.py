@@ -129,8 +129,26 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             except GroupNotCreated:
                 pass
 
+            # Determine whether any *other* workflow engine is still a member of
+            # the coordination group. We must exclude our own member id: during a
+            # graceful shutdown this engine may not have deregistered itself yet,
+            # so the raw member list can still contain our own id. Keying off the
+            # raw list is wrong in both directions:
+            #   * If we are the last engine, our own id is still present, so
+            #     "not member_ids" is False and nothing is paused -- leaving the
+            #     running workflows stuck with no engine to drive them.
+            #   * If a peer engine ("engine B") is still up while this engine
+            #     ("engine A") goes down, that peer will keep processing the
+            #     workflows, so we must not pause them.
+            # Excluding our own id makes the decision correct in both cases:
+            # pause only when no other engine remains to take over.
+            our_member_id = coordination.get_member_id()
+            other_member_ids = [
+                member_id for member_id in member_ids if member_id != our_member_id
+            ]
+
             # Check if there are other WFEs in service registry
-            if cfg.CONF.coordination.service_registry and not member_ids:
+            if cfg.CONF.coordination.service_registry and not other_member_ids:
                 ac_ex_dbs = self._get_running_workflows()
                 for ac_ex_db in ac_ex_dbs:
                     lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction_id)
