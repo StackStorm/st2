@@ -6,6 +6,10 @@ __defaults__(
 python_tests(
     name="tests",
     uses=["mongo"],
+    stevedore_namespaces=[
+        "st2common.runners.runner",
+        "st2common.metrics.driver",
+    ],
     overrides={
         (
             "test_executions.py",
@@ -20,22 +24,6 @@ python_tests(
         ),
         "test_runner_container.py": dict(
             uses=["mongo", "system_user"],
-        ),
-        (
-            "test_execution*.py",
-            "test_notifier.py",
-            "test_output_schema.py",
-            "test_policies.py",
-            "test_queue_consumers.py",
-            "test_runner_container.py",
-            "test_scheduler*.py",
-            "test_worker.py",
-            "test_workflow_engine.py",
-        ): dict(
-            stevedore_namespaces=[
-                "st2common.runners.runner",
-                "st2common.metrics.driver",
-            ],
         ),
     },
 )

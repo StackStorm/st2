@@ -6,6 +6,9 @@ __defaults__(
 python_tests(
     name="tests",
     uses=["mongo"],
+    stevedore_namespaces=[
+        "st2common.metrics.driver",
+    ],
     overrides={
         "test_enforce.py": dict(
             stevedore_namespaces=[

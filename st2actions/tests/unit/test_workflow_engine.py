@@ -371,13 +371,25 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
 
     @mock.patch.object(
+        coordination_service,
+        "get_member_id",
+        mock.MagicMock(return_value=b"this-engine"),
+    )
+    @mock.patch.object(
         RedisDriver,
         "get_members",
         mock.MagicMock(
-            return_value=coordination_service.NoOpAsyncResult(("member-1",))
+            return_value=coordination_service.NoOpAsyncResult((b"other-engine",))
         ),
     )
     def test_workflow_engine_shutdown_with_multiple_members(self):
+        # Regression test for the two-engine graceful-shutdown scenario:
+        # this engine is shutting down while another engine ("other-engine")
+        # is still a member of the coordination group. During a graceful
+        # shutdown this engine may have already deregistered itself, so the
+        # group membership no longer contains our own id -- but a surviving
+        # peer remains. In that case we must NOT pause running workflows,
+        # because the surviving engine will keep processing them.
         self.reset_config(service_registry=True)
 
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -398,8 +410,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         # Sleep for few seconds to ensure shutdown sequence completes.
         eventlet.sleep(5)
 
+        # A surviving peer engine exists, so this engine must leave the
+        # workflow running rather than pausing it.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
-        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSED)
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
     def test_workflow_engine_shutdown_with_service_registry_disabled(self):
         self.reset_config(service_registry=False)

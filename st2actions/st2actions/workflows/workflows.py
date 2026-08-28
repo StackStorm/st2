@@ -105,18 +105,28 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 except GroupNotCreated:
                     member_ids = []
 
-                # Check if there are other workflow engines still running
-                # Note: member_ids includes this engine, so we check for <= 1
-                if not member_ids or len(member_ids) <= 1:
+                # Determine whether any *other* workflow engine is still running.
+                # We must not rely on the raw member count: during a graceful
+                # shutdown the engine deregisters from the coordination group
+                # before this check runs (see st2actions.cmd.workflow_engine), so
+                # our own member id may already be gone. Excluding our own id makes
+                # the decision correct regardless of that ordering -- we only pause
+                # when there is genuinely no other engine left to take over.
+                our_member_id = coordination.get_member_id()
+                other_member_ids = [
+                    member_id for member_id in member_ids if member_id != our_member_id
+                ]
+
+                if not other_member_ids:
                     LOG.info(
                         "This appears to be the last workflow engine. Pausing running workflows."
                     )
                     self._pause_all_running_workflows()
                 else:
                     LOG.info(
-                        "Other workflow engines detected (%d members). "
+                        "Other workflow engines detected (%d other members). "
                         "Skipping workflow pause on this instance.",
-                        len(member_ids),
+                        len(other_member_ids),
                     )
         except Exception as e:
             LOG.error(

@@ -50,8 +50,13 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         run_thread = eventlet.spawn(_run_scheduler)
 
         # The scheduler now raises exceptions instead of returning 1
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as cm:
             run_thread.wait()
+
+        self.assertIn("handler run exception", str(cm.exception))
+
+        mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
+        self.assertIn("Scheduler unexpectedly stopped", mock_log_exception_call)
 
     @mock.patch.object(
         ActionExecutionSchedulingQueueHandler, "cleanup", mock_handler_cleanup
@@ -63,8 +68,13 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         run_thread = eventlet.spawn(_run_scheduler)
 
         # The scheduler now raises exceptions instead of returning 1
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as cm:
             run_thread.wait()
+
+        self.assertIn("handler clean exception", str(cm.exception))
+
+        mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
+        self.assertIn("Scheduler unexpectedly stopped", mock_log_exception_call)
 
     @mock.patch.object(SchedulerEntrypoint, "start", mock_entrypoint_start)
     @mock.patch("st2actions.cmd.scheduler.LOG")
@@ -74,5 +84,10 @@ class SchedulerServiceEntryPointTestCase(CleanDbTestCase):
         run_thread = eventlet.spawn(_run_scheduler)
 
         # The scheduler now raises exceptions instead of returning 1
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as cm:
             run_thread.wait()
+
+        self.assertIn("entrypoint start exception", str(cm.exception))
+
+        mock_log_exception_call = mock_log.exception.call_args_list[0][0][0]
+        self.assertIn("Scheduler unexpectedly stopped", mock_log_exception_call)

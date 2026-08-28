@@ -1,2 +1,3 @@
-orquesta
+orquesta@ git+https://github.com/StackStorm/orquesta.git
 setuptools
+referencing

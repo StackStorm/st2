@@ -75,9 +75,37 @@ in development
 * implemented zstandard compression for parameters and results. #5995
   contributed by @guzzijones12
 
+
 * removed embedded liveaction in action execution database table #5995
   contributed by @guzzijones12
 
+This release is tested with and supports the following Python versions and 3rd party dependencies.
+
+```
+Python      3.10, 3.11 and 3.12
+MongoDB     8.2
+RabbitMQ    4.2
+Redis       8.6
+```
+
+
+Fixed
+~~~~~
+* Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375
+* Fix utf-8 encode before checking paramter max size #6352
+* Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)
+
+Changed
+~~~~~~~
+ * Removed Python 3.8 and 3.9 from testing and CI/CD.
+ * Removed mongodb 7.0, rabbitmq 3.13 and redis 8.0
+ * Replaced deprecated `pkg_resources` module with `importlib-metadata` and `importlib-resources`.
+ * Replaced abandoned `flex` module by `openapi-spec-validator`
+ * Replaced Stackstorm/logshipper (stops working with Python 3.12) and eventlet in the `linux.file_watch_sensor` with threading. (by @skiedude)
+
+Added
+~~~~~
+* added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
 
 3.9.0 - October 10, 2025
 ------------------------

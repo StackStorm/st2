@@ -208,30 +208,15 @@ class OutputSchemaTestCase(unittest.TestCase):
             OUTPUT_KEY,
         )
 
-        expected_result = {
-            "error": (
-                "Additional properties are not allowed ('output' was unexpected)\n\n"
-                "Failed validating 'additionalProperties' in schema:\n"
-                "    {'additionalProperties': False,\n"
-                "     'properties': {'not_a_key_you_have': {'type': 'string'}},\n"
-                "     'type': 'object'}\n\n"
-                "On instance:\n"
-                "    {'output': {'array_output_1': [{'deep_item_1': 'foo'},\n"
-                "                                   {'deep_item_1': 'bar'},\n"
-                "                                   {'deep_item_1': 'baz'}],\n"
-                "                'array_output_2': ['answer', 4.2, True, False],\n"
-                "                'deep_output': {'deep_item_1': 'Jindal',\n"
-                "                                'extra_item_1': 42,\n"
-                "                                'extra_item_2': 33},\n"
-                "                'output_1': 'Bobby',\n"
-                "                'output_2': 5,\n"
-                "                'output_3': 'shhh!',\n"
-                "                'pattern_output': {'a': 'x', 'b': 'y', 'c': 'z'}}}"
-            ),
-            "message": "Error validating output. See error output for more details.",
-        }
+        expected_error = (
+            "Additional properties are not allowed ('output' was unexpected)"
+        )
+        expected_message = "Error validating output. See error output for more details."
 
-        self.assertEqual(result, expected_result)
+        # Use assertIn to avoid fragile exact-string matching: jsonschema error messages
+        # include a schema repr whose key ordering varies across jsonschema versions.
+        self.assertIn(expected_error, result["error"])
+        self.assertEqual(result["message"], expected_message)
         self.assertEqual(status, LIVEACTION_STATUS_FAILED)
 
     def test_invalid_action_schema(self):

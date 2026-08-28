@@ -73,8 +73,23 @@ def _run_scheduler():
     handler = scheduler_handler.get_handler()
     entrypoint = scheduler_entrypoint.get_scheduler_entrypoint()
 
-    # Inject handler reference so entrypoint can call bootstrap on connection revival
-    entrypoint.set_handler(handler)
+    # TODO: Remove this try block for _cleanup_policy_delayed in v3.2.
+    # This is a temporary cleanup to remove executions in deprecated policy-delayed status.
+    try:
+        handler._cleanup_policy_delayed()
+    except Exception:
+        LOG.exception(
+            "(PID=%s) Scheduler unable to perform migration cleanup.", os.getpid()
+        )
+
+    # TODO: Remove this try block for _fix_missing_action_execution_id in v3.2.
+    # This is a temporary fix to auto-populate action_execution_id.
+    try:
+        handler._fix_missing_action_execution_id()
+    except Exception:
+        LOG.exception(
+            "(PID=%s) Scheduler unable to populate action_execution_id.", os.getpid()
+        )
 
     # Bootstrap missing scheduling queue entries for requested LiveActions.
     # This handles recovery from RabbitMQ failures where messages were never consumed.
@@ -94,23 +109,67 @@ def _run_scheduler():
             (entrypoint._consumer_thread, "entrypoint_consumer"),
         ]
 
-        # Poll threads in a loop - check if any has died/failed
-        while True:
-            for thread, name in threads_to_monitor:
-                if thread.dead:
-                    # Thread died - try to get the exception if it raised one
-                    thread.wait()  # This will raise if the thread raised
-                    # Thread completed successfully (shouldn't happen in normal operation)
+        try:
+            # Poll threads in a loop - check if any has died/failed
+            while True:
+                dead_threads = [
+                    (thread, name) for thread, name in threads_to_monitor if thread.dead
+                ]
+
+                if dead_threads:
+                    # If any dead thread raised an exception, propagate it. We must
+                    # check *all* dead threads (not just the first one observed) because
+                    # a failing sibling thread can trigger a linked shutdown that causes
+                    # other threads to exit cleanly in the same scheduling tick. Returning
+                    # success based on the first-seen clean exit would swallow the real
+                    # failure.
+                    for thread, name in dead_threads:
+                        try:
+                            thread.wait()  # Raises if the thread raised.
+                        except Exception as e:
+                            LOG.error("Thread %s failed: %s", name, e)
+                            # Re-raise to let outer exception handler deal with shutdown
+                            raise
+
+                    # No exceptions - all dead threads exited cleanly (shouldn't
+                    # happen in normal operation).
+                    for _, name in dead_threads:
+                        LOG.info("Thread %s completed", name)
                     return 0
 
-            # Sleep briefly to avoid tight loop and allow other greenlets to run
-            eventlet.sleep(0.1)
-    except:
+                # Sleep briefly to avoid tight loop and allow other greenlets to run
+                eventlet.sleep(0.1)
+        except Exception as e:
+            # If we caught an exception, it's already been logged and components shut down
+            # Re-raise it so tests and monitoring can detect the failure
+            raise e
+    except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) Scheduler stopped.", os.getpid())
-        deregister_service(service=SCHEDULER)
-        handler.shutdown()
-        entrypoint.shutdown()
+
+        errors = False
+
+        try:
+            deregister_service(service=SCHEDULER)
+            handler.shutdown()
+            entrypoint.shutdown()
+        except:
+            LOG.debug("Unable to shutdown scheduler.", exc_info=True)
+            errors = True
+
+        if errors:
+            return 1
+    except:
+        LOG.exception("(PID=%s) Scheduler unexpectedly stopped.", os.getpid())
+
+        try:
+            handler.shutdown()
+            entrypoint.shutdown()
+        except:
+            LOG.exception("Unable to shutdown scheduler.")
+
         raise
+
+    return 0
 
 
 def _teardown():

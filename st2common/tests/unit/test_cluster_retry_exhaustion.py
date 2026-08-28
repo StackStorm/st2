@@ -63,7 +63,7 @@ class TestClusterRetryExhaustion(unittest.TestCase):
         # cluster_size=3, max_retries=1 means: 3 * (1+1) = 6 total attempts
         for i in range(5):
             should_stop, wait = context.should_stop(test_exc)
-            self.assertFalse(should_stop, f"Should not stop at attempt {i+1}")
+            self.assertFalse(should_stop, f"Should not stop at attempt {i + 1}")
 
         # 6th attempt should stop
         should_stop, wait = context.should_stop(test_exc)

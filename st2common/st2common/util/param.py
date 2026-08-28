@@ -117,7 +117,7 @@ def _create_graph(action_context, config):
     return G
 
 
-def _process(G, name, value):
+def _process(G, name, value, parameter_schemas=None):
     """
     Determines whether parameter is a template or a value. Adds graph nodes and edges accordingly.
     """
@@ -130,9 +130,20 @@ def _process(G, name, value):
     if isinstance(value, list) or isinstance(value, dict):
         complex_value_str = str(value)
 
-    is_jinja_expr = jinja_utils.is_jinja_expression(
-        value
-    ) or jinja_utils.is_jinja_expression(complex_value_str)
+    # Check if the parameter is of type raw_string
+    is_raw_string = False
+    if parameter_schemas:
+        for schema in parameter_schemas:
+            if name in schema and schema[name].get("type") == "raw_string":
+                is_raw_string = True
+                break
+
+    # Skip Jinja processing for raw_string type parameters
+    is_jinja_expr = False
+    if not is_raw_string:
+        is_jinja_expr = jinja_utils.is_jinja_expression(
+            value
+        ) or jinja_utils.is_jinja_expression(complex_value_str)
 
     if is_jinja_expr:
         try:
@@ -174,23 +185,13 @@ def _validate(G):
     """
     Validates dependency graph to ensure it has no missing or cyclic dependencies
     """
-    g_copy = G.copy()
     for name in G.nodes:
         if "value" not in G.nodes[name] and "template" not in G.nodes[name]:
-            # this is a string not a jinja template;  embedded {{sometext}}
-            for i in G.neighbors(name):
-                # remove template for neighbors; this isn't actually a variable
-                # it is a value
-                # remove template attr if it exists
-                if "template" in g_copy.nodes[i].keys():
-                    g_copy.nodes[i]["value"] = g_copy.nodes[i].pop("template")
-                # remove edges
-                g_copy.remove_edge(name, i)
-            # remove node from graph
-            g_copy.remove_node(name)
+            msg = 'Dependency unsatisfied in variable "%s"' % name
+            raise ParamException(msg)
 
-    if not nx.is_directed_acyclic_graph(g_copy):
-        graph_cycles = nx.simple_cycles(g_copy)
+    if not nx.is_directed_acyclic_graph(G):
+        graph_cycles = nx.simple_cycles(G)
 
         variable_names = []
         for cycle in graph_cycles:
@@ -207,7 +208,6 @@ def _validate(G):
             "referencing itself" % (variable_names)
         )
         raise ParamException(msg)
-    return g_copy
 
 
 def _render(node, render_context):
@@ -346,9 +346,13 @@ def render_live_params(
     for name, value in six.iteritems(additional_contexts):
         G.add_node(name, value=value)
 
-    [_process(G, name, value) for name, value in six.iteritems(params)]
-    _process_defaults(G, [action_parameters, runner_parameters])
-    G = _validate(G)
+    parameter_schemas = [action_parameters, runner_parameters]
+    [
+        _process(G, name, value, parameter_schemas)
+        for name, value in six.iteritems(params)
+    ]
+    _process_defaults(G, parameter_schemas)
+    _validate(G)
 
     context = _resolve_dependencies(G)
     live_params = _cast_params_from(
@@ -371,7 +375,7 @@ def render_final_params(runner_parameters, action_parameters, params, action_con
     # by that point, all params should already be resolved so any template should be treated value
     [G.add_node(name, value=value) for name, value in six.iteritems(params)]
     _process_defaults(G, [action_parameters, runner_parameters])
-    G = _validate(G)
+    _validate(G)
 
     context = _resolve_dependencies(G)
     context = _cast_params_from(
