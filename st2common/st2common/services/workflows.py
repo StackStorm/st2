@@ -1781,3 +1781,96 @@ def bootstrap_resume_execution(lv_ac_db):
 
     request_resume(ac_ex_db)
     LOG.info('Bootstrap-resumed workflow execution "%s".', str(ac_ex_db.id))
+
+
+def reconcile_running_execution(lv_ac_db):
+    """
+    Re-drive a workflow stuck in RUNNING because a message that would have
+    advanced it was lost (e.g. an engine was OOM-killed after acking a message
+    but before processing it -- see the ack-on-dispatch behavior in
+    st2common.transport.consumers).
+
+    At the moment the message is lost, the child *action execution* has already
+    completed and been persisted, but its TaskExecution and the conductor were
+    never advanced. So the durable ground truth is the child action execution
+    status, not the TaskExecution status -- which is why this does NOT rely on
+    sync_completed_tasks_to_conductor (that keys off TaskExecution status).
+
+    Recovery has two phases:
+
+    1. Replay lost task-completion messages. For any task that is not yet
+       completed but whose child action execution has finished, re-run
+       handle_action_execution_completion -- exactly what the lost message
+       would have done (advance the conductor, request the next tasks). Each
+       child action execution is handled at most once, and tasks whose action
+       is still running are left untouched, so a workflow a live engine is
+       still driving is not disturbed.
+    2. Re-request next tasks, in case the lost message was the *request* to
+       start the next task (conductor advanced but no TaskExecution created).
+       conductor.get_next_tasks() will not return tasks it already tracks, so
+       this is a no-op when nothing is missing.
+
+    This is intended for operator-initiated recovery of a workflow the operator
+    has already determined is stuck; it is deliberately not run automatically.
+
+    Note: for itemized ("with items") tasks a task has multiple child action
+    executions; each completed child is replayed once, which matches normal
+    per-item completion handling.
+    """
+    ac_ex_db = ex_db_access.ActionExecution.get(liveaction_id=str(lv_ac_db.id))
+    wf_ex_id = ac_ex_db.context.get("workflow_execution")
+
+    if not wf_ex_id:
+        LOG.warning(
+            "[%s] No workflow_execution ID in context; cannot reconcile.",
+            str(ac_ex_db.id),
+        )
+        return
+
+    # Phase 1: replay completed-but-unprocessed child action executions.
+    handled_child_ids = set()
+    replayed = 0
+
+    while True:
+        progressed = False
+        task_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=wf_ex_id)
+
+        for task_ex_db in task_ex_dbs:
+            if task_ex_db.status in statuses.COMPLETED_STATUSES:
+                continue
+
+            child_ac_ex_dbs = ex_db_access.ActionExecution.query(
+                task_execution=str(task_ex_db.id)
+            )
+            for child_ac_ex_db in child_ac_ex_dbs:
+                if str(child_ac_ex_db.id) in handled_child_ids:
+                    continue
+                if child_ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
+                    continue
+
+                LOG.info(
+                    '[%s] Replaying lost completion of action execution "%s" '
+                    'for task "%s".',
+                    str(ac_ex_db.id),
+                    str(child_ac_ex_db.id),
+                    task_ex_db.task_id,
+                )
+                handle_action_execution_completion(child_ac_ex_db)
+                handled_child_ids.add(str(child_ac_ex_db.id))
+                replayed += 1
+                progressed = True
+
+        if not progressed:
+            break
+
+    # Phase 2: re-request next tasks if the workflow is still running, to cover
+    # the case where the lost message was the next-task request itself.
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    if wf_ex_db.status in statuses.RUNNING_STATUSES:
+        request_next_tasks(wf_ex_db)
+
+    LOG.info(
+        'Reconciled stuck-running workflow execution "%s" (replayed %d completion(s)).',
+        str(ac_ex_db.id),
+        replayed,
+    )

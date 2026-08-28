@@ -51,6 +51,18 @@ in development
     resume helper. Clears the ``paused_by`` marker, calls
     ``sync_completed_tasks_to_conductor``, then invokes
     ``request_resume``. Called by both the automatic loop and the CLI.
+  * ``reconcile_running_execution(lv_ac_db)`` — operator-initiated
+    safety valve for a workflow stuck in ``RUNNING`` (not paused)
+    because its driving message was lost with a hard-killed engine
+    (e.g. OOM after ack-on-dispatch but before processing). Reconciles
+    conductor state from persisted task executions via
+    ``sync_completed_tasks_to_conductor`` and then re-drives the
+    workflow with ``request_next_tasks`` (it does not go through
+    ``request_resume``, which no-ops on already-running workflows).
+    Exposed only via ``st2-bootstrap-workflow --reconcile-running
+    <execution-id>``; it is intentionally not run automatically because
+    re-driving a workflow a live engine is still processing could
+    double-request tasks.
 
   **New config options** under ``[workflow_engine]``:
 

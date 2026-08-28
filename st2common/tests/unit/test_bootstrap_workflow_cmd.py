@@ -102,3 +102,41 @@ class TestBootstrapWorkflowCLI(CleanDbTestCase):
             # Called with the LiveActionDB matching our record.
             args, _ = mock_resume.call_args
             self.assertEqual(str(args[0].id), str(lv_ac_db.id))
+
+    def _make_running_execution(self):
+        lv_ac_db = LiveActionDB(
+            action="core.local",
+            status=action_constants.LIVEACTION_STATUS_RUNNING,
+            context={},
+        )
+        lv_ac_db = LiveAction.add_or_update(lv_ac_db, publish=False)
+        ac_ex_db = ActionExecutionDB(
+            liveaction_id=str(lv_ac_db.id),
+            action={"ref": "core.local"},
+            runner={"name": "orquesta"},
+            status=action_constants.LIVEACTION_STATUS_RUNNING,
+            context={},
+        )
+        ac_ex_db = ActionExecution.add_or_update(ac_ex_db, publish=False)
+        return lv_ac_db, ac_ex_db
+
+    def test_reconcile_rejects_execution_not_running(self):
+        # A paused (not running) execution must be rejected by the reconcile path.
+        _lv_ac, ac_ex_db = self._make_paused_execution(
+            paused_by=wf_svc.WORKFLOW_ENGINE_START_STOP_SEQ
+        )
+
+        with mock.patch.object(wf_svc, "reconcile_running_execution") as mock_reconcile:
+            rc = bootstrap_workflow._reconcile_running_one(str(ac_ex_db.id))
+            self.assertEqual(rc, FAILURE_EXIT_CODE)
+            mock_reconcile.assert_not_called()
+
+    def test_reconcile_happy_path_calls_service(self):
+        lv_ac_db, ac_ex_db = self._make_running_execution()
+
+        with mock.patch.object(wf_svc, "reconcile_running_execution") as mock_reconcile:
+            rc = bootstrap_workflow._reconcile_running_one(str(ac_ex_db.id))
+            self.assertEqual(rc, SUCCESS_EXIT_CODE)
+            mock_reconcile.assert_called_once()
+            args, _ = mock_reconcile.call_args
+            self.assertEqual(str(args[0].id), str(lv_ac_db.id))

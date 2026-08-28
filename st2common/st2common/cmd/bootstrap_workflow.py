@@ -18,6 +18,12 @@ Manually bootstrap-resume a single workflow execution that was paused by a
 prior workflow engine shutdown. Bypasses coordination first-member election
 and the automatic-bootstrap lookback window; the operator is asserting they
 want this specific execution resumed now.
+
+With --reconcile-running, instead re-drives a workflow that is stuck in RUNNING
+(rather than PAUSED). This is the safety valve for the case where an engine was
+hard-killed (e.g. OOM) after acking but before processing a message, leaving the
+workflow RUNNING with no message left to advance it. The operator is asserting
+this specific execution is stuck; see wf_svc.reconcile_running_execution.
 """
 
 from __future__ import absolute_import
@@ -49,8 +55,37 @@ def _register_cli_opts():
             default=None,
             help="ActionExecution id of the shutdown-paused workflow to resume.",
         ),
+        cfg.BoolOpt(
+            "reconcile-running",
+            default=False,
+            help=(
+                "Re-drive a workflow stuck in RUNNING (not PAUSED) whose driving "
+                "message was lost with a hard-killed engine. Only use this on an "
+                "execution you have determined is stuck; it is unsafe against a "
+                "workflow still being actively processed."
+            ),
+        ),
     ]
     do_register_cli_opts(cli_opts)
+
+
+def _reconcile_running_one(execution_id):
+    ac_ex_db = ex_db_access.ActionExecution.get_by_id(execution_id)
+    lv_ac_db = lv_db_access.LiveAction.get_by_id(str(ac_ex_db.liveaction_id))
+
+    if lv_ac_db.status != ac_const.LIVEACTION_STATUS_RUNNING:
+        LOG.error(
+            "Execution %s is in status %r, not %r. Refusing to reconcile. "
+            "Use bootstrap-resume (without --reconcile-running) for paused workflows.",
+            execution_id,
+            lv_ac_db.status,
+            ac_const.LIVEACTION_STATUS_RUNNING,
+        )
+        return FAILURE_EXIT_CODE
+
+    wf_svc.reconcile_running_execution(lv_ac_db)
+    LOG.info("Reconciled stuck-running execution %s.", execution_id)
+    return SUCCESS_EXIT_CODE
 
 
 def _bootstrap_one(execution_id):
@@ -92,6 +127,8 @@ def main():
         return FAILURE_EXIT_CODE
 
     try:
+        if cfg.CONF.reconcile_running:
+            return _reconcile_running_one(execution_id)
         return _bootstrap_one(execution_id)
     except Exception as e:
         LOG.exception("Failed to bootstrap-resume execution %s: %s", execution_id, e)
