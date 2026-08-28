@@ -409,6 +409,47 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
 
+    @mock.patch.object(
+        RedisDriver,
+        "get_members",
+        mock.MagicMock(
+            return_value=coordination_service.NoOpAsyncResult(
+                (coordination_service.get_member_id(),)
+            )
+        ),
+    )
+    def test_workflow_engine_shutdown_last_engine_still_registered_pauses(self):
+        # Regression test for the last-engine shutdown case: this is the only
+        # workflow engine, but it has not yet deregistered itself from the
+        # coordination group, so the group still contains our own member id.
+        # The shutdown path must exclude our own id, recognize that no *other*
+        # engine remains to take over, and pause the running workflow. Keying
+        # off the raw member list (which is non-empty because it holds our own
+        # id) would wrongly skip the pause and strand the workflow in RUNNING.
+        self.reset_config(service_registry=True)
+
+        wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
+        lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
+        lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
+
+        # Assert action execution is running.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        wf_ex_db = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )[0]
+        self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
+        workflow_engine = workflows.get_engine()
+
+        eventlet.spawn(workflow_engine.shutdown)
+
+        # Sleep for few seconds to ensure shutdown sequence completes.
+        eventlet.sleep(5)
+
+        # No other engine is left, so this engine must pause the workflow.
+        lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
+        self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_PAUSING)
+
     def test_workflow_engine_shutdown_with_service_registry_disabled(self):
         self.reset_config(service_registry=False)
 
