@@ -25,6 +25,7 @@ from st2common.constants.keyvalue import (
     FULL_SYSTEM_SCOPE,
     FULL_USER_SCOPE,
     ALLOWED_SCOPES,
+    USER_SEPARATOR,
 )
 from st2common.constants.keyvalue import SYSTEM_SCOPE, USER_SCOPE
 from st2common.exceptions.keyvalue import (
@@ -132,9 +133,20 @@ class KeyValuePairAPI(BaseAPI):
 
         key = doc.get("name", None)
         if (scope == USER_SCOPE or scope == FULL_USER_SCOPE) and key:
-            doc["user"] = UserKeyReference.get_user(key)
-            doc["name"] = UserKeyReference.get_name(key)
-
+            # Check if name is in full "user:keyname" format
+            if USER_SEPARATOR in key:  # USER_SEPARATOR
+                # Parse the full reference
+                doc["user"] = UserKeyReference.get_user(key)
+                doc["name"] = UserKeyReference.get_name(key)
+            else:
+                # Name is already clean, extract user from UID
+                # UID format: key_value_pair:st2kv.user:<username>:<keyname>
+                uid = doc.get("uid")
+                if uid:
+                    parts = uid.split(USER_SEPARATOR)
+                    if len(parts) >= 4:
+                        doc["user"] = parts[2]  # The username
+                    # name stays as-is (already clean)
         doc["encrypted"] = encrypted
         attrs = {attr: value for attr, value in six.iteritems(doc) if value is not None}
         return cls(**attrs)

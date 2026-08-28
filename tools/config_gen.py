@@ -17,6 +17,7 @@
 from __future__ import absolute_import
 import collections
 import importlib
+import logging
 import six
 import sys
 import traceback
@@ -225,8 +226,22 @@ def main(args):
         mod.register_opts(ignore_errors=True)
         _read_current_config(opt_groups)
         _clear_config()
+        if config == "st2auth.config":
+            from st2auth import (
+                backends as auth_backends,
+            )  # late import to let config get set up first.
+
+            available_backends = auth_backends.get_available_backends()
+            assert (
+                len(available_backends) == 3
+            ), f"Expected 3 available auth backends, got {len(available_backends)}: {available_backends}"
     _read_groups(opt_groups)
 
 
 if __name__ == "__main__":
+    # display warnings+errors on stderr to facilitate debugging
+    log_level = logging.WARNING
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s [-] %(message)s", level=log_level
+    )
     main(sys.argv)

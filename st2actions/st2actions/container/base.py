@@ -141,11 +141,14 @@ class RunnerContainer(object):
             ):
                 queries.setup_query(runner.liveaction.id, runner.runner_type, context)
         except:
-            LOG.exception("Failed to run action.")
             _, ex, tb = sys.exc_info()
             # mark execution as failed.
             status = action_constants.LIVEACTION_STATUS_FAILED
             # include the error message and traceback to try and provide some hints.
+            LOG.exception(
+                "Failed to run action. traceback: %s"
+                % "".join(traceback.format_tb(tb, 20))
+            )
             result = {
                 "error": str(ex),
                 "traceback": "".join(traceback.format_tb(tb, 20)),
@@ -341,44 +344,53 @@ class RunnerContainer(object):
         return (liveaction_db, state_changed)
 
     def _update_status(self, liveaction_id, status, result, context):
-        with Timer(key="action.executions.update_liveaction_db"):
-            try:
-                # NOTE: The next two operations take a very long time in master with large executions
-                # (long standing issue), but because start_timestamp and end_timestamp measure how long
-                # it took for the runner to run the action, it doesn't include the time it took to
-                # actually write results / persist execution into the database - that's a problem
-                # because we have no good direct visibility into that.
-                #
-                # The UX user would experience is - they would run an action which produces large
-                # result, CLI / API would show execution as running for a long time (until it's
-                # persisted in the database), but when it will finally be written to the database,
-                # duration will be shown as a short time, because it's measured based on start and
-                # end timestamp.
-                #
-                # This mean we can have, for example, Python runner action which returns a lot of data
-                # and takes only 0.5 second to finish, but next two database operations can easily take
-                # 10 seconds each.
-                #
-                # To work around that and provide some additional visibility into that to the operators
-                # and users, we update "end_timestamp" on each object again after both of them have
-                # already been written. That atomic single field update is very fast and adds no
-                # additional overhead.
-                LOG.debug(
-                    "Setting status: %s for liveaction: %s", status, liveaction_id
-                )
-                liveaction_db, state_changed = self._update_live_action_db(
-                    liveaction_id, status, result, context
-                )
-            except Exception as e:
-                LOG.exception(
-                    "Cannot update liveaction "
-                    "(id: %s, status: %s, result: %s)."
-                    % (liveaction_id, status, result)
-                )
-                raise e
+        # NOTE: The next two operations take a very long time in master with large executions
+        # (long standing issue), but because start_timestamp and end_timestamp measure how long
+        # it took for the runner to run the action, it doesn't include the time it took to
+        # actually write results / persist execution into the database - that's a problem
+        # because we have no good direct visibility into that.
+        #
+        # The UX user would experience is - they would run an action which produces large
+        # result, CLI / API would show execution as running for a long time (until it's
+        # persisted in the database), but when it will finally be written to the database,
+        # duration will be shown as a short time, because it's measured based on start and
+        # end timestamp.
+        #
+        # This mean we can have, for example, Python runner action which returns a lot of data
+        # and takes only 0.5 second to finish, but next two database operations can easily take
+        # 10 seconds each.
+        #
+        # To work around that and provide some additional visibility into that to the operators
+        # and users, we update "end_timestamp" on each object again after both of them have
+        # already been written. That atomic single field update is very fast and adds no
+        # additional overhead.
 
-        # live_action_written_to_db_dt = date_utils.get_datetime_utc_now()
+        # Get the current liveaction from DB
+        liveaction_db = get_liveaction_by_id(liveaction_id)
 
+        # Determine if state changed (for publishing decision)
+        state_changed = (
+            liveaction_db.status != status
+            and liveaction_db.status not in action_constants.LIVEACTION_COMPLETED_STATES
+        )
+
+        # Prepare end_timestamp if action is completing
+        if status in action_constants.LIVEACTION_COMPLETED_STATES:
+            end_timestamp = date_utils.get_datetime_utc_now()
+        else:
+            end_timestamp = None
+
+        # Update liveaction object in memory (not persisted yet)
+        liveaction_db.status = status
+        liveaction_db.result = result
+        if context:
+            liveaction_db.context.update(context)
+        if end_timestamp:
+            liveaction_db.end_timestamp = end_timestamp
+
+        # FIRST: Update ActionExecution DB + publish to RabbitMQ
+        # If this fails with KombuError, exception propagates before LiveAction is persisted
+        # This prevents inconsistent state where liveaction shows succeeded but execution wasn't updated
         with Timer(key="action.executions.update_execution_db"):
             try:
                 executions.update_execution(
@@ -387,10 +399,35 @@ class RunnerContainer(object):
                     set_result_size=True,
                 )
                 extra = {"liveaction_db": liveaction_db}
-                LOG.debug("Updated liveaction after run", extra=extra)
+                LOG.debug("Updated action execution", extra=extra)
             except Exception as e:
                 LOG.exception(
                     "Cannot update action execution for liveaction "
+                    "(id: %s, status: %s, result: %s). "
+                    "LiveAction will not be updated to prevent inconsistent state."
+                    % (liveaction_id, status, result)
+                )
+                raise e
+
+        # live_action_written_to_db_dt = date_utils.get_datetime_utc_now()
+
+        # SECOND: Only if execution update succeeded, persist LiveAction to DB
+        # We only update if state actually changed to avoid unnecessary writes
+        with Timer(key="action.executions.update_liveaction_db"):
+            try:
+                LOG.debug(
+                    "Setting status: %s for liveaction: %s", status, liveaction_id
+                )
+                liveaction_db = update_liveaction_status(
+                    status=status if state_changed else liveaction_db.status,
+                    result=result,
+                    context=context,
+                    end_timestamp=end_timestamp,
+                    liveaction_db=liveaction_db,
+                )
+            except Exception as e:
+                LOG.exception(
+                    "Cannot update liveaction "
                     "(id: %s, status: %s, result: %s)."
                     % (liveaction_id, status, result)
                 )
@@ -460,7 +497,7 @@ class RunnerContainer(object):
         runner.action_name = action_db.name
         runner.liveaction = liveaction_db
         runner.liveaction_id = str(liveaction_db.id)
-        runner.execution = ActionExecution.get(liveaction__id=runner.liveaction_id)
+        runner.execution = ActionExecution.get(liveaction_id=str(runner.liveaction_id))
         runner.execution_id = str(runner.execution.id)
         runner.entry_point = resolved_entry_point
         runner.context = context

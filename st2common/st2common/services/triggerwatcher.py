@@ -23,13 +23,14 @@ from st2common import log as logging
 from st2common.persistence.trigger import Trigger
 from st2common.transport import reactor, publishers
 from st2common.transport import utils as transport_utils
+from st2common.transport.connection_retry_mixin import ConnectionRetryMixin
 from st2common.util import concurrency
 import st2common.util.queues as queue_utils
 
 LOG = logging.getLogger(__name__)
 
 
-class TriggerWatcher(ConsumerMixin):
+class TriggerWatcher(ConnectionRetryMixin, ConsumerMixin):
 
     sleep_interval = 0  # sleep to co-operatively yield after processing each message
 
@@ -72,6 +73,9 @@ class TriggerWatcher(ConsumerMixin):
         self.connection = None
         self._load_thread = None
         self._updates_thread = None
+
+        # Initialize connection retry tracking from mixin
+        self._init_connection_retry()
 
         self._handlers = {
             publishers.CREATE_RK: create_handler,
@@ -125,13 +129,26 @@ class TriggerWatcher(ConsumerMixin):
         concurrency.sleep(self.sleep_interval)
 
     def start(self):
+        """
+        Start the TriggerWatcher and establish RabbitMQ connection.
+
+        The connection retry logic is handled by the ConsumerMixin.run() method
+        which will call on_connection_error() (from ConnectionRetryMixin) when
+        connection failures occur.
+
+        Raises:
+            Exception: If connection cannot be established during initialization
+        """
         try:
             self.connection = transport_utils.get_connection()
             self._updates_thread = concurrency.spawn(self.run)
             self._load_thread = concurrency.spawn(self._load_triggers_from_db)
-        except:
-            LOG.exception("Failed to start watcher.")
-            self.connection.release()
+        except Exception as e:
+            LOG.exception("Failed to start watcher: %s", six.text_type(e))
+            # Only release connection if it was successfully created
+            if self.connection is not None:
+                self.connection.release()
+            raise
 
     def stop(self):
         try:

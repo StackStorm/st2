@@ -26,7 +26,7 @@ except ImportError:
 
 import mock
 import unittest
-from six.moves import http_client
+import http.client as http_client
 
 from st2common.persistence.action import Action
 import st2common.validators.api.action as action_validator
@@ -486,7 +486,7 @@ class ActionsControllerTestCase(
 
         # If enabled field is not provided it should default to True
         data = json.loads(post_resp.body)
-        self.assertDictContainsSubset({"enabled": True}, data)
+        self.assertLessEqual({"enabled": True}.items(), data.items())
 
         self.__do_delete(self.__get_action_id(post_resp))
 
@@ -498,7 +498,7 @@ class ActionsControllerTestCase(
         self.assertEqual(post_resp.status_int, 201)
 
         data = json.loads(post_resp.body)
-        self.assertDictContainsSubset({"enabled": False}, data)
+        self.assertLessEqual({"enabled": False}.items(), data.items())
 
         self.__do_delete(self.__get_action_id(post_resp))
 
