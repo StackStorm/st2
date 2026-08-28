@@ -99,6 +99,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         exit_still_active_check=None,  # default is 300 (st2common.config)
         still_active_check_interval=None,  # default is 2 (st2common.config)
         service_registry=None,  # default is False (st2common.config)
+        bootstrap_enabled=None,  # default is False (st2common.config)
     ):
         tests_config.reset()
         tests_config.parse_args()
@@ -123,6 +124,12 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         if service_registry is not None:
             cfg.CONF.set_override(
                 name="service_registry", override=service_registry, group="coordination"
+            )
+        if bootstrap_enabled is not None:
+            cfg.CONF.set_override(
+                name="bootstrap_enabled",
+                override=bootstrap_enabled,
+                group="workflow_engine",
             )
 
     def test_process(self):
@@ -306,6 +313,7 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
             exit_still_active_check=4,
             still_active_check_interval=1,
             service_registry=True,
+            bootstrap_enabled=True,
         )
 
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
@@ -481,7 +489,9 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         mock.MagicMock(return_value=coordination_service.NoOpLock(name="noop")),
     )
     def test_workflow_engine_shutdown_first_then_start(self):
-        self.reset_config(service_registry=True, exit_still_active_check=0)
+        self.reset_config(
+            service_registry=True, exit_still_active_check=0, bootstrap_enabled=True
+        )
 
         wf_meta = self.get_wf_fixture_meta_data(TEST_PACK_PATH, "sequential.yaml")
         lv_ac_db = lv_db_models.LiveActionDB(action=wf_meta["name"])
