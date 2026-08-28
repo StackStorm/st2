@@ -939,6 +939,13 @@ def register_opts(ignore_errors=False):
             "clustered/rolling-restart environments where a shutdown can "
             "leave shutdown-paused workflows behind that need to be resumed.",
         ),
+        cfg.IntOpt(
+            "bootstrap_lookback_days",
+            default=1,
+            help="When bootstrap_enabled is set, only resume workflows whose "
+            "LiveAction.start_timestamp is within this many days. Prevents "
+            "accidentally resuming ancient paused workflows on engine startup.",
+        ),
     ]
 
     do_register_opts(

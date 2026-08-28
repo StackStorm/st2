@@ -14,6 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import datetime
+
 from oslo_config import cfg
 
 from orquesta import statuses
@@ -37,6 +40,7 @@ from st2common.transport import queues
 from st2common.transport import utils as txpt_utils
 from st2common.util import concurrency
 from st2common.util import action_db as action_utils
+from st2common.util import date as date_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -167,9 +171,14 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         return ex_db_access.ActionExecution.query(**query_filters)
 
     def _get_workflows_paused_during_shutdown(self):
+        lookback_days = cfg.CONF.workflow_engine.bootstrap_lookback_days
+        start_timestamp_gte = date_utils.get_datetime_utc_now() - datetime.timedelta(
+            days=lookback_days
+        )
         query_filters = {
             "status": ac_const.LIVEACTION_STATUS_PAUSED,
             "context__paused_by": WORKFLOW_ENGINE_START_STOP_SEQ,
+            "start_timestamp__gte": start_timestamp_gte,
         }
         return lv_db_access.LiveAction.query(**query_filters)
 
