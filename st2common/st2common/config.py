@@ -931,6 +931,19 @@ def register_opts(ignore_errors=False):
             default=2,
             help="Time interval between subsequent queries to check executions handled by WFE.",
         ),
+        cfg.BoolOpt(
+            "bootstrap_enabled",
+            default=False,
+            help="On leader engine startup, resume workflows that were paused by "
+            "prior all engines complete shutdown. Off by default.",
+        ),
+        cfg.IntOpt(
+            "bootstrap_lookback_days",
+            default=1,
+            help="When bootstrap_enabled is set, only resume workflows whose "
+            "LiveAction.start_timestamp is within this many days. Prevents "
+            "accidentally resuming ancient paused workflows on engine startup.",
+        ),
     ]
 
     do_register_opts(

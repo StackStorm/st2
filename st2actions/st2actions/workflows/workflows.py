@@ -14,6 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
+
+import datetime
+
 from oslo_config import cfg
 
 from orquesta import statuses
@@ -37,6 +40,7 @@ from st2common.transport import queues
 from st2common.transport import utils as txpt_utils
 from st2common.util import concurrency
 from st2common.util import action_db as action_utils
+from st2common.util import date as date_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -107,7 +111,12 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 self._active_messages -= 1
 
     def start(self, wait):
-        spawn_after(self._delay, self._resume_workflows_paused_during_shutdown)
+        # Resuming workflows paused by a prior engine shutdown is opt-in
+        # (off by default). Enable it via workflow_engine.bootstrap_enabled in
+        # environments where rolling restarts can leave shutdown-paused
+        # workflows behind.
+        if cfg.CONF.workflow_engine.bootstrap_enabled:
+            spawn_after(self._delay, self._resume_workflows_paused_during_shutdown)
         super(WorkflowExecutionHandler, self).start(wait=wait)
 
     def shutdown(self):
@@ -129,8 +138,26 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             except GroupNotCreated:
                 pass
 
+            # Determine whether any *other* workflow engine is still a member of
+            # the coordination group. We must exclude our own member id: during a
+            # graceful shutdown this engine may not have deregistered itself yet,
+            # so the raw member list can still contain our own id. Keying off the
+            # raw list is wrong in both directions:
+            #   * If we are the last engine, our own id is still present, so
+            #     "not member_ids" is False and nothing is paused -- leaving the
+            #     running workflows stuck with no engine to drive them.
+            #   * If a peer engine ("engine B") is still up while this engine
+            #     ("engine A") goes down, that peer will keep processing the
+            #     workflows, so we must not pause them.
+            # Excluding our own id makes the decision correct in both cases:
+            # pause only when no other engine remains to take over.
+            our_member_id = coordination.get_member_id()
+            other_member_ids = [
+                member_id for member_id in member_ids if member_id != our_member_id
+            ]
+
             # Check if there are other WFEs in service registry
-            if cfg.CONF.coordination.service_registry and not member_ids:
+            if cfg.CONF.coordination.service_registry and not other_member_ids:
                 ac_ex_dbs = self._get_running_workflows()
                 for ac_ex_db in ac_ex_dbs:
                     lv_ac = action_utils.get_liveaction_by_id(ac_ex_db.liveaction_id)
@@ -144,9 +171,14 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         return ex_db_access.ActionExecution.query(**query_filters)
 
     def _get_workflows_paused_during_shutdown(self):
+        lookback_days = cfg.CONF.workflow_engine.bootstrap_lookback_days
+        start_timestamp_gte = date_utils.get_datetime_utc_now() - datetime.timedelta(
+            days=lookback_days
+        )
         query_filters = {
             "status": ac_const.LIVEACTION_STATUS_PAUSED,
             "context__paused_by": WORKFLOW_ENGINE_START_STOP_SEQ,
+            "start_timestamp__gte": start_timestamp_gte,
         }
         return lv_db_access.LiveAction.query(**query_filters)
 

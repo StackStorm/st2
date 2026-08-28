@@ -388,6 +388,10 @@ logging = /etc/st2/logging.timersengine.conf
 webui_base_url = https://localhost
 
 [workflow_engine]
+# On leader engine startup, resume workflows that were paused by prior all engines complete shutdown. Off by default.
+bootstrap_enabled = False
+# When bootstrap_enabled is set, only resume workflows whose LiveAction.start_timestamp is within this many days. Prevents accidentally resuming ancient paused workflows on engine startup.
+bootstrap_lookback_days = 1
 # How long to wait for process (in seconds) to exit after receiving shutdown signal.
 exit_still_active_check = 300
 # Max seconds to allow workflow execution be idled before it is identified as orphaned and cancelled by the garbage collector. A value of zero means the feature is disabled. This is disabled by default.
