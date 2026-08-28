@@ -166,6 +166,7 @@ Added
   Run the `st2common/bin/migrations/v3.10/st2-add-task-item-state-collection` migration to create the
   new collection and its indexes before running itemized tasks.
   Contributed by @guzzijones12
+
 * Pinned DOCKER_API_VERSION in the circleci build to make sure the docker-cli api version does not exceed what
   `cicrleci docker24 <https://circleci.com/docs/guides/execution-managed/building-docker-images/>`_ supports
 
