@@ -934,10 +934,8 @@ def register_opts(ignore_errors=False):
         cfg.BoolOpt(
             "bootstrap_enabled",
             default=False,
-            help="On engine startup, resume workflows that were paused by a "
-            "prior engine shutdown. Off by default; enable in "
-            "clustered/rolling-restart environments where a shutdown can "
-            "leave shutdown-paused workflows behind that need to be resumed.",
+            help="On leader engine startup, resume workflows that were paused by "
+            "prior all engines complete shutdown. Off by default.",
         ),
         cfg.IntOpt(
             "bootstrap_lookback_days",

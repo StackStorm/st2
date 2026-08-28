@@ -42,7 +42,7 @@ Added
 ~~~~~
 * added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
 * added ``[workflow_engine].bootstrap_enabled`` option (default ``False``) to make resuming
-  shutdown-paused workflows on engine startup opt-in. Enable it in clustered/rolling-restart
+  shutdown-paused workflows on engine startup opt-in.
   environments where a shutdown can leave shutdown-paused workflows behind. (by @guzzijones12@gmail.com)
 * added ``[workflow_engine].bootstrap_lookback_days`` option (default ``1``) to bound resume-on-startup
   to workflows whose ``start_timestamp`` is within the given number of days, preventing accidental
