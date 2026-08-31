@@ -34,9 +34,9 @@ webtest==3.0.1
 rstcheck==6.2.1
 tox==4.14.2
 pyrabbit
-prance==23.6.21.0
+prance==25.4.8.0
 # pip-tools provides pip-compile: to check for version conflicts
-pip-tools==7.4.1
+pip-tools==7.5.3
 pytest==7.0.1
 pytest-benchmark[histogram]==3.4.1
 pytest-icdiff==0.9

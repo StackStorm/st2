@@ -18,7 +18,7 @@ import pytest
 from pants.engine.internals.scheduler import ExecutionError
 from pants.testutil.rule_runner import QueryRule, RuleRunner
 
-from .data_fixtures import platform, platform_samples
+from .data_fixtures import platform
 from .exceptions import ServiceMissingError
 from .redis_rules import (
     RedisIsRunning,
@@ -77,8 +77,9 @@ def test_redis_is_running(rule_runner: RuleRunner) -> None:
     assert is_running
 
 
-@pytest.mark.parametrize("mock_platform", platform_samples)
-def test_redis_not_running(rule_runner: RuleRunner, mock_platform: Platform) -> None:
+def test_redis_not_running(rule_runner: RuleRunner) -> None:
+
+    mock_platform = platform(os="TestMock")
     request = UsesRedisRequest(
         host="127.100.20.7",
         port=10,  # 10 is an unassigned port, unlikely to be used

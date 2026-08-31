@@ -1,5 +1,6 @@
 ---
 task1:
+  id: 54c6b6d60640fd4f5354e74a
   action: executions.local
   callback: {}
   end_timestamp: '2014-09-01T00:00:05.000000Z'
@@ -18,6 +19,7 @@ task1:
   start_timestamp: '2014-09-01T00:00:02.000000Z'
   status: succeeded
 task2:
+  id: 54c6b6d60640fd4f5354e74a
   action: executions.local
   callback: {}
   end_timestamp: '2014-09-01T00:00:05.000000Z'
@@ -36,6 +38,7 @@ task2:
   start_timestamp: '2014-09-01T00:00:03.000000Z'
   status: succeeded
 workflow:
+  id: 54c6b6d60640fd4f5354e74a
   action: executions.chain
   callback: {}
   end_timestamp: '2014-09-01T00:00:05.000000Z'

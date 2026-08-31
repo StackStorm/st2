@@ -3,6 +3,11 @@
 *.log
 *.orig
 .stamp*
+.agents/
+.clinerules/
+.agents
+.clinerules
+
 
 # C extensions
 *.so

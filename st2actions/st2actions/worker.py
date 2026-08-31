@@ -17,6 +17,8 @@ from __future__ import absolute_import
 import sys
 import traceback
 
+from amqp import exceptions as amqp_exceptions
+from kombu import exceptions as kombu_exceptions
 from tooz.coordination import GroupNotCreated
 from oslo_config import cfg
 
@@ -27,6 +29,7 @@ from st2common.exceptions.actionrunner import ActionRunnerException
 from st2common.exceptions.db import StackStormDBObjectNotFoundError
 from st2common.models.db.liveaction import LiveActionDB
 from st2common.persistence.execution import ActionExecution
+from st2common.persistence.liveaction import LiveAction
 from st2common.services import coordination
 from st2common.services import executions
 from st2common.services import workflows as wf_svc
@@ -176,16 +179,46 @@ class ActionExecutionDispatcher(MessageHandler):
         # stamp liveaction with process_info
         runner_info = system_info.get_process_info()
 
-        # Update liveaction status to "running"
+        # Capture the previous status for potential rollback
+        previous_status = liveaction_db.status
+
+        # Update liveaction status to "running" first (without publish to queue)
+        # This prevents the job from being re-dispatched if ActionExecution update fails
         liveaction_db = action_utils.update_liveaction_status(
             status=action_constants.LIVEACTION_STATUS_RUNNING,
             runner_info=runner_info,
             liveaction_id=liveaction_db.id,
+            publish=False,  # Don't publish yet - wait until ActionExecution succeeds
         )
-
         self._running_liveactions.add(liveaction_db.id)
 
-        action_execution_db = executions.update_execution(liveaction_db)
+        try:
+            # Update ActionExecution to match LiveAction
+            # If this fails with KombuError or AMQPError, the persistence layer will handle
+            # ActionExecution rollback, but we also need to rollback LiveAction
+            action_execution_db = executions.update_execution(liveaction_db)
+
+            # Both updates succeeded - now publish LiveAction status to the queue
+            # This is the final step that makes the status change visible to the system
+            LiveAction.publish_status(liveaction_db)
+
+        except (kombu_exceptions.KombuError, amqp_exceptions.AMQPError):
+            # KombuError or AMQPError during ActionExecution update or LiveAction publish
+            # Rollback LiveAction to prevent orphaned "running" status
+            LOG.warning(
+                "AMQP/Kombu error occurred during execution update for liveaction %s. "
+                "Rolling back LiveAction status from 'running' to '%s'.",
+                liveaction_db.id,
+                previous_status,
+            )
+            # Restore previous status without publishing (to avoid another KombuError)
+            action_utils.update_liveaction_status(
+                status=previous_status,
+                liveaction_id=liveaction_db.id,
+                publish=False,
+            )
+            # Re-raise to trigger process exit for K8s restart
+            raise
 
         # Launch action
         extra = {
@@ -235,7 +268,7 @@ class ActionExecutionDispatcher(MessageHandler):
         return result
 
     def _cancel_action(self, liveaction_db):
-        action_execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        action_execution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
         extra = {
             "action_execution_db": action_execution_db,
             "liveaction_db": liveaction_db,
@@ -265,7 +298,7 @@ class ActionExecutionDispatcher(MessageHandler):
         return result
 
     def _pause_action(self, liveaction_db):
-        action_execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        action_execution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
         extra = {
             "action_execution_db": action_execution_db,
             "liveaction_db": liveaction_db,
@@ -294,7 +327,7 @@ class ActionExecutionDispatcher(MessageHandler):
         return result
 
     def _resume_action(self, liveaction_db):
-        action_execution_db = ActionExecution.get(liveaction__id=str(liveaction_db.id))
+        action_execution_db = ActionExecution.get(liveaction_id=str(liveaction_db.id))
         extra = {
             "action_execution_db": action_execution_db,
             "liveaction_db": liveaction_db,
@@ -334,5 +367,16 @@ class ActionExecutionDispatcher(MessageHandler):
 
 
 def get_worker():
+    """
+    Create and return an ActionExecutionDispatcher worker.
+
+    The worker connects to the messaging broker using connection retry settings
+    from the configuration. If the broker is unavailable and max retry attempts
+    are exhausted, the connection will raise an exception causing the process
+    to exit. This allows process supervisors (systemd, K8s) to restart the service.
+
+    :return: ActionExecutionDispatcher instance
+    :rtype: ActionExecutionDispatcher
+    """
     with transport_utils.get_connection() as conn:
         return ActionExecutionDispatcher(conn, ACTIONRUNNER_QUEUES)

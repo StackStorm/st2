@@ -118,12 +118,13 @@ def get_metadata(package_name):
 
     :rtype: ``list`` of ``dict``
     """
-    import pkg_resources
+    import importlib_resources
 
-    file_path = pkg_resources.resource_filename(package_name, MANIFEST_FILE_NAME)
+    ref = importlib_resources.files(package_name) / MANIFEST_FILE_NAME
 
-    with open(file_path, "r") as fp:
-        content = fp.read()
+    with importlib_resources.as_file(ref) as file_path:
+        with open(file_path, "r") as fp:
+            content = fp.read()
 
     metadata = yaml.safe_load(content)
     return metadata

@@ -21,6 +21,7 @@ import sys
 from oslo_config import cfg
 from oslo_config.sources._environment import EnvironmentConfigurationSource
 
+from st2common.constants.compression import ZSTANDARD_COMPRESS, VALID_COMPRESS
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 from st2common.constants.runners import PYTHON_RUNNER_DEFAULT_LOG_LEVEL
@@ -323,6 +324,14 @@ def register_opts(ignore_errors=False):
             "MONGODB-CR (MongoDB Challenge Response protocol) for older servers.",
         ),
         cfg.StrOpt(
+            "parameter_result_compression",
+            default=ZSTANDARD_COMPRESS,
+            required=True,
+            choices=VALID_COMPRESS,
+            help="compression for parameter and result storage in liveaction and "
+            "execution models",
+        ),
+        cfg.StrOpt(
             "compressors",
             default="",
             help="Comma delimited string of compression algorithms to use for transport level "
@@ -362,6 +371,29 @@ def register_opts(ignore_errors=False):
             "connection_retry_wait",
             default=10000,
             help="How long should we wait between connection retries.",
+        ),
+        cfg.IntOpt(
+            "connection_retry_max_attempts",
+            default=10,
+            help="Maximum number of retry attempts for broker connection and reconnection. "
+            "This prevents infinite retry loops when the broker is unavailable. "
+            "Applies to both initial connection and reconnection during message publishing. "
+            "Set to 0 to retry indefinitely (not recommended).",
+        ),
+        cfg.IntOpt(
+            "connection_retry_interval_start",
+            default=1,
+            help="Starting retry interval in seconds for broker connection attempts.",
+        ),
+        cfg.IntOpt(
+            "connection_retry_interval_step",
+            default=1,
+            help="Increment for retry interval after each attempt (seconds).",
+        ),
+        cfg.IntOpt(
+            "connection_retry_interval_max",
+            default=30,
+            help="Maximum retry interval in seconds for broker connection attempts.",
         ),
         cfg.BoolOpt(
             "ssl",

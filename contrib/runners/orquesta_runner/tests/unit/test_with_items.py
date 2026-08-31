@@ -223,6 +223,16 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         )
         lv_ac_db, ac_ex_db = action_service.request(lv_ac_db)
 
+        # Manually trigger workflow execution processing for empty items case.
+        # With empty items, the workflow needs explicit processing to complete.
+        from st2common.services import workflows as wf_svc
+
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )
+        if wf_ex_dbs:
+            wf_svc.request_next_tasks(wf_ex_dbs[0])
+
         # Wait for the liveaction to complete.
         lv_ac_db = self._wait_on_status(
             lv_ac_db, action_constants.LIVEACTION_STATUS_SUCCEEDED
@@ -368,7 +378,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -440,7 +450,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -509,7 +519,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -599,7 +609,7 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         # Manually succeed the action executions and process completion.
         for ac_ex in t1_ac_ex_dbs:
             self.set_execution_status(
-                ac_ex.liveaction["id"], action_constants.LIVEACTION_STATUS_SUCCEEDED
+                ac_ex.liveaction_id, action_constants.LIVEACTION_STATUS_SUCCEEDED
             )
 
         t1_ac_ex_dbs = ex_db_access.ActionExecution.query(
@@ -626,6 +636,14 @@ class OrquestaWithItemsTest(st2tests.ExecutionDbTestCase):
         requester = cfg.CONF.system_user.user
         lv_ac_db, ac_ex_db = action_service.request_resume(lv_ac_db, requester)
         self.assertEqual(lv_ac_db.status, action_constants.LIVEACTION_STATUS_RESUMING)
+
+        # Manually trigger workflow execution processing (simulates async workflow engine).
+        from st2common.services import workflows as wf_svc
+
+        wf_ex_dbs = wf_db_access.WorkflowExecution.query(
+            action_execution=str(ac_ex_db.id)
+        )
+        wf_svc.request_next_tasks(wf_ex_dbs[0])
 
         # Check that the workflow execution is running.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))

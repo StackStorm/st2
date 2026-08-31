@@ -104,7 +104,7 @@ def get_runnertype_by_id(runnertype_id):
 
 def get_runnertype_by_name(runnertype_name):
     """
-    Get an runnertype by name.
+    Get a runnertype by name.
     On error, raise ST2ObjectNotFoundError.
     """
     try:
