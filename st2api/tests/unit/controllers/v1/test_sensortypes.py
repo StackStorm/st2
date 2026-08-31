@@ -206,6 +206,28 @@ class SensorTypeControllerTestCase(
         self.assertEqual(resp.status_int, http_client.OK)
         self.assertEqual(len(resp.json), 0)
 
+    def test_get_all_include_attributes_with_health_fields(self):
+        # The CLI (st2 sensor list) requests health fields via include_attributes.
+        # They are not SensorTypeDB fields, so they must be stripped before the
+        # query (otherwise mongoengine 400s) and still merged in from the health
+        # record afterwards. This mirrors the request st2-self-check issues.
+        running_ref = f"{DUMMY_PACK_1}.SampleSensor"
+        self._create_health_record(
+            running_ref, DUMMY_PACK_1, SENSOR_STATUS_RUNNING, pid=100
+        )
+
+        resp = self.app.get(
+            "/v1/sensortypes?include_attributes=ref,pack,enabled,status,updated_at"
+        )
+        self.assertEqual(resp.status_int, http_client.OK)
+        item_by_ref = {item["ref"]: item for item in resp.json}
+        # DB-backed included field is present.
+        self.assertIn("pack", item_by_ref[running_ref])
+        # Synthetic health fields are merged in even though they were stripped
+        # from the DB query.
+        self.assertEqual(item_by_ref[running_ref]["status"], SENSOR_STATUS_RUNNING)
+        self.assertIsNotNone(item_by_ref[running_ref]["updated_at"])
+
     def test_disable_and_enable_sensor(self):
         # Verify initial state
         resp = self.app.get(f"/v1/sensortypes/{DUMMY_PACK_1}.SampleSensor")

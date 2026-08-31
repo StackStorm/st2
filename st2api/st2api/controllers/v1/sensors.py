@@ -54,11 +54,7 @@ class SensorTypeController(resource.ContentPackResourceController):
 
     options = {"sort": ["pack", "name"]}
 
-    # Runtime health fields merged in from SensorInstanceDB (keyed by sensor ref).
-    # This is an explicit allow-list: it must stay in sync with the read-only
-    # health fields declared on the SensorTypeAPI schema. Adding a field to
-    # SensorInstanceDB does not expose it here until it is added to both places.
-    # (updated_at is handled separately in _apply_health.)
+    # Explicit allow-list of runtime health fields merged in from SensorInstanceDB; must stay in sync with the read-only fields on SensorTypeAPI (updated_at handled separately in _apply_health).
     HEALTH_ATTRIBUTES = [
         "status",
         "hostname",
@@ -66,6 +62,9 @@ class SensorTypeController(resource.ContentPackResourceController):
         "exit_code",
         "respawn_count",
     ]
+
+    # Synthetic fields merged from SensorInstanceDB (not SensorTypeDB fields); stripped from include/exclude lists before querying and re-applied in _apply_health.
+    _SYNTHETIC_HEALTH_FIELDS = set(HEALTH_ATTRIBUTES) | {"updated_at"}
 
     def get_all(
         self,
@@ -77,8 +76,7 @@ class SensorTypeController(resource.ContentPackResourceController):
         requester_user=None,
         **raw_filters,
     ):
-        # "status" is not a SensorTypeDB field - it lives in SensorInstanceDB.
-        # Resolve it to the set of matching sensor refs and constrain the query.
+        # "status" lives in SensorInstanceDB, not SensorTypeDB - resolve it to matching refs and constrain the query.
         status = raw_filters.pop("status", None)
         if status:
             try:
@@ -100,6 +98,22 @@ class SensorTypeController(resource.ContentPackResourceController):
                 return resp
 
             raw_filters["ref"] = refs
+
+        # Health fields are merged in post-query; strip them from include/exclude lists but keep "ref" for correlation.
+        if include_attributes:
+            include_attributes = [
+                attribute
+                for attribute in include_attributes
+                if attribute not in self._SYNTHETIC_HEALTH_FIELDS
+            ]
+            if "ref" not in include_attributes:
+                include_attributes.append("ref")
+        if exclude_attributes:
+            exclude_attributes = [
+                attribute
+                for attribute in exclude_attributes
+                if attribute not in self._SYNTHETIC_HEALTH_FIELDS
+            ]
 
         return super(SensorTypeController, self)._get_all(
             exclude_fields=exclude_attributes,
