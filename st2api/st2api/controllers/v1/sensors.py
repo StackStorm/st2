@@ -15,6 +15,7 @@
 
 import six
 from mongoengine import ValidationError
+from mongoengine.errors import MongoEngineException
 
 from st2common import log as logging
 from st2common.persistence.sensor import SensorType
@@ -54,6 +55,10 @@ class SensorTypeController(resource.ContentPackResourceController):
     options = {"sort": ["pack", "name"]}
 
     # Runtime health fields merged in from SensorInstanceDB (keyed by sensor ref).
+    # This is an explicit allow-list: it must stay in sync with the read-only
+    # health fields declared on the SensorTypeAPI schema. Adding a field to
+    # SensorInstanceDB does not expose it here until it is added to both places.
+    # (updated_at is handled separately in _apply_health.)
     HEALTH_ATTRIBUTES = [
         "status",
         "hostname",
@@ -83,7 +88,7 @@ class SensorTypeController(resource.ContentPackResourceController):
                         status=status, only_fields=["ref"]
                     )
                 ]
-            except Exception:
+            except MongoEngineException:
                 LOG.warning(
                     "Failed to resolve sensor refs for status filter", exc_info=True
                 )
@@ -168,7 +173,7 @@ class SensorTypeController(resource.ContentPackResourceController):
         try:
             instances = SensorInstance.query(ref__in=refs)
             return {instance.ref: instance for instance in instances}
-        except Exception:
+        except MongoEngineException:
             LOG.warning("Failed to load sensor health records", exc_info=True)
             return {}
 
