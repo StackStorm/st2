@@ -44,6 +44,9 @@ Added
   exit code, respawn count, last updated). The health fields are merged into the ``/v1/sensors`` API
   response and shown by ``st2 sensor list`` / ``st2 sensor get``, and can be filtered with
   ``st2 sensor list --status=abandoned``.
+* Added a ``status`` column to ``st2 sensor list`` and the sensor runtime health fields (``status``,
+  ``hostname``, ``pid``, ``exit_code``, ``respawn_count``, ``updated_at``) to ``st2 sensor get`` output
+  in the ``st2`` CLI. (by @guzzijones12@gmail.com)
 * Added ``[sensorcontainer].max_respawn_count``, ``[sensorcontainer].respawn_delay`` and
   ``[sensorcontainer].respawn_backoff_factor`` config options to control how many times a crashed
   sensor is respawned before being abandoned and how long to wait between attempts. The backoff
