@@ -3191,6 +3191,16 @@ paths:
           in: query
           description: Enabled filter
           type: string
+        - name: ref
+          in: query
+          description: Sensor ref filter (one or more "<pack>.<name>" refs)
+          type: array
+          items:
+            type: string
+        - name: status
+          in: query
+          description: Runtime status filter (running, stopped, abandoned)
+          type: string
       x-parameters:
         - name: user
           in: context
