@@ -14,8 +14,9 @@
 # limitations under the License.
 
 from __future__ import absolute_import
-import eventlet
 import mock
+
+from st2common.util import concurrency
 
 from st2common.bootstrap import actionsregistrar
 from st2common.bootstrap import runnersregistrar
@@ -221,7 +222,7 @@ class TestActionChainNotifications(ExecutionDbTestCase):
                     % (expected_children, found_children)
                 )
 
-            eventlet.sleep(interval)
+            concurrency.sleep(interval)
 
         found_children = len(getattr(execution, "children", []))
 

@@ -2,6 +2,7 @@
 apscheduler
 python-dateutil
 eventlet
+gevent
 jsonpath-rw
 jsonschema
 kombu

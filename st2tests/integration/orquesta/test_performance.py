@@ -17,13 +17,13 @@
 
 from __future__ import absolute_import
 
-import eventlet
 import json
 
 from integration.orquesta import base
 from six.moves import range
 
 from st2common.constants import action as ac_const
+from st2common.util import concurrency
 
 
 class WiringTest(base.TestWorkflowExecution):
@@ -35,7 +35,7 @@ class WiringTest(base.TestWorkflowExecution):
         wf_input = {"vm_name": "demo1", "meta": {"demo1.itests.org": "10.3.41.99"}}
         exs = [self._execute_workflow(wf_name, wf_input) for i in range(load_count)]
 
-        eventlet.sleep(delay_poll)
+        concurrency.sleep(delay_poll)
 
         for ex in exs:
             e = self._wait_for_completion(ex)

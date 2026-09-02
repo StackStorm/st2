@@ -18,6 +18,7 @@ Module for performing eventlet and other monkey patching.
 """
 
 from __future__ import absolute_import
+from st2common.util.concurrency import get_concurrency_library
 
 import os
 import sys
@@ -45,15 +46,25 @@ def monkey_patch(patch_thread=None):
                          patched unless debugger is used.
     :type patch_thread: ``bool``
     """
-    import eventlet
+    concurrency_library = get_concurrency_library()
+    if concurrency_library == "eventlet":
+        import eventlet
 
-    if patch_thread is None:
-        patch_thread = not is_use_debugger_flag_provided()
+        if patch_thread is None:
+            patch_thread = not is_use_debugger_flag_provided()
 
-    # TODO: support gevent.patch_all if .concurrency.CONCURRENCY_LIBRARY = "gevent"
-    eventlet.monkey_patch(
-        os=True, select=True, socket=True, thread=patch_thread, time=True
-    )
+        eventlet.monkey_patch(
+            os=True, select=True, socket=True, thread=patch_thread, time=True
+        )
+    elif concurrency_library == "gevent":
+        # Match what eventlet was enabling, fallback on gevent defaults
+        import gevent
+
+        gevent.monkey.patch_all(
+            os=True, select=True, thread=True, time=True, socket=True
+        )
+    else:
+        raise RuntimeError(f"Unsupported concurrency library {concurrency_library}")
 
 
 def use_select_poll_workaround(nose_only=True):
@@ -79,30 +90,31 @@ def use_select_poll_workaround(nose_only=True):
                       runner.
     :type nose_only: ``bool``
     """
-    import sys
-    import select
-    import subprocess
-    import eventlet
+    if get_concurrency_library() == "eventlet":
+        import sys
+        import select
+        import subprocess
+        import eventlet
 
-    # Work around to get tests to pass with eventlet >= 0.20.0
-    if not nose_only or (
-        nose_only
-        # sys._called_from_test set in conftest.py for pytest runs
-        and ("nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"))
-    ):
-        # Add back blocking poll() to eventlet monkeypatched select
-        original_poll = eventlet.patcher.original("select").poll
-        select.poll = original_poll
+        # Work around to get tests to pass with eventlet >= 0.20.0
+        if not nose_only or (
+            nose_only
+            # sys._called_from_test set in conftest.py for pytest runs
+            and ("nose" in sys.modules.keys() or hasattr(sys, "_called_from_test"))
+        ):
+            # Add back blocking poll() to eventlet monkeypatched select
+            original_poll = eventlet.patcher.original("select").poll
+            select.poll = original_poll
 
-        sys.modules["select"] = select
-        subprocess.select = select
+            sys.modules["select"] = select
+            subprocess.select = select
 
-        if sys.version_info >= (3, 6, 5):
-            # If we also don't patch selectors.select, it will fail with Python >= 3.6.5
-            import selectors  # pylint: disable=import-error
+            if sys.version_info >= (3, 6, 5):
+                # If we also don't patch selectors.select, it will fail with Python >= 3.6.5
+                import selectors  # pylint: disable=import-error
 
-            sys.modules["selectors"] = selectors
-            selectors.select = sys.modules["select"]
+                sys.modules["selectors"] = selectors
+                selectors.select = sys.modules["select"]
 
 
 def is_use_debugger_flag_provided():

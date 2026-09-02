@@ -18,37 +18,43 @@ import random
 
 from six.moves import http_client
 import requests
-import eventlet
-from eventlet.green import subprocess
 import pytest
+
+from st2common.util import concurrency
 
 import st2tests.config
 from st2common.models.utils import profiling
 from st2common.util.shell import kill_process
 from st2tests.base import IntegrationTestCase
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ST2_CONFIG_PATH = os.path.join(BASE_DIR, "../../../conf/st2.tests.conf")
+
+# Gunicorn's worker class must match the concurrency library the spawned process will
+# use (per ST2_CONFIG_PATH above), or the WSGI worker hangs: eventlet/gevent monkey
+# patching under the other library's gunicorn worker doesn't work.
+GUNICORN_WORKER_CLASS = concurrency._get_concurrency_library_from_conf(ST2_CONFIG_PATH)
 
 
 class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     @pytest.mark.skipif(profiling.is_enabled(), reason="Profiling is enabled")
     def test_st2api_wsgi_entry_point(self):
         port = random.randint(10000, 30000)
-        cmd = (
-            'gunicorn st2api.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1'
-            % port
+        cmd = 'gunicorn st2api.wsgi:application -k %s -b "127.0.0.1:%s" --workers 1' % (
+            GUNICORN_WORKER_CLASS,
+            port,
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
         env.update(st2tests.config.db_opts_as_env_vars())
         env.update(st2tests.config.mq_opts_as_env_vars())
         env.update(st2tests.config.coord_opts_as_env_vars())
-        process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
+        process = concurrency.subprocess_popen(
+            cmd, env=env, shell=True, preexec_fn=os.setsid
+        )
         try:
             self.add_process(process=process)
-            eventlet.sleep(8)
+            concurrency.sleep(8)
             self.assertProcessIsRunning(process=process)
             response = requests.get("http://127.0.0.1:%s/v1/actions" % (port))
             self.assertEqual(response.status_code, http_client.OK)
@@ -59,18 +65,20 @@ class GunicornWSGIEntryPointTestCase(IntegrationTestCase):
     def test_st2auth(self):
         port = random.randint(10000, 30000)
         cmd = (
-            'gunicorn st2auth.wsgi:application -k eventlet -b "127.0.0.1:%s" --workers 1'
-            % port
+            'gunicorn st2auth.wsgi:application -k %s -b "127.0.0.1:%s" --workers 1'
+            % (GUNICORN_WORKER_CLASS, port)
         )
         env = os.environ.copy()
         env["ST2_CONFIG_PATH"] = ST2_CONFIG_PATH
         env.update(st2tests.config.db_opts_as_env_vars())
         env.update(st2tests.config.mq_opts_as_env_vars())
         env.update(st2tests.config.coord_opts_as_env_vars())
-        process = subprocess.Popen(cmd, env=env, shell=True, preexec_fn=os.setsid)
+        process = concurrency.subprocess_popen(
+            cmd, env=env, shell=True, preexec_fn=os.setsid
+        )
         try:
             self.add_process(process=process)
-            eventlet.sleep(8)
+            concurrency.sleep(8)
             self.assertProcessIsRunning(process=process)
             response = requests.post("http://127.0.0.1:%s/tokens" % (port))
             self.assertEqual(response.status_code, http_client.UNAUTHORIZED)
