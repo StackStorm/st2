@@ -21,3 +21,27 @@ DEFAULT_PARTITION_LOADER = "default"
 KVSTORE_PARTITION_LOADER = "kvstore"
 FILE_PARTITION_LOADER = "file"
 HASH_PARTITION_LOADER = "hash"
+
+# Sensor respawn / retry defaults (overridable via the [sensorcontainer] config
+# group: max_respawn_count, respawn_delay, respawn_backoff_factor).
+#
+# How many times to subsequently respawn a sensor after a non-zero exit before
+# giving up (and firing the process_abandoned trigger).
+DEFAULT_SENSOR_MAX_RESPAWN_COUNT = 2
+# Base delay (in seconds) to wait between respawn attempts.
+DEFAULT_SENSOR_RESPAWN_DELAY = 2.5
+# Exponential backoff multiplier applied to the base delay per attempt. A value
+# of 1 (the default) means a constant delay between attempts; a value > 1 grows
+# the delay exponentially (delay * factor ** (attempt - 1)).
+DEFAULT_SENSOR_RESPAWN_BACKOFF_FACTOR = 1.0
+
+# Runtime status values recorded for a running sensor instance (SensorInstanceDB)
+SENSOR_STATUS_RUNNING = "running"
+SENSOR_STATUS_STOPPED = "stopped"
+SENSOR_STATUS_ABANDONED = "abandoned"
+
+SENSOR_STATUSES = [
+    SENSOR_STATUS_RUNNING,
+    SENSOR_STATUS_STOPPED,
+    SENSOR_STATUS_ABANDONED,
+]

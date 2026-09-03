@@ -306,8 +306,14 @@ version = 4
 [sensorcontainer]
 # location of the logging.conf file
 logging = /etc/st2/logging.sensorcontainer.conf
+# Maximum number of times to respawn a sensor after it exits with a non-zero code before giving up and firing the st2.sensor.process_abandoned trigger.
+max_respawn_count = 2
 # Provider of sensor node partition config.
 partition_provider = name:default
+# Exponential backoff multiplier applied to respawn_delay per attempt. 1 (default) means a constant delay between attempts; a value > 1 grows the delay exponentially (respawn_delay * factor ** (attempt - 1)).
+respawn_backoff_factor = 1.0
+# Base delay (in seconds) to wait between sensor respawn attempts.
+respawn_delay = 2.5
 # name of the sensor node.
 sensor_node_name = sensornode1
 # Run in a single sensor mode where parent process exits when a sensor crashes / dies. This is useful in environments where partitioning, sensor process life cycle and failover is handled by a 3rd party service such as kubernetes.

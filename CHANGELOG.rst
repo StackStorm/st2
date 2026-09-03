@@ -38,6 +38,22 @@ Changed
 Added
 ~~~~~
 * added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
+* Added a new internal ``core.st2.sensor.process_abandoned`` trigger which is emitted when the sensor
+  container permanently gives up on a sensor after exceeding the maximum number of respawn attempts.
+  This lets users define their own alerting (email, Slack, workflow, etc.) via a rule instead of a
+  sensor failing silently.
+* Added a ``SensorInstanceDB`` collection tracking each sensor's runtime health (status, hostname, pid,
+  exit code, respawn count, last updated). The health fields are merged into the ``/v1/sensors`` API
+  response and shown by ``st2 sensor list`` / ``st2 sensor get``, and can be filtered with
+  ``st2 sensor list --status=abandoned``.
+* Added a ``status`` column to ``st2 sensor list`` and the sensor runtime health fields (``status``,
+  ``hostname``, ``pid``, ``exit_code``, ``respawn_count``, ``updated_at``) to ``st2 sensor get`` output
+  in the ``st2`` CLI. (by @guzzijones12@gmail.com)
+* Added ``[sensorcontainer].max_respawn_count``, ``[sensorcontainer].respawn_delay`` and
+  ``[sensorcontainer].respawn_backoff_factor`` config options to control how many times a crashed
+  sensor is respawned before being abandoned and how long to wait between attempts. The backoff
+  factor defaults to ``1`` (a constant ``respawn_delay`` between attempts); a value greater than ``1``
+  grows the delay exponentially.
 
 3.9.0 - October 10, 2025
 ------------------------

@@ -19,6 +19,7 @@ import os
 import sys
 import time
 import json
+import socket
 import subprocess
 
 from collections import defaultdict
@@ -28,13 +29,23 @@ from oslo_config import cfg
 
 from st2common import log as logging
 from st2common.util import concurrency
+from st2common.util import date as date_utils
 from st2common.constants.error_messages import PACK_VIRTUALENV_DOESNT_EXIST
 from st2common.constants.system import API_URL_ENV_VARIABLE_NAME
 from st2common.constants.system import AUTH_TOKEN_ENV_VARIABLE_NAME
 from st2common.constants.triggers import SENSOR_SPAWN_TRIGGER, SENSOR_EXIT_TRIGGER
+from st2common.constants.triggers import SENSOR_ABANDONED_TRIGGER
+from st2common.constants.sensors import SENSOR_STATUS_RUNNING
+from st2common.constants.sensors import SENSOR_STATUS_STOPPED
+from st2common.constants.sensors import SENSOR_STATUS_ABANDONED
+from st2common.constants.sensors import DEFAULT_SENSOR_MAX_RESPAWN_COUNT
+from st2common.constants.sensors import DEFAULT_SENSOR_RESPAWN_DELAY
+from st2common.constants.sensors import DEFAULT_SENSOR_RESPAWN_BACKOFF_FACTOR
 from st2common.constants.exit_codes import SUCCESS_EXIT_CODE
 from st2common.constants.exit_codes import FAILURE_EXIT_CODE
+from st2common.models.db.sensor_instance import SensorInstanceDB
 from st2common.models.system.common import ResourceReference
+from st2common.persistence.sensor_instance import SensorInstance
 from st2common.services.access import create_token
 from st2common.transport.reactor import TriggerDispatcher
 from st2common.util.api import get_full_public_api_url
@@ -52,15 +63,19 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 WRAPPER_SCRIPT_NAME = "sensor_wrapper.py"
 WRAPPER_SCRIPT_PATH = os.path.join(BASE_DIR, WRAPPER_SCRIPT_NAME)
 
-# How many times to try to subsequently respawn a sensor after a non-zero exit before giving up
-SENSOR_MAX_RESPAWN_COUNTS = 2
+# How many times to try to subsequently respawn a sensor after a non-zero exit before giving up.
+# Note: This is the default; the effective value is configurable via
+# [sensorcontainer].max_respawn_count.
+SENSOR_MAX_RESPAWN_COUNTS = DEFAULT_SENSOR_MAX_RESPAWN_COUNT
 
 # How many seconds after the sensor has been started we should wait before considering sensor as
 # being started and running successfully
 SENSOR_SUCCESSFUL_START_THRESHOLD = 10
 
-# How long to wait (in seconds) before respawning a dead process
-SENSOR_RESPAWN_DELAY = 2.5
+# How long to wait (in seconds) before respawning a dead process.
+# Note: This is the default; the effective value is configurable via
+# [sensorcontainer].respawn_delay.
+SENSOR_RESPAWN_DELAY = DEFAULT_SENSOR_RESPAWN_DELAY
 
 # How long to wait for process to exit after sending SIGTERM signal. If the process doesn't
 # exit in this amount of seconds, SIGKILL signal will be sent to the process.
@@ -113,6 +128,25 @@ class ProcessSensorContainer(object):
         self._processes = {}  # maps sensor_id -> sensor process
 
         self._dispatcher = dispatcher or TriggerDispatcher(LOG)
+
+        self._hostname = socket.gethostname()
+
+        # Respawn / retry behavior (configurable via the [sensorcontainer] group).
+        # Fall back to the module-level defaults if the config group is not
+        # registered (e.g. when the container is constructed outside a fully
+        # configured service).
+        sensor_container_cfg = getattr(cfg.CONF, "sensorcontainer", None)
+        self._max_respawn_count = getattr(
+            sensor_container_cfg, "max_respawn_count", DEFAULT_SENSOR_MAX_RESPAWN_COUNT
+        )
+        self._respawn_delay = getattr(
+            sensor_container_cfg, "respawn_delay", DEFAULT_SENSOR_RESPAWN_DELAY
+        )
+        self._respawn_backoff_factor = getattr(
+            sensor_container_cfg,
+            "respawn_backoff_factor",
+            DEFAULT_SENSOR_RESPAWN_BACKOFF_FACTOR,
+        )
 
         self._stopped = False
         self._exit_code = None  # exit code with which this process should exit
@@ -381,6 +415,9 @@ class ProcessSensorContainer(object):
         self._sensor_start_times[sensor_id] = int(time.time())
 
         self._dispatch_trigger_for_sensor_spawn(sensor=sensor, process=process, cmd=cmd)
+        self._update_sensor_instance(
+            sensor=sensor, status=SENSOR_STATUS_RUNNING, pid=process.pid
+        )
 
         return process
 
@@ -398,6 +435,10 @@ class ProcessSensorContainer(object):
         :type exit__timeout: ``int``
         """
         process = self._processes[sensor_id]
+
+        # Grab a reference to the sensor object before it is deleted below so we
+        # can record its stopped state once the process has exited.
+        sensor = self._sensors.get(sensor_id)
 
         # Delete sensor before terminating process so that it will not be
         # respawned during termination
@@ -422,6 +463,11 @@ class ProcessSensorContainer(object):
         if status is None:
             # Process hasn't exited yet, forcefully kill it
             process.kill()
+
+        if sensor:
+            self._update_sensor_instance(
+                sensor=sensor, status=SENSOR_STATUS_STOPPED, exit_code=status
+            )
 
     def _respawn_sensor(self, sensor_id, sensor, exit_code):
         """
@@ -450,12 +496,38 @@ class ProcessSensorContainer(object):
 
         if not should_respawn:
             LOG.debug("Not respawning a dead sensor", extra=extra)
+
+            # Distinguish a permanent give-up (crashed and exceeded the max
+            # respawn attempts) from an intentional clean exit (exit_code == 0).
+            # Only the former is an "abandoned" sensor worth alerting on.
+            respawn_count = self._sensor_respawn_counts[sensor_id]
+            if exit_code != 0 and respawn_count >= self._max_respawn_count:
+                LOG.warning(
+                    "Sensor %s abandoned after %s respawn attempts",
+                    sensor_id,
+                    respawn_count,
+                    extra=extra,
+                )
+                self._dispatch_trigger_for_sensor_abandon(
+                    sensor=sensor, exit_code=exit_code, respawn_count=respawn_count
+                )
+                self._update_sensor_instance(
+                    sensor=sensor,
+                    status=SENSOR_STATUS_ABANDONED,
+                    exit_code=exit_code,
+                )
             return
 
         LOG.debug("Respawning dead sensor", extra=extra)
 
         self._sensor_respawn_counts[sensor_id] += 1
-        sleep_delay = SENSOR_RESPAWN_DELAY * self._sensor_respawn_counts[sensor_id]
+        respawn_count = self._sensor_respawn_counts[sensor_id]
+        # Wait respawn_delay * backoff_factor ** (attempt - 1) seconds before
+        # respawning. With the default backoff factor of 1 this is a constant
+        # respawn_delay; a factor > 1 grows the delay exponentially per attempt.
+        sleep_delay = self._respawn_delay * (
+            self._respawn_backoff_factor ** (respawn_count - 1)
+        )
         concurrency.sleep(sleep_delay)
 
         try:
@@ -475,7 +547,7 @@ class ProcessSensorContainer(object):
             return False
 
         respawn_count = self._sensor_respawn_counts[sensor_id]
-        if respawn_count >= SENSOR_MAX_RESPAWN_COUNTS:
+        if respawn_count >= self._max_respawn_count:
             LOG.debug("Sensor has already been respawned max times, giving up")
             return False
 
@@ -542,6 +614,53 @@ class ProcessSensorContainer(object):
         now = int(time.time())
         payload = {"id": sensor["class_name"], "timestamp": now, "exit_code": exit_code}
         self._dispatcher.dispatch(trigger, payload=payload)
+
+    def _dispatch_trigger_for_sensor_abandon(self, sensor, exit_code, respawn_count):
+        trigger = ResourceReference.to_string_reference(
+            name=SENSOR_ABANDONED_TRIGGER["name"], pack=SENSOR_ABANDONED_TRIGGER["pack"]
+        )
+        now = int(time.time())
+        payload = {
+            "id": sensor["class_name"],
+            "timestamp": now,
+            "exit_code": exit_code,
+            "respawn_count": respawn_count,
+        }
+        self._dispatcher.dispatch(trigger, payload=payload)
+
+    def _update_sensor_instance(self, sensor, status, exit_code=None, pid=None):
+        """
+        Upsert the persisted runtime health record (SensorInstanceDB) for a sensor.
+
+        A single record exists per sensor ``ref`` and is updated in place on each
+        lifecycle transition. Failures here must never crash the container loop,
+        so all DB errors are caught and logged.
+        """
+        ref = sensor["ref"]
+
+        try:
+            instance_db = SensorInstance.query(ref=ref).first()
+
+            if not instance_db:
+                instance_db = SensorInstanceDB(
+                    ref=ref, pack=sensor["pack"], status=status
+                )
+
+            instance_db.pack = sensor["pack"]
+            instance_db.status = status
+            instance_db.hostname = self._hostname
+            instance_db.pid = pid
+            instance_db.exit_code = exit_code
+            instance_db.respawn_count = self._sensor_respawn_counts[ref]
+            instance_db.updated_at = date_utils.get_datetime_utc_now()
+
+            SensorInstance.add_or_update(
+                instance_db, publish=False, dispatch_trigger=False
+            )
+        except Exception:
+            LOG.warning(
+                "Failed to update sensor instance state for %s", ref, exc_info=True
+            )
 
     def _delete_sensor(self, sensor_id):
         """
