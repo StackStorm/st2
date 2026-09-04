@@ -98,6 +98,7 @@ RUNNER_PARAM_OVERRIDABLE_ATTRS = [
     "enum",
     "immutable",
     "required",
+    "secret",
 ]
 
 
