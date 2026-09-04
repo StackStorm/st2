@@ -1,0 +1,277 @@
+# ##### pull-request-size bot labels ##### #
+- color: "009900" # green
+  description: PR that changes 0-9 lines. Quick fix/merge.
+  name: size/XS
+- color: 77bb00 # yellow-green
+  description: PR that changes 10-29 lines. Very easy to review.
+  name: size/S
+- color: eebb00 # yellow
+  description: PR that changes 30-99 lines. Good size to review.
+  name: size/M
+- color: ee9900 # yellow-orange
+  description: PR that changes 100-499 lines. Requires some effort to review.
+  name: size/L
+- color: ee5500 # orange
+  description: PR that changes 500-999 lines. Consider splitting work into several ones that easier to review.
+  name: size/XL
+- color: ee0000 # red
+  description: PR that changes 1000+ lines. You should absolutely split your PR into several.
+  name: size/XXL
+
+# ##### complexity labels ##### #
+- color: bfe5bf # green
+  description: ""
+  name: complexity:easy
+- color: F0DA27 # yellow
+  description: ""
+  name: complexity:medium
+- color: fad8c7 # red
+  description: ""
+  name: complexity:hard
+
+# ##### TSC labels ##### #
+- color: f58220
+  description: PR managing GOVERNANCE or other TSC documentation
+  name: TSC
+- color: f58220
+  description: Items related to Technical Steering Committee voting
+  name: TSC:voting
+
+# ##### type labels ##### #
+- color: b60205
+  description: ""
+  name: breaking change
+- color: d73a4a # red (standard github)
+  description: Something isn't working
+  name: bug
+- color: d73a4a
+  description: ""
+  name: bug fix
+- color: e5b479
+  description: ""
+  name: deprecation
+- color: a2eeef # light teal (standard github)
+  description: New feature or request
+  name: enhancement
+- color: 207de5
+  description: ""
+  name: feature
+- color: bfd4f2
+  description: ""
+  name: proposal
+- color: d876e3 # pink (standard github)
+  description: Further information is requested
+  name: question
+- color: fbca04
+  description: ""
+  name: refactor
+- color: d93f0b
+  description: ""
+  name: regression
+
+# ##### flag labels ##### #
+- color: 7057ff # purple (standard github)
+  description: Good for newcomers
+  name: good first issue
+- color: 008672 # teal (standard github)
+  description: Extra attention is needed
+  name: help wanted
+- color: ffffff
+  description: ""
+  name: stale
+- color: bfdadc
+  description: ""
+  name: WIP
+
+# ##### status labels ##### #
+- color: cfd3d7 # gray (standard github)
+  description: This issue or pull request already exists
+  name: duplicate # status:duplicate
+- color: e4e669 # yellow (standard github)
+  description: This doesn't seem right
+  name: invalid # status:invalid
+- color: ffffff # white (standard github)
+  description: This will not be worked on
+  name: wontfix # status:wontfix
+- color: C0C0C0
+  description: ""
+  name: status:can't reproduce
+- color: 7b5804
+  description: ""
+  name: status:need more info
+- color: E99695
+  description: ""
+  name: status:needs changes
+- color: D4C5F9
+  description: A manual tag to note PRs that are otherwise ready, but the CLA bot says the CLA has not been signed.
+  name: status:needs cla
+- color: d93f0b
+  description: ""
+  name: status:needs tests
+- color: cccccc
+  description: ""
+  name: status:not an issue
+- color: cccccc
+  description: Feature, design or idea with undecided status to include in the project functionality
+  name: status:on hold
+- color: fbca04
+  description: ""
+  name: status:to be verified
+- color: f7c6c7
+  description: ""
+  name: status:under discussion
+- color: 8FFCDE
+  name: "status: potential performance implications"
+  description: ""
+
+# ##### area/misc labels ##### #
+- color: FFFF5F
+  description: ""
+  name: external dependency
+- color: 2C5B58
+  description: ""
+  name: 'infrastructure: ci/cd'
+- color: 5F5F5F
+  description: ""
+  name: maintenance
+- color: d7e102
+  description: ""
+  name: tests
+
+# ##### area/code_location labels ##### #
+- color: 0075ca # blue (standard github)
+  description: Improvements or additions to documentation
+  name: documentation
+- color: 0075ca # blue
+  description: ""
+  name: API
+- color: 0075ca # blue
+  description: ""
+  name: API/v2
+- color: 0075ca # blue
+  description: ""
+  name: CLI
+- color: 0075ca # blue
+  description: ""
+  name: component:st2auth
+- color: 0075ca # blue
+  description: ""
+  name: component:st2client
+- color: 0075ca # blue
+  description: ""
+  name: component:st2web
+- color: 0075ca # blue
+  description: ""
+  name: migrations
+- color: 0075ca # blue
+  description: ""
+  name: runners
+- color: 0075ca # blue
+  description: ""
+  name: 'service: action runner'
+- color: 0075ca # blue
+  description: ""
+  name: 'service: api'
+- color: 0075ca # blue
+  description: ""
+  name: 'service: auth api'
+- color: 0075ca # blue
+  description: ""
+  name: 'service: rules engine'
+- color: 0075ca # blue
+  description: ""
+  name: 'service: scheduler'
+- color: 0075ca # blue
+  description: ""
+  name: 'service: workflow engine'
+
+# ##### area/python labels ##### #
+- color: 0075ca # blue
+  description: ""
+  name: python3
+- color: 0075ca # blue
+  description: ""
+  name: unicode
+
+# ##### area/pack_resources labels ##### #
+- color: 003459 # blue
+  description: ""
+  name: action aliases
+- color: 003459 # blue
+  description: ""
+  name: chatops
+- color: 003459 # blue
+  description: ""
+  name: inquiries
+- color: 003459 # blue
+  description: ""
+  name: output schema
+- color: 003459 # blue
+  description: ""
+  name: packs
+- color: 003459 # blue
+  description: ""
+  name: policies
+- color: 003459 # blue
+  description: ""
+  name: 'workflows: action chain'
+- color: 003459 # blue
+  description: ""
+  name: 'workflows: orquesta'
+
+# ##### area/external_services labels ##### #
+- color: 8336ff # blue
+  description: ""
+  name: database
+- color: 8336ff # blue
+  description: ""
+  name: mongodb
+- color: 8336ff # blue
+  description: ""
+  name: nginx
+- color: 8336ff # blue
+  description: ""
+  name: rabbitmq
+
+# ##### area/logging_and_performance labels ##### #
+- color: 8336ff # purple
+  description: ""
+  name: logging
+- color: 8336ff # purple
+  description: ""
+  name: metrics
+- color: 8336ff # purple
+  description: ""
+  name: performance
+
+# ##### area/install labels ##### #
+- color: 50209c # purple
+  description: ""
+  name: deployment
+- color: 50209c # purple
+  description: ""
+  name: Docker
+- color: 50209c # purple
+  description: StackStorm in High Availability
+  name: HA
+- color: 50209c # purple
+  description: ""
+  name: ansible
+- color: 50209c # purple
+  description: ""
+  name: K8s
+- color: 50209c # purple
+  description: Support/issues/PRs on a specific OS
+  name: OS support
+- color: 50209c # purple
+  description: ""
+  name: st2-packages
+
+# ##### area/security labels ##### #
+- color: 63112b # red purple
+  description: ""
+  name: RBAC
+- color: 63112b # red purple
+  description: ""
+  name: security
+
