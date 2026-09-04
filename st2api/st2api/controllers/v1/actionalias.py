@@ -112,7 +112,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             return generate_helpstring_result(
                 aliases, filter, pack, int(limit), int(offset)
             )
-        except (TypeError) as e:
+        except TypeError as e:
             LOG.exception(
                 "Helpstring request contains an invalid data type: %s.",
                 six.text_type(e),

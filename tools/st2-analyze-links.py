@@ -99,7 +99,7 @@ class LinksAnalyzer(object):
                 )
             )
         analyzed = self._do_analyze(action_ref=root_action_ref)
-        for (depth, rule_link) in analyzed:
+        for depth, rule_link in analyzed:
             print("%s%s" % ("  " * depth, rule_link))
         return analyzed
 

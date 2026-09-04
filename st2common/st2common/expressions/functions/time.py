@@ -63,7 +63,7 @@ def _get_human_time(seconds):
         return "0s"
 
     if seconds < 1:
-        return "%s\u03BCs" % seconds  # Microseconds
+        return "%s\u03bcs" % seconds  # Microseconds
 
     if isinstance(seconds, float):
         seconds = long_int(round(seconds))  # Let's lose microseconds.

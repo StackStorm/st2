@@ -92,7 +92,6 @@ class PythonRunner(GitWorktreeActionRunner):
         sandbox=True,
         use_parent_args=True,
     ):
-
         """
         :param timeout: Action execution timeout in seconds.
         :type timeout: ``int``

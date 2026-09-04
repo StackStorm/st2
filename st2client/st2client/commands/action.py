@@ -878,7 +878,7 @@ class ActionRunCommandMixin(object):
             # the 'result' to the dict type value.
             if all([isinstance(x, str) and ":" in x for x in result]) and auto_dict:
                 result_dict = {}
-                for (k, v) in [x.split(":") for x in result]:
+                for k, v in [x.split(":") for x in result]:
                     # To parse values using the 'transformer' according to the type which is
                     # specified in the action metadata, calling 'normalize' method recursively.
                     if (
