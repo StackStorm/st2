@@ -9,6 +9,7 @@ input:
   - force
   - skip_dependencies
   - timeout
+  - checkout_submodules
 
 vars:
   - packs_list: null
@@ -30,6 +31,7 @@ tasks:
       packs: <% ctx().packs %>
       force: <% ctx().force %>
       dependency_list: <% ctx().dependency_list %>
+      checkout_submodules: <% ctx().checkout_submodules %>
     next:
       - when: <% succeeded() %>
         do: make_a_prerun
