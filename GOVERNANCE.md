@@ -25,6 +25,15 @@ StackStorm uses a three-tiered system of Maintainer roles:
   * Have good experience with the StackStorm codebase, expected to provide significant value to the project, helping it grow, improve and succeed.
   * Have full member write access to [StackStorm](https://github.com/stackstorm/) and [StackStorm-Exchange](https://github.com/stackstorm-exchange) Github organizations, CI/CD, Moderator at [forum](https://forum.stackstorm.com/), [Slack](https://stackstorm.com/community-signup) and other Community platforms.
   * Receive **one vote** in the voting process.
+* [Chair](OWNERS.md#chair-)
+
+  The char is designated from TSC members every 6 months. The Chair responsibilities are: 
+  * maintaining project policies and procedures
+  * setting agenda, chairing TSC meetings and keeping their records
+  * capturing and tracking agreed actions
+  * tracking project plans, ensure their currency and facilitating execution
+
+  Election procedure: any TSC member can be nominated or self-nominate to the Chair role.  The term is 6 months,  with no limit on the number of terms. TSC members vote publically via [PR, email?]. Voters rate candidates on a ballot in the order of preferences; same preference can be given to multiple candidates. A winner is selected using [Shulze variant of Condorset method](https://en.wikipedia.org/wiki/Schulze_method). Tie is broken with [Governance voting](https://github.com/StackStorm/st2/blob/master/GOVERNANCE.md#conflict-resolution-and-voting).  
 
 ### Maintainer Activities
 * Monitor one or more of: Slack, Forums, and other Communication channels with StackStorm Community (delayed response is perfectly acceptable).
