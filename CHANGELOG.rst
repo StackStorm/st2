@@ -161,6 +161,30 @@ Added
 * Cherry-pick changes to runners.sh from st2-packages git repo. #6302
   Cherry-picked by @cognifloyd
 
+* Added persistent storage for "with items" (itemized) tasks via the new `TaskItemStateDB` model.
+  Each item's state is stored as a separate document, so individual item states can be read and
+  written without serializing / deserializing the entire task context for every item. This
+  significantly improves the performance of workflows that use `with: items` over large item sets.
+  Run the `st2common/bin/migrations/v3.10/st2-add-task-item-state-collection` migration to create the
+  new collection and its indexes before running itemized tasks.
+  The `st2-purge-task-executions` script and the garbage collector now also delete the associated
+  `TaskItemStateDB` records when their parent task executions are purged.
+
+  A micro benchmark (`st2common/benchmarks/micro/test_with_items_state_storage.py`) compares the old
+  inline `TaskExecutionDB.result["items"]` approach against the new per-item `TaskItemStateDB`
+  records. The old approach re-reads and rewrites the entire (growing) `items` list on every single
+  item update, so its total cost is super-linear in the item count; the new approach reads and
+  writes a single small record per item update. Measured (single threaded, ~2 KB per-item result):
+
+    * 10 items:  ~46 ms   vs ~46 ms  (about even)
+    * 100 items: ~540 ms  vs ~441 ms (~1.2x faster)
+    * 500 items: ~4756 ms vs ~2278 ms (~2.1x faster)
+
+  The gap widens further with more items, larger per-item results, and (in production) concurrent
+  item updates, since separate documents avoid the write-conflict retries the shared document
+  suffered. Note: for small item counts the two are effectively tied; the benefit is at scale.
+  Contributed by @guzzijones12
+
 * Pinned DOCKER_API_VERSION in the circleci build to make sure the docker-cli api version does not exceed what
   `cicrleci docker24 <https://circleci.com/docs/guides/execution-managed/building-docker-images/>`_ supports
 
