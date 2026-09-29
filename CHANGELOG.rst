@@ -26,6 +26,11 @@ Fixed
 * Fix utf-8 encode before checking paramter max size #6352
 * Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)
 * Fixed action-alias help API returning 500 when RBAC enabled. #6414 (by @nzlosh)
+* Enforce RBAC on the ``/v1/triggertypes``, ``/v1/triggers`` and ``/v1/triggerinstances`` API
+  endpoints, which previously performed no permission checks. Listing and viewing trigger types
+  and triggers now requires ``trigger_list`` (and ``trigger_view`` on a single trigger).
+  Creating, modifying or deleting them, and listing, viewing or re-emitting trigger instances,
+  now requires an admin.
 
 Changed
 ~~~~~~~

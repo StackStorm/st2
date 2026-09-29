@@ -3857,6 +3857,7 @@ paths:
   /api/v1/triggertypes:
     get:
       operationId: st2api.controllers.v1.triggers:triggertype_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.TRIGGER_LIST }}
       description: Returns a list of all trigger types.
       parameters:
         - name: exclude_attributes
@@ -3932,6 +3933,11 @@ paths:
           description: TriggerType content
           schema:
             $ref: '#/definitions/TriggerTypeRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '201':
           description: Single trigger type being created
@@ -3956,6 +3962,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: TriggerType requested
@@ -3984,6 +3995,11 @@ paths:
           description: TriggerType content
           schema:
             $ref: '#/definitions/TriggerTypeRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: TriggerType updated
@@ -4007,6 +4023,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '204':
           description: TriggerType deleted
@@ -4017,6 +4038,7 @@ paths:
   /api/v1/triggers:
     get:
       operationId: st2api.controllers.v1.triggers:trigger_controller.get_all
+      x-permissions: {{ PERMISSION_TYPE.TRIGGER_LIST }}
       description: Returns a list of all triggers.
       x-parameters:
         - name: user
@@ -4048,6 +4070,11 @@ paths:
           description: Trigger content
           schema:
             $ref: '#/definitions/TriggerRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '201':
           description: Single trigger being created
@@ -4072,6 +4099,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Trigger requested
@@ -4100,6 +4132,11 @@ paths:
           description: Trigger content
           schema:
             $ref: '#/definitions/TriggerRequest'
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Trigger updated
@@ -4123,6 +4160,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '204':
           description: Trigger deleted
@@ -4223,6 +4265,11 @@ paths:
           description: Entity reference or id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Trigger instance requested
@@ -4247,6 +4294,11 @@ paths:
           description: Entity id
           type: string
           required: true
+      x-parameters:
+        - name: user
+          in: context
+          x-as: requester_user
+          description: User performing the operation.
       responses:
         '200':
           description: Trigger instance being re-emitted
