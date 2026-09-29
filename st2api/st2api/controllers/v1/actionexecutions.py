@@ -281,6 +281,27 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             actionexecution_id=id_, descendant_depth=depth, result_fmt=result_fmt
         )
 
+        # A workflow may call actions its viewer has no grant on, so each
+        # descendant is checked on its own rather than inheriting the parent's.
+        # The answer depends only on the descendant's action, and a large
+        # workflow runs a few actions many times, so check each action once.
+        rbac_utils = get_rbac_backend().get_utils_class()
+        can_view_by_action_uid = {}
+
+        def can_view(descendant):
+            action_uid = descendant.action["uid"]
+            if action_uid not in can_view_by_action_uid:
+                can_view_by_action_uid[
+                    action_uid
+                ] = rbac_utils.user_has_resource_db_permission(
+                    user_db=requester_user,
+                    resource_db=descendant,
+                    permission_type=PermissionType.EXECUTION_VIEW,
+                )
+            return can_view_by_action_uid[action_uid]
+
+        descendants = [descendant for descendant in descendants if can_view(descendant)]
+
         mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
 
         return [

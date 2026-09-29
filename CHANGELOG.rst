@@ -28,6 +28,9 @@ Fixed
 * Fixed action-alias help API returning 500 when RBAC enabled. #6414 (by @nzlosh)
 * Enforce RBAC on the ``/v1/triggertypes``, ``/v1/triggers`` and ``/v1/triggerinstances`` API endpoints. #6423 (by @masover-rubrik)
 * Enforce RBAC and secret masking on ``GET /v1/executions/<id>/result``. #6423 (by @masover-rubrik)
+* ``GET /v1/executions/<id>/children`` now only returns descendants the user has
+  ``execution_view`` on. Previously, viewing a workflow execution exposed every execution it
+  spawned, including those of actions in packs the user had no permission on.
 
 Changed
 ~~~~~~~
