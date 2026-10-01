@@ -55,6 +55,11 @@ from st2common.util import param as param_utils
 
 LOG = logging.getLogger(__name__)
 
+# Marker written into LiveAction.context.paused_by when the workflow engine
+# pauses running workflows during its own shutdown. The manual
+# st2-bootstrap-workflow CLI uses this marker to identify eligible workflows.
+WORKFLOW_ENGINE_START_STOP_SEQ = "workflow_engine_start_stop_seq"
+
 LOG_FUNCTIONS = {
     "audit": LOG.audit,
     "debug": LOG.debug,
@@ -1575,3 +1580,233 @@ def identify_orphaned_workflows():
             continue
 
     return orphaned
+
+
+def sync_completed_tasks_to_conductor(wf_ex_id):
+    """
+    Synchronize task executions from database to conductor state.
+
+    Two scenarios are handled:
+    1. Completed tasks: sync their completion into the conductor state so it
+       stops thinking they are still running.
+    2. Running tasks: re-stage them so get_next_tasks() finds them.
+
+    This is required after a workflow was paused during engine shutdown but
+    tasks continued to complete or transitioned to running before the pause was
+    fully processed.
+    """
+    LOG.debug("Starting task synchronization for workflow execution %s", wf_ex_id)
+
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    conductor = deserialize_conductor(wf_ex_db)
+
+    task_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=wf_ex_id)
+    LOG.debug("Found %d task execution(s) for workflow %s", len(task_ex_dbs), wf_ex_id)
+
+    updated = False
+    restaged_count = 0
+
+    for task_ex_db in task_ex_dbs:
+        if task_ex_db.status in statuses.COMPLETED_STATUSES:
+            task_state = conductor.get_task_state_entry(
+                task_ex_db.task_id, task_ex_db.task_route
+            )
+            if (
+                task_state
+                and task_state.get("status") not in statuses.COMPLETED_STATUSES
+            ):
+                ac_ex_event = events.ActionExecutionEvent(
+                    task_ex_db.status, result=task_ex_db.result
+                )
+                conductor.update_task_state(
+                    task_ex_db.task_id, task_ex_db.task_route, ac_ex_event
+                )
+                updated = True
+                LOG.debug(
+                    'Synchronized completed task "%s" (status: %s) to conductor state',
+                    task_ex_db.task_id,
+                    task_ex_db.status,
+                )
+
+        elif task_ex_db.status == statuses.RUNNING:
+            staged_task = conductor.workflow_state.get_staged_task(
+                task_ex_db.task_id, task_ex_db.task_route
+            )
+
+            if not staged_task:
+                task_state = conductor.get_task_state_entry(
+                    task_ex_db.task_id, task_ex_db.task_route
+                )
+
+                if task_state:
+                    ctxs_in = task_state.get("ctxs", {}).get("in", [0])
+                    conductor.workflow_state.add_staged_task(
+                        task_ex_db.task_id,
+                        task_ex_db.task_route,
+                        ctxs=ctxs_in,
+                        prev=task_state.get("prev", {}),
+                        ready=True,
+                    )
+                    updated = True
+                    restaged_count += 1
+                    LOG.debug(
+                        'Re-staged running task "%s" (route: %s) to conductor',
+                        task_ex_db.task_id,
+                        task_ex_db.task_route,
+                    )
+                else:
+                    LOG.warning(
+                        'Cannot re-stage task "%s" - no task state entry found',
+                        task_ex_db.task_id,
+                    )
+
+    if updated:
+        wf_ex_db.state = conductor.workflow_state.serialize()
+        wf_db_access.WorkflowExecution.update(wf_ex_db, publish=False)
+
+        completed_count = len(
+            [t for t in task_ex_dbs if t.status in statuses.COMPLETED_STATUSES]
+        )
+        if completed_count > 0:
+            LOG.info(
+                'Synchronized %d completed task(s) to conductor for workflow "%s"',
+                completed_count,
+                wf_ex_id,
+            )
+        if restaged_count > 0:
+            LOG.info(
+                'Re-staged %d running task(s) to conductor for workflow "%s"',
+                restaged_count,
+                wf_ex_id,
+            )
+    else:
+        LOG.debug(
+            "No tasks needed synchronization for workflow %s (all tasks already in sync)",
+            wf_ex_id,
+        )
+
+
+def bootstrap_resume_execution(lv_ac_db):
+    """
+    Resume a single LiveAction that was paused during a prior engine shutdown.
+
+    Clears the paused_by marker, syncs any tasks that changed state while the
+    workflow was paused, then calls request_resume. Raises on failure so the
+    caller (manual CLI) can log/report per-execution.
+    """
+    LOG.debug(
+        "[%s] Bootstrap-resume starting; LiveAction status: %s",
+        str(lv_ac_db.id),
+        lv_ac_db.status,
+    )
+
+    if "paused_by" in lv_ac_db.context:
+        del lv_ac_db.context["paused_by"]
+        lv_ac_db = lv_db_access.LiveAction.add_or_update(lv_ac_db, publish=False)
+
+    ac_ex_db = ex_db_access.ActionExecution.get(liveaction_id=str(lv_ac_db.id))
+    wf_ex_id = ac_ex_db.context.get("workflow_execution")
+
+    if wf_ex_id:
+        sync_completed_tasks_to_conductor(wf_ex_id)
+    else:
+        LOG.warning(
+            "[%s] No workflow_execution ID in context; skipping task sync.",
+            str(ac_ex_db.id),
+        )
+
+    request_resume(ac_ex_db)
+    LOG.info('Bootstrap-resumed workflow execution "%s".', str(ac_ex_db.id))
+
+
+def reconcile_running_execution(lv_ac_db):
+    """
+    Re-drive a workflow stuck in RUNNING because a message that would have
+    advanced it was lost (e.g. an engine was OOM-killed after acking a message
+    but before processing it -- see the ack-on-dispatch behavior in
+    st2common.transport.consumers).
+
+    At the moment the message is lost, the child *action execution* has already
+    completed and been persisted, but its TaskExecution and the conductor were
+    never advanced. So the durable ground truth is the child action execution
+    status, not the TaskExecution status -- which is why this does NOT rely on
+    sync_completed_tasks_to_conductor (that keys off TaskExecution status).
+
+    Recovery has two phases:
+
+    1. Replay lost task-completion messages. For any task that is not yet
+       completed but whose child action execution has finished, re-run
+       handle_action_execution_completion -- exactly what the lost message
+       would have done (advance the conductor, request the next tasks). Each
+       child action execution is handled at most once, and tasks whose action
+       is still running are left untouched, so a workflow a live engine is
+       still driving is not disturbed.
+    2. Re-request next tasks, in case the lost message was the *request* to
+       start the next task (conductor advanced but no TaskExecution created).
+       conductor.get_next_tasks() will not return tasks it already tracks, so
+       this is a no-op when nothing is missing.
+
+    This is intended for operator-initiated recovery of a workflow the operator
+    has already determined is stuck; it is deliberately not run automatically.
+
+    Note: for itemized ("with items") tasks a task has multiple child action
+    executions; each completed child is replayed once, which matches normal
+    per-item completion handling.
+    """
+    ac_ex_db = ex_db_access.ActionExecution.get(liveaction_id=str(lv_ac_db.id))
+    wf_ex_id = ac_ex_db.context.get("workflow_execution")
+
+    if not wf_ex_id:
+        LOG.warning(
+            "[%s] No workflow_execution ID in context; cannot reconcile.",
+            str(ac_ex_db.id),
+        )
+        return
+
+    # Phase 1: replay completed-but-unprocessed child action executions.
+    handled_child_ids = set()
+    replayed = 0
+
+    while True:
+        progressed = False
+        task_ex_dbs = wf_db_access.TaskExecution.query(workflow_execution=wf_ex_id)
+
+        for task_ex_db in task_ex_dbs:
+            if task_ex_db.status in statuses.COMPLETED_STATUSES:
+                continue
+
+            child_ac_ex_dbs = ex_db_access.ActionExecution.query(
+                task_execution=str(task_ex_db.id)
+            )
+            for child_ac_ex_db in child_ac_ex_dbs:
+                if str(child_ac_ex_db.id) in handled_child_ids:
+                    continue
+                if child_ac_ex_db.status not in ac_const.LIVEACTION_COMPLETED_STATES:
+                    continue
+
+                LOG.info(
+                    '[%s] Replaying lost completion of action execution "%s" '
+                    'for task "%s".',
+                    str(ac_ex_db.id),
+                    str(child_ac_ex_db.id),
+                    task_ex_db.task_id,
+                )
+                handle_action_execution_completion(child_ac_ex_db)
+                handled_child_ids.add(str(child_ac_ex_db.id))
+                replayed += 1
+                progressed = True
+
+        if not progressed:
+            break
+
+    # Phase 2: re-request next tasks if the workflow is still running, to cover
+    # the case where the lost message was the next-task request itself.
+    wf_ex_db = wf_db_access.WorkflowExecution.get_by_id(wf_ex_id)
+    if wf_ex_db.status in statuses.RUNNING_STATUSES:
+        request_next_tasks(wf_ex_db)
+
+    LOG.info(
+        'Reconciled stuck-running workflow execution "%s" (replayed %d completion(s)).',
+        str(ac_ex_db.id),
+        replayed,
+    )
