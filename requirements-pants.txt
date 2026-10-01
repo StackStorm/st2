@@ -19,7 +19,8 @@ openapi-spec-validator
 # gitpython & gitdb are used for pack management
 gitdb
 gitpython
-# st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet)
+# st2common/tests/integration/test_util_green.py requires greenlet (as does eventlet and gevent)
+gevent
 greenlet
 # Gunicorn dropped eventlet support as of v26. https://gunicorn.org/news/#2600-2026-05-05
 gunicorn<26

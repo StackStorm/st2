@@ -36,8 +36,8 @@ import shutil
 import logging
 
 import six
-import eventlet
 import psutil
+from st2common.util import concurrency
 import mock
 from oslo_config import cfg
 from unittest import TestCase
@@ -178,27 +178,25 @@ class BaseTestCase(TestCase):
         registrar.register_from_packs(base_dirs=get_packs_base_paths())
 
 
-class EventletTestCase(TestCase):
+class GreenThreadTestCase(TestCase):
     """
-    Base test class which performs eventlet monkey patching before the tests run
-    and un-patching after the tests have finished running.
+    Base test class which performs eventlet/gevent monkey patching before the tests run.
     """
 
     @classmethod
     def setUpClass(cls):
-        eventlet.monkey_patch(
-            os=True,
-            select=True,
-            socket=True,
-            thread=False if "--use-debugger" in sys.argv else True,
-            time=True,
-        )
+        monkey_patch()
 
     @classmethod
     def tearDownClass(cls):
-        eventlet.monkey_patch(
-            os=False, select=False, socket=False, thread=False, time=False
-        )
+        # NOTE: Intentionally does not call super().tearDownClass() - subclasses that mix this
+        # in with a DB test case (e.g. ExecutionDbTestCase) rely on this stopping the MRO chain
+        # here rather than triggering that base class' DB teardown.
+        pass
+
+
+class EventletTestCase(GreenThreadTestCase):
+    """Deprecated alias for GreenThreadTestCase, kept for external callers."""
 
 
 class BaseDbTestCase(BaseTestCase):
@@ -360,7 +358,7 @@ class ExecutionDbTestCase(DbTestCase):
         assert isinstance(status, six.string_types), "%s is not of text type" % (status)
 
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
             if liveaction_db.status == status:
                 break
@@ -378,7 +376,7 @@ class ExecutionDbTestCase(DbTestCase):
         )
 
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             liveaction_db = LiveAction.get_by_id(str(liveaction_db.id))
             if liveaction_db.status in statuses:
                 break
@@ -392,7 +390,7 @@ class ExecutionDbTestCase(DbTestCase):
         self, execution_db, status, retries=300, delay=0.1, raise_exc=True
     ):
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             execution_db = ex_db_access.ActionExecution.get_by_id(str(execution_db.id))
             if execution_db.status == status:
                 break
@@ -406,7 +404,7 @@ class ExecutionDbTestCase(DbTestCase):
         self, mocked, expected_count, retries=100, delay=0.1, raise_exc=True
     ):
         for _ in range(0, retries):
-            eventlet.sleep(delay)
+            concurrency.sleep(delay)
             if mocked.call_count == expected_count:
                 break
 
@@ -820,9 +818,14 @@ def get_resources_path():
     return os.path.join(os.path.dirname(__file__), "resources")
 
 
-def blocking_eventlet_spawn(func, *args, **kwargs):
+def blocking_concurrency_spawn(func, *args, **kwargs):
     func(*args, **kwargs)
     return mock.Mock()
+
+
+def blocking_eventlet_spawn(func, *args, **kwargs):
+    """Deprecated alias for blocking_concurrency_spawn(), kept for external callers."""
+    return blocking_concurrency_spawn(func, *args, **kwargs)
 
 
 # Utility function for mocking read_and_store_{stdout,stderr} functions
@@ -831,7 +834,7 @@ def make_mock_stream_readline(mock_stream, mock_data, stop_counter=1, sleep_dela
 
     def mock_stream_readline():
         if sleep_delay:
-            eventlet.sleep(sleep_delay)
+            concurrency.sleep(sleep_delay)
 
         if mock_stream.counter >= stop_counter:
             mock_stream.closed = True

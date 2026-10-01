@@ -31,6 +31,7 @@ from st2common import log as logging
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import deregister_service
+from st2common.util import concurrency
 
 __all__ = ["main"]
 
@@ -41,7 +42,10 @@ ACTIONRUNNER = "actionrunner"
 def _setup_sigterm_handler(action_worker):
     def sigterm_handler(signum=None, frame=None):
         # This will cause SystemExit to be throw and allow for component cleanup.
-        action_worker.kill()
+        # action_worker.kill() blocks waiting for the greenlet to die, which gevent
+        # forbids doing directly inside a signal callback (BlockingSwitchOutError),
+        # so defer it to a freshly spawned greenlet instead.
+        concurrency.spawn(action_worker.kill)
 
     # Register a SIGTERM signal handler which calls sys.exit which causes SystemExit to
     # be thrown. We catch SystemExit and handle cleanup there.

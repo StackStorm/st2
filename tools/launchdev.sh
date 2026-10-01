@@ -198,6 +198,15 @@ function st2start()
     fi
     echo -n "Using content packs base dir: "; iecho "$PACKS_BASE_DIR"
 
+    # Gunicorn worker class must match the concurrency library st2 itself is using
+    # (see st2common.util.concurrency), or the WSGI worker will hang: gevent's monkey
+    # patching happening under gunicorn's eventlet worker (or vice versa) doesn't work.
+    CONCURRENCY_LIBRARY=$(grep 'concurrency_library' ${ST2_CONF} | awk 'BEGIN {FS=" = "}; {print $2}')
+    if [ -z "$CONCURRENCY_LIBRARY" ]; then
+        CONCURRENCY_LIBRARY="gevent"
+    fi
+    echo -n "Using concurrency library: "; iecho "$CONCURRENCY_LIBRARY"
+
     # Copy and overwrite the action contents
     if [ ! -d "$ST2_BASE_DIR" ]; then
         wecho "$ST2_BASE_DIR doesn't exist. Creating ..."
@@ -266,7 +275,7 @@ function st2start()
     # Run the st2 API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-api using gunicorn ...'
-        tmux new-session -d -s st2-api "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k eventlet -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
+        tmux new-session -d -s st2-api "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2api.wsgi:application -k ${CONCURRENCY_LIBRARY} -b $BINDING_ADDRESS:9101 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
     else
         echo 'Starting st2-api ...'
         tmux new-session -d -s st2-api "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2api/bin/st2api --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-api.log"
@@ -275,7 +284,7 @@ function st2start()
     # Run st2stream API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-stream using gunicorn ...'
-        tmux new-session -d -s st2-stream "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2stream.wsgi:application -k eventlet -b $BINDING_ADDRESS:9102 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
+        tmux new-session -d -s st2-stream "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2stream.wsgi:application -k ${CONCURRENCY_LIBRARY} -b $BINDING_ADDRESS:9102 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
     else
         echo 'Starting st2-stream ...'
         tmux new-session -d -s st2-stream "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2stream/bin/st2stream --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-stream.log"
@@ -340,7 +349,7 @@ function st2start()
     # Run the auth API server
     if [ "${use_gunicorn}" = true ]; then
         echo 'Starting st2-auth using gunicorn ...'
-        tmux new-session -d -s st2-auth "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2auth.wsgi:application -k eventlet -b $BINDING_ADDRESS:9100 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
+        tmux new-session -d -s st2-auth "${PRE_SCRIPT}; ${VIRTUALENV}/bin/gunicorn st2auth.wsgi:application -k ${CONCURRENCY_LIBRARY} -b $BINDING_ADDRESS:9100 --workers 1 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"
     else
         echo 'Starting st2-auth ...'
         tmux new-session -d -s st2-auth "${PRE_SCRIPT}; ${VIRTUALENV}/bin/python ./st2auth/bin/st2auth --config-file $ST2_CONF 2>&1 | tee -a ${ST2_LOGS}/st2-auth.log"

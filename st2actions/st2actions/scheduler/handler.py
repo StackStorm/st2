@@ -15,7 +15,6 @@
 
 from __future__ import absolute_import
 
-import eventlet
 import retrying
 from oslo_config import cfg
 
@@ -35,6 +34,7 @@ from st2common.persistence.execution import ActionExecution
 from st2common.persistence.liveaction import LiveAction
 from st2common.persistence.execution_queue import ActionExecutionSchedulingQueue
 from st2common.util import action_db as action_utils
+from st2common.util import concurrency
 from st2common.metrics import base as metrics
 from st2common.exceptions import db as db_exc
 
@@ -53,7 +53,9 @@ class ActionExecutionSchedulingQueueHandler(object):
     def __init__(self):
         self.message_type = LiveActionDB
         self._shutdown = False
-        self._pool = eventlet.GreenPool(size=cfg.CONF.scheduler.pool_size)
+        self._pool = concurrency.get_green_pool_class()(
+            size=cfg.CONF.scheduler.pool_size
+        )
         # If an ActionExecutionSchedulingQueueItemDB object hasn't been updated fore more than
         # this amount of milliseconds, it will be marked as "handled=False".
         # As soon as an item is picked by scheduler to be processed, it should be processed very
@@ -71,7 +73,7 @@ class ActionExecutionSchedulingQueueHandler(object):
         LOG.debug("Starting scheduler handler...")
 
         while not self._shutdown:
-            eventlet.greenthread.sleep(cfg.CONF.scheduler.sleep_interval)
+            concurrency.sleep(cfg.CONF.scheduler.sleep_interval)
             self.process()
 
     @retrying.retry(
@@ -83,13 +85,15 @@ class ActionExecutionSchedulingQueueHandler(object):
         execution_queue_item_db = self._get_next_execution()
 
         if execution_queue_item_db:
-            self._pool.spawn(self._handle_execution, execution_queue_item_db)
+            concurrency.pool_spawn(
+                self._pool, self._handle_execution, execution_queue_item_db
+            )
 
     def cleanup(self):
         LOG.debug("Starting scheduler garbage collection...")
 
         while not self._shutdown:
-            eventlet.greenthread.sleep(cfg.CONF.scheduler.gc_interval)
+            concurrency.sleep(cfg.CONF.scheduler.gc_interval)
             self._handle_garbage_collection()
 
     def _reset_handling_flag(self):
@@ -565,14 +569,14 @@ class ActionExecutionSchedulingQueueHandler(object):
         self._shutdown = False
 
         # Spawn the worker threads.
-        self._main_thread = eventlet.spawn(self.run)
-        self._cleanup_thread = eventlet.spawn(self.cleanup)
+        self._main_thread = concurrency.spawn(self.run)
+        self._cleanup_thread = concurrency.spawn(self.cleanup)
 
         # Link the threads to the shutdown function. If either of the threads exited with error,
         # then initiate shutdown which will allow the waits below to throw exception to the
         # main process.
-        self._main_thread.link(self.shutdown)
-        self._cleanup_thread.link(self.shutdown)
+        concurrency.link(self._main_thread, self.shutdown)
+        concurrency.link(self._cleanup_thread, self.shutdown)
 
     def shutdown(self, *args, **kwargs):
         if not self._shutdown:
@@ -581,7 +585,7 @@ class ActionExecutionSchedulingQueueHandler(object):
     def wait(self):
         # Wait for the worker threads to complete. If there is an exception thrown in the thread,
         # then the exception will be propagated to the main process for a proper return code.
-        self._main_thread.wait() or self._cleanup_thread.wait()
+        concurrency.wait(self._main_thread) or concurrency.wait(self._cleanup_thread)
 
 
 def get_handler():

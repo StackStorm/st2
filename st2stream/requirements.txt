@@ -6,13 +6,14 @@
 # in-requirements.txt for that component and then run 'make requirements' to
 # update the component requirements.txt
 backports.zoneinfo[tzdata]; python_version<"3.9"
-eventlet==0.40.3
-gunicorn<26
+eventlet==0.41.2
+gevent==26.8.0
+gunicorn==25.3.0
 jsonschema==4.26.0
-kombu==5.5.4
-mongoengine==0.29.1
+kombu==5.6.2
+mongoengine==0.29.3
 oslo.config==9.6.0
 oslo.utils==7.3.0
 pymongo==4.6.3
-pyparsing==3.1.4
+pyparsing==3.3.2
 six==1.17.0

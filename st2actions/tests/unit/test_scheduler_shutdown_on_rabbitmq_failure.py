@@ -20,10 +20,10 @@ connection failures exhaust retry attempts.
 
 from __future__ import absolute_import
 
-import eventlet
 import mock
 from kombu import exceptions as kombu_exceptions
 
+from st2common.util import concurrency
 from st2tests.base import DbTestCase
 import st2tests.config as tests_config
 from st2actions.cmd import scheduler
@@ -49,14 +49,14 @@ class SchedulerShutdownOnRabbitMQFailureTestCase(DbTestCase):
         """
         Test that when the entrypoint consumer thread fails with KombuError
         after exhausting retry attempts, the scheduler:
-        1. Detects the failure via eventlet.wait_all()
+        1. Detects the failure via concurrency.wait()
         2. Calls shutdown() on both handler and entrypoint
         3. Re-raises the exception to exit the process
         """
         # Create mock handler with threads that would run forever
         mock_handler = mock.MagicMock()
-        mock_handler_main_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
-        mock_handler_cleanup_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
+        mock_handler_main_thread = concurrency.spawn(lambda: concurrency.sleep(1000))
+        mock_handler_cleanup_thread = concurrency.spawn(lambda: concurrency.sleep(1000))
         mock_handler._main_thread = mock_handler_main_thread
         mock_handler._cleanup_thread = mock_handler_cleanup_thread
         mock_get_handler.return_value = mock_handler
@@ -68,7 +68,7 @@ class SchedulerShutdownOnRabbitMQFailureTestCase(DbTestCase):
         def failing_consumer():
             raise kombu_exceptions.OperationalError("[Errno 111] ECONNREFUSED")
 
-        mock_entrypoint_consumer_thread = eventlet.spawn(failing_consumer)
+        mock_entrypoint_consumer_thread = concurrency.spawn(failing_consumer)
         mock_entrypoint._consumer_thread = mock_entrypoint_consumer_thread
         mock_get_entrypoint.return_value = mock_entrypoint
 
@@ -98,15 +98,17 @@ class SchedulerShutdownOnRabbitMQFailureTestCase(DbTestCase):
         def failing_main_thread():
             raise RuntimeError("Handler main thread failed")
 
-        mock_handler_main_thread = eventlet.spawn(failing_main_thread)
-        mock_handler_cleanup_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
+        mock_handler_main_thread = concurrency.spawn(failing_main_thread)
+        mock_handler_cleanup_thread = concurrency.spawn(lambda: concurrency.sleep(1000))
         mock_handler._main_thread = mock_handler_main_thread
         mock_handler._cleanup_thread = mock_handler_cleanup_thread
         mock_get_handler.return_value = mock_handler
 
         # Create mock entrypoint that would run forever
         mock_entrypoint = mock.MagicMock()
-        mock_entrypoint_consumer_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
+        mock_entrypoint_consumer_thread = concurrency.spawn(
+            lambda: concurrency.sleep(1000)
+        )
         mock_entrypoint._consumer_thread = mock_entrypoint_consumer_thread
         mock_get_entrypoint.return_value = mock_entrypoint
 
@@ -132,19 +134,21 @@ class SchedulerShutdownOnRabbitMQFailureTestCase(DbTestCase):
         """
         # Create mock handler with cleanup thread that fails
         mock_handler = mock.MagicMock()
-        mock_handler_main_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
+        mock_handler_main_thread = concurrency.spawn(lambda: concurrency.sleep(1000))
 
         def failing_cleanup_thread():
             raise RuntimeError("Handler cleanup thread failed")
 
-        mock_handler_cleanup_thread = eventlet.spawn(failing_cleanup_thread)
+        mock_handler_cleanup_thread = concurrency.spawn(failing_cleanup_thread)
         mock_handler._main_thread = mock_handler_main_thread
         mock_handler._cleanup_thread = mock_handler_cleanup_thread
         mock_get_handler.return_value = mock_handler
 
         # Create mock entrypoint that would run forever
         mock_entrypoint = mock.MagicMock()
-        mock_entrypoint_consumer_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
+        mock_entrypoint_consumer_thread = concurrency.spawn(
+            lambda: concurrency.sleep(1000)
+        )
         mock_entrypoint._consumer_thread = mock_entrypoint_consumer_thread
         mock_get_entrypoint.return_value = mock_entrypoint
 
@@ -170,8 +174,8 @@ class SchedulerShutdownOnRabbitMQFailureTestCase(DbTestCase):
         """
         # Create mock handler with threads that would run forever
         mock_handler = mock.MagicMock()
-        mock_handler_main_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
-        mock_handler_cleanup_thread = eventlet.spawn(lambda: eventlet.sleep(1000))
+        mock_handler_main_thread = concurrency.spawn(lambda: concurrency.sleep(1000))
+        mock_handler_cleanup_thread = concurrency.spawn(lambda: concurrency.sleep(1000))
         mock_handler._main_thread = mock_handler_main_thread
         mock_handler._cleanup_thread = mock_handler_cleanup_thread
         mock_get_handler.return_value = mock_handler
@@ -182,7 +186,7 @@ class SchedulerShutdownOnRabbitMQFailureTestCase(DbTestCase):
         def failing_consumer():
             raise kombu_exceptions.ConnectionError("Connection lost")
 
-        mock_entrypoint_consumer_thread = eventlet.spawn(failing_consumer)
+        mock_entrypoint_consumer_thread = concurrency.spawn(failing_consumer)
         mock_entrypoint._consumer_thread = mock_entrypoint_consumer_thread
         mock_get_entrypoint.return_value = mock_entrypoint
 

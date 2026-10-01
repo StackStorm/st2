@@ -19,10 +19,9 @@ import atexit
 import platform
 import cProfile
 
-import eventlet
-from eventlet.green import profile
+from st2common.util import concurrency
 
-__all__ = ["setup_regular_profiler", "setup_eventlet_profiler"]
+__all__ = ["setup_regular_profiler", "setup_green_profiler", "setup_eventlet_profiler"]
 
 
 def setup_regular_profiler(service_name: str) -> None:
@@ -49,20 +48,14 @@ def setup_regular_profiler(service_name: str) -> None:
     atexit.register(stop_profiler)
 
 
-def setup_eventlet_profiler(service_name: str) -> None:
+def setup_green_profiler(service_name: str) -> None:
     """
-    Set up eventlet profiler and write results to a file on exit.
+    Set up a green-thread (eventlet/gevent) aware profiler and write results to a file on exit.
 
-    Only to be used with eventlet code (aka an StackStorm service minus the CLI).
+    Only to be used with eventlet/gevent code (aka a StackStorm service minus the CLI).
     """
-    is_patched = eventlet.patcher.is_monkey_patched("os")
-    if not is_patched:
-        raise ValueError(
-            "No eventlet monkey patching detected. Code may not be using eventlet"
-        )
-
-    profiler = profile.Profile()
-    profiler.start()
+    profiler, start, stop = concurrency.get_green_profiler()
+    start()
 
     file_path = os.path.join(
         "/tmp", "%s-%s-%s.cprof" % (service_name, platform.machine(), int(time.time()))
@@ -72,10 +65,15 @@ def setup_eventlet_profiler(service_name: str) -> None:
     print("Profiling data will be saved to %s on exit" % (file_path))
 
     def stop_profiler():
-        profiler.stop()
+        stop()
         profiler.dump_stats(file_path)
         print("Profiling data written to %s" % (file_path))
         print("You can view it using: ")
         print("\t python3 -m pstats %s" % (file_path))
 
     atexit.register(stop_profiler)
+
+
+def setup_eventlet_profiler(service_name: str) -> None:
+    """Deprecated alias for setup_green_profiler(), kept for external callers."""
+    return setup_green_profiler(service_name)

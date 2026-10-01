@@ -27,9 +27,9 @@ from st2common.logging.misc import get_logger_name_for_module
 from st2common.service_setup import setup as common_setup
 from st2common.service_setup import teardown as common_teardown
 from st2common.service_setup import deregister_service
+from st2common.util import concurrency
 from st2reactor.rules import config
 from st2reactor.rules import worker
-
 
 LOGGER_NAME = get_logger_name_for_module(sys.modules[__name__])
 LOG = logging.getLogger(LOGGER_NAME)
@@ -64,8 +64,6 @@ def _run_worker():
         rules_engine_worker.start()
 
         # Monitor the worker thread - if it dies/fails, we need to exit cleanly
-        import eventlet
-
         # Poll the worker thread to detect failures
         while True:
             if (
@@ -74,7 +72,9 @@ def _run_worker():
             ):
                 # Thread died - try to get the exception if it raised one
                 try:
-                    rules_engine_worker._consumer_thread.wait()  # This will raise if thread raised
+                    concurrency.wait(
+                        rules_engine_worker._consumer_thread
+                    )  # This will raise if thread raised
                 except Exception as e:
                     LOG.error("RulesEngine worker thread failed: %s", e)
                     raise
@@ -83,7 +83,7 @@ def _run_worker():
                 return 0
 
             # Sleep briefly to avoid tight loop
-            eventlet.sleep(0.1)
+            concurrency.sleep(0.1)
     except (KeyboardInterrupt, SystemExit):
         LOG.info("(PID=%s) RulesEngine stopped.", os.getpid())
         deregister_service(RULESENGINE)

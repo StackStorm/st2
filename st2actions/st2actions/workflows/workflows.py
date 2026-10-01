@@ -22,8 +22,6 @@ from oslo_config import cfg
 from orquesta import statuses
 from tooz.coordination import GroupNotCreated
 from st2common.services import coordination
-from eventlet.semaphore import Semaphore
-from eventlet import spawn_after
 from st2common.constants import action as ac_const
 from st2common import log as logging
 from st2common.metrics import base as metrics
@@ -59,7 +57,7 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
     def __init__(self, connection, queues):
         super(WorkflowExecutionHandler, self).__init__(connection, queues)
         self._active_messages = 0
-        self._semaphore = Semaphore()
+        self._semaphore = concurrency.Semaphore()
         # This is required to ensure workflows stuck in pausing state after shutdown transition to paused state after engine startup.
         self._delay = 30
 

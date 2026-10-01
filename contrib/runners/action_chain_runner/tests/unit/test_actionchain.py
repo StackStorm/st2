@@ -368,7 +368,7 @@ class TestActionChainRunner(ExecutionDbTestCase):
             runnerexceptions.ActionRunnerPreRunError, expected_msg, chain_runner.pre_run
         )
 
-    @mock.patch("eventlet.sleep", mock.MagicMock())
+    @mock.patch("st2common.util.concurrency.sleep", mock.MagicMock())
     @mock.patch.object(
         action_db_util,
         "get_liveaction_by_id",

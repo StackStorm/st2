@@ -30,12 +30,12 @@ from __future__ import absolute_import
 import os
 import random
 
-import eventlet
 from oslo_config import cfg
 import yaml
 
 from st2common import config
 from st2common.util.monkey_patch import monkey_patch
+from st2common.util import concurrency
 from st2common.util import date as date_utils
 from st2common.transport.reactor import TriggerDispatcher
 
@@ -67,7 +67,7 @@ def _inject_instances(
             # NOTE: We decrease sleep delay for 56% to take into account overhead / delay because
             # of the call to dispatchet.dispatch method.
             delta = random.expovariate(rate_per_trigger)
-            eventlet.sleep(delta * 0.56)
+            concurrency.sleep(delta * 0.56)
 
         elapsed = (date_utils.get_datetime_utc_now() - start).seconds
         count += 1
@@ -155,11 +155,12 @@ def main():
         rate = 0
         rate_per_trigger = 0
 
-    dispatcher_pool = eventlet.GreenPool(len(triggers))
+    dispatcher_pool = concurrency.get_green_pool_class()(len(triggers))
 
     for trigger in triggers:
         payload = trigger_payload_schema.get(trigger, {})
-        dispatcher_pool.spawn(
+        concurrency.pool_spawn(
+            dispatcher_pool,
             _inject_instances,
             trigger,
             rate_per_trigger,
@@ -167,8 +168,8 @@ def main():
             payload=payload,
             max_throughput=max_throughput,
         )
-        eventlet.sleep(random.uniform(0, 1))
-    dispatcher_pool.waitall()
+        concurrency.sleep(random.uniform(0, 1))
+    concurrency.green_pool_wait_all(dispatcher_pool)
 
 
 if __name__ == "__main__":

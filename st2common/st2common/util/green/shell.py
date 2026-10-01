@@ -204,6 +204,8 @@ def run_command(
             stdin_value = stdin_value.encode("utf-8")
 
         process.stdin.write(stdin_value)
+        # Without closing, large writes can hang under gevent (child never sees the data).
+        process.stdin.close()
 
     if read_stdout_func and read_stderr_func:
         LOG.debug("Using real-time stdout and stderr read mode, calling process.wait()")

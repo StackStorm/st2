@@ -22,18 +22,18 @@ from __future__ import absolute_import
 
 import argparse
 
-import eventlet
 from kombu import Exchange
 
 from st2common import config
 from st2common.transport.publishers import PoolPublisher
+from st2common.util import concurrency
 
 
 def main(exchange, routing_key, payload):
     exchange = Exchange(exchange, type="topic")
     publisher = PoolPublisher()
     publisher.publish(payload=payload, exchange=exchange, routing_key=routing_key)
-    eventlet.sleep(0.5)
+    concurrency.sleep(0.5)
 
 
 if __name__ == "__main__":
