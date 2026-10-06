@@ -136,7 +136,7 @@ jobs:
             # get gpg key for download.docker
             curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
             # set source list
-            sudo tee \<<<"deb [arch=${ARCH}] https://download.docker.com/linux/${DISTRO} ${CODENAME} stable" /etc/apt/sources.list.d/download.docker.list
+            echo "deb [arch=${ARCH}] https://download.docker.com/linux/${DISTRO} ${CODENAME} stable" | sudo tee /etc/apt/sources.list.d/download.docker.list
             # update package list
             sudo apt update
             # install docker CLI and Docker Compose v2
