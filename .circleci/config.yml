@@ -129,16 +129,7 @@ jobs:
       - run:
           name: Install latest Docker Compose V2
           command: |
-            set -x
-            source <(sed -e 's/^/OS_/g' /etc/os-release)
-            export ARCH=$(dpkg --print-architecture)
-            # Remove docker key that wasn't place by us.
-            rm -f /etc/apt/keyrings/docker.asc
-            # get gpg key for download.docker
-            curl -fsSL https://download.docker.com/linux/${OS_ID}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
-            # set source list
-            sudo tee \<<<"deb [arch=${ARCH} signed-by=/etc/apt/trusted.gpg.d/download.docker.gpg] https://download.docker.com/linux/${OS_ID} ${OS_VERSION_CODENAME} stable" /etc/apt/sources.list.d/download.docker.list
-            # update package list
+            # Docker repository is already included in cimg/python:3.10
             sudo apt update
             # install docker CLI and Docker Compose v2
             sudo apt install docker-ce-cli docker-compose-plugin
