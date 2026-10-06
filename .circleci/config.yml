@@ -132,6 +132,8 @@ jobs:
             set -x
             source <(sed -e 's/^/OS_/g' /etc/os-release)
             export ARCH=$(dpkg --print-architecture)
+            # Remove docker key that wasn't place by us.
+            rm -f /etc/apt/keyrings/docker.asc
             # get gpg key for download.docker
             curl -fsSL https://download.docker.com/linux/${OS_ID}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
             # set source list
