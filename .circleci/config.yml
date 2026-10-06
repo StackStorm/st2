@@ -130,13 +130,12 @@ jobs:
           name: Install latest Docker Compose V2
           command: |
             set -x
-            export CODENAME=$(source /etc/os-release && echo "$VERSION_CODENAME")
-            export DISTRO=$(source /etc/os-release && echo "$ID")
+            source <(sed -e 's/^/OS_/g' /etc/os-release)
             export ARCH=$(dpkg --print-architecture)
             # get gpg key for download.docker
-            curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
+            curl -fsSL https://download.docker.com/linux/${OS_ID}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
             # set source list
-            echo "deb [arch=${ARCH}] https://download.docker.com/linux/${DISTRO} ${CODENAME} stable" | sudo tee /etc/apt/sources.list.d/download.docker.list
+            sudo tee \<<<"deb [arch=${ARCH} signed-by=/etc/apt/trusted.gpg.d/download.docker.gpg] https://download.docker.com/linux/${OS_ID} ${OS_VERSION_CODENAME} stable" /etc/apt/sources.list.d/download.docker.list
             # update package list
             sudo apt update
             # install docker CLI and Docker Compose v2
