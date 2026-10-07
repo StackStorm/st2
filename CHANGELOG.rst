@@ -20,7 +20,6 @@ RabbitMQ    4.2
 Redis       8.6
 ```
 
-
 Fixed
 ~~~~~
 * Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375

@@ -1,7 +1,7 @@
 # Setup in CircleCI account the following ENV variables:
 # PACKAGECLOUD_ORGANIZATION (default: stackstorm)
 # PACKAGECLOUD_TOKEN
-version: 2
+version: 2.1
 jobs:
   # Run st2 Unit Tests
   unit:
@@ -108,7 +108,7 @@ jobs:
 
   # Build & Test st2 packages
   packages:
-    parallelism: 2
+    parallelism: 4
     # 4CPUs & 8GB RAM CircleCI machine
     # sadly, it doesn't work with 'setup_remote_docker'
     resource_class: large
@@ -117,7 +117,7 @@ jobs:
       - image: cimg/python:3.10
     working_directory: ~/st2
     environment:
-      - DISTROS: "jammy el9"
+      - DISTROS: "jammy noble el9 el10"
       - ST2_PACKAGES_REPO: https://github.com/StackStorm/st2-packages
       - ST2_PACKAGES: "st2"
       - ST2_CHECKOUT: 0
@@ -129,15 +129,7 @@ jobs:
       - run:
           name: Install latest Docker Compose V2
           command: |
-            set -x
-            export CODENAME=$(source /etc/os-release && echo "$VERSION_CODENAME")
-            export DISTRO=$(source /etc/os-release && echo "$ID")
-            export ARCH=$(dpkg --print-architecture)
-            # get gpg key for download.docker
-            curl -fsSL https://download.docker.com/linux/${DISTRO}/gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/download.docker.gpg
-            # set source list
-            sudo tee <<<"deb [arch=${ARCH}] https://download.docker.com/linux/${DISTRO} ${CODENAME} stable" /etc/apt/sources.list.d/download.docker.list
-            # update package list
+            # Docker repository is already included in cimg/python:3.10
             sudo apt update
             # install docker CLI and Docker Compose v2
             sudo apt install docker-ce-cli docker-compose-plugin
@@ -244,7 +236,7 @@ jobs:
       - image: cimg/ruby:2.7
     working_directory: /tmp/deploy
     environment:
-      - DISTROS: "jammy el9"
+      - DISTROS: "jammy noble el9 el10"
     steps:
       - attach_workspace:
           at: .
