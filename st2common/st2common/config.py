@@ -491,7 +491,8 @@ def register_opts(ignore_errors=False):
         cfg.ListOpt(
             "allow_origin",
             default=["http://127.0.0.1:3000"],
-            help="List of origins allowed for api, auth and stream",
+            help="List of origins allowed for api, auth and stream. Note: If '*' is specified, "
+            "Access-Control-Allow-Credentials will not be set.",
         ),
         cfg.IntOpt(
             "max_page_size",
