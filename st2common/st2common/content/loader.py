@@ -295,7 +295,6 @@ class OverrideLoader(object):
     DEFAULT_OVERRIDE_VALUES = {"enabled": True}
 
     def override(self, pack_name, resource_type, content):
-
         """
         Loads override content for pack, and updates content
 
@@ -340,7 +339,6 @@ class OverrideLoader(object):
     def _apply_override_file(
         self, override_file, pack_name, resource_type, content, global_file
     ):
-
         """
         Loads override content from override file
 

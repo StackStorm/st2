@@ -640,9 +640,9 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
         chan = Mock()
         chan.recv_ready.side_effect = [True, True, True, True, False]
 
-        chan.recv.side_effect = [b"\xF0", b"\x90", b"\x8D", b"\x88"]
+        chan.recv.side_effect = [b"\xf0", b"\x90", b"\x8d", b"\x88"]
         try:
-            b"\xF0".decode("utf-8")
+            b"\xf0".decode("utf-8")
             self.fail("Test fixture is not right.")
         except UnicodeDecodeError:
             pass
@@ -666,9 +666,9 @@ class ParamikoSSHClientTestCase(unittest.TestCase):
         chan = Mock()
         chan.recv_stderr_ready.side_effect = [True, True, True, True, False]
 
-        chan.recv_stderr.side_effect = [b"\xF0", b"\x90", b"\x8D", b"\x88"]
+        chan.recv_stderr.side_effect = [b"\xf0", b"\x90", b"\x8d", b"\x88"]
         try:
-            b"\xF0".decode("utf-8")
+            b"\xf0".decode("utf-8")
             self.fail("Test fixture is not right.")
         except UnicodeDecodeError:
             pass

@@ -38,6 +38,7 @@ RUNNER_HOSTS = "hosts"
 RUNNER_USERNAME = "username"
 RUNNER_PASSWORD = "password"
 RUNNER_PRIVATE_KEY = "private_key"
+RUNNER_CERTIFICATE = "certificate"
 RUNNER_PARALLEL = "parallel"
 RUNNER_SUDO = "sudo"
 RUNNER_SUDO_PASSWORD = "sudo_password"
@@ -64,6 +65,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._username = None
         self._password = None
         self._private_key = None
+        self._certificate = None
         self._passphrase = None
         self._kwarg_op = "--"
         self._cwd = None
@@ -93,6 +95,7 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         self._username = self.runner_parameters.get(RUNNER_USERNAME, None)
         self._password = self.runner_parameters.get(RUNNER_PASSWORD, None)
         self._private_key = self.runner_parameters.get(RUNNER_PRIVATE_KEY, None)
+        self._certificate = self.runner_parameters.get(RUNNER_CERTIFICATE, None)
         self._passphrase = self.runner_parameters.get(RUNNER_PASSPHRASE, None)
 
         self._ssh_port = self.runner_parameters.get(RUNNER_SSH_PORT, None)
@@ -199,6 +202,9 @@ class BaseParallelSSHRunner(ActionRunner, ShellRunnerMixin):
         else:
             # Default to stanley key file specified in the config
             client_kwargs["pkey_file"] = self._ssh_key_file
+
+        if self._certificate:
+            client_kwargs["pkey_certificate"] = self._certificate
 
         if self._sudo_password:
             client_kwargs["sudo_password"] = True

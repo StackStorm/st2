@@ -69,7 +69,7 @@ def _validate_definitions(spec):
     error = False
     verbose = cfg.CONF.verbose
 
-    for (model, definition) in six.iteritems(defs):
+    for model, definition in six.iteritems(defs):
         api_model = definition.get("x-api-model", None)
 
         if not api_model:
