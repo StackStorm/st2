@@ -731,25 +731,69 @@ class ResourceDeleteCommand(ResourceCommand):
             resource=resource, argument=self.pk_argument_name
         )
 
-        self.parser.add_argument(argument, metavar=metavar, help=help)
+        self.parser.add_argument(argument, metavar=metavar, nargs="+", help=help)
+
+    def delete_resource(self, args, resource_id, **kwargs):
+        """
+        Delete a single resource.
+
+        Subclasses can override this method to customize how an individual resource is
+        deleted.
+        """
+        instance = self.get_resource(resource_id, **kwargs)
+
+        if not instance:
+            raise ResourceNotFoundError(
+                'Resource with id "%s" doesn\'t exist.' % (resource_id)
+            )
+
+        self.manager.delete(instance, **kwargs)
 
     @add_auth_token_to_kwargs_from_cli
     def run(self, args, **kwargs):
-        resource_id = getattr(args, self.pk_argument_name, None)
-        instance = self.get_resource(resource_id, **kwargs)
-        self.manager.delete(instance, **kwargs)
+        resource_ids = getattr(args, self.pk_argument_name, None) or []
+        more_than_one_resource = len(resource_ids) > 1
+
+        deleted_ids = []
+        not_found_ids = []
+
+        for resource_id in resource_ids:
+            try:
+                self.delete_resource(args, resource_id, **kwargs)
+            except ResourceNotFoundError:
+                if not more_than_one_resource:
+                    # For backward compatibility reasons and to comply with common "delete one"
+                    # behavior, we only fail if a single resource is requested
+                    raise
+
+                self.print_not_found(resource_id)
+                not_found_ids.append(resource_id)
+                continue
+
+            deleted_ids.append(resource_id)
+
+        return deleted_ids, not_found_ids
 
     def run_and_print(self, args, **kwargs):
-        resource_id = getattr(args, self.pk_argument_name, None)
+        resource_ids = getattr(args, self.pk_argument_name, None) or []
 
         try:
-            self.run(args, **kwargs)
+            deleted_ids, not_found_ids = self.run(args, **kwargs)
+        except ResourceNotFoundError:
+            resource_id = resource_ids[0]
+            self.print_not_found(resource_id)
+            raise OperationFailureException("Resource %s not found." % resource_id)
+
+        for resource_id in deleted_ids:
             print(
                 'Resource with id "%s" has been successfully deleted.' % (resource_id)
             )
-        except ResourceNotFoundError:
-            self.print_not_found(resource_id)
-            raise OperationFailureException("Resource %s not found." % resource_id)
+
+        if not_found_ids:
+            raise OperationFailureException(
+                "Failed to delete %s resource(s): %s."
+                % (len(not_found_ids), ", ".join(not_found_ids))
+            )
 
 
 class ContentPackResourceDeleteCommand(ResourceDeleteCommand):
