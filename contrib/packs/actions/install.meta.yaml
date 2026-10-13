@@ -17,7 +17,7 @@
     register:
       type: "string"
       default: "all"
-      description: "Possible options are all, sensors, actions, rules, aliases, runners, triggers, rule_types, policiy_types, policies, configs."
+      description: "Possible options are all, sensors, actions, rules, aliases, runners, triggers, rule_types, policy_types, policies, configs."
     env:
       type: "object"
       description: "Optional environment variables."
