@@ -62,7 +62,6 @@ def setup_pack_virtualenv(
     force_owner_group=True,
     inject_parent_virtualenv_sites=True,
 ):
-
     """
     Setup virtual environment for the provided pack.
 
