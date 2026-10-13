@@ -6,12 +6,16 @@ This page lists active project maintainers and their areas of expertise. This ca
 * See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) about maintainers standards in front of community.
 * See [CONTRIBUTING.rst](CONTRIBUTING.rst) for general contributing guidelines.
 
-# Leaders ***
+# TSC Chairperson ***
 ###### 3 vote points
-[@StackStorm/leaders](https://github.com/orgs/StackStorm/teams/leaders) is head of Technical Steering Committee (TSC).
-Responsible for Project Strategy, External Relations, Organizational aspects, Partnerships and Future.
-* Dmitri Zimine ([@dzimine](https://github.com/dzimine/)) <<dzimine@stackstorm.com>>
-  - StackStorm co-founder. External Relations, Leadership.
+StackStorm Technical Steering Committee representative, spokesperson and moderator.
+* TBD via [TSC Elections](GOVERNANCE.md#TSC-Chair-Election)
+
+# Project Mentor **
+###### 2 vote points
+Project Mentor is a unique TSC member providing coaching and guidance to ensure that members are successful in fulfilling their responsibilities and project operates within best practices.
+* Dmitri Zimine ([@dzimine](https://github.com/dzimine/)) <<dzimine@stackstorm.com>>, _Scalyr_
+  - StackStorm co-founder.
 
 # Senior Maintainers **
 ###### 2 vote points
