@@ -48,11 +48,13 @@ class TestBase(FunctionalTest):
         self.assertEqual(
             response.headers["Access-Control-Allow-Origin"], "http://127.0.0.1:3000"
         )
+        self.assertEqual(response.headers["Access-Control-Allow-Credentials"], "true")
 
     def test_additional_origin(self):
         response = self.app.get("/", headers={"origin": "http://dev"})
         self.assertEqual(response.status_int, 200)
         self.assertEqual(response.headers["Access-Control-Allow-Origin"], "http://dev")
+        self.assertEqual(response.headers["Access-Control-Allow-Credentials"], "true")
 
     def test_wrong_origin(self):
         # Invalid origin  (not specified in the config), we return first allowed origin specified
@@ -62,6 +64,7 @@ class TestBase(FunctionalTest):
         self.assertEqual(
             response.headers.get("Access-Control-Allow-Origin"), "http://127.0.0.1:3000"
         )
+        self.assertNotIn("Access-Control-Allow-Credentials", response.headers)
 
         invalid_origins = [
             "http://",
@@ -78,6 +81,7 @@ class TestBase(FunctionalTest):
                 response.headers.get("Access-Control-Allow-Origin"),
                 "http://127.0.0.1:3000",
             )
+            self.assertNotIn("Access-Control-Allow-Credentials", response.headers)
 
     def test_wildcard_origin(self):
         try:
@@ -86,7 +90,25 @@ class TestBase(FunctionalTest):
         finally:
             cfg.CONF.clear_override("allow_origin", "api")
         self.assertEqual(response.status_int, 200)
-        self.assertEqual(response.headers["Access-Control-Allow-Origin"], "http://xss")
+        # Must return wildcard origin "*", never reflecting the untrusted origin
+        self.assertEqual(response.headers["Access-Control-Allow-Origin"], "*")
+        # Must NOT include Access-Control-Allow-Credentials
+        self.assertNotIn("Access-Control-Allow-Credentials", response.headers)
+
+    def test_hardcoded_localhost_origins_not_automatically_allowed(self):
+        try:
+            cfg.CONF.set_override(
+                "allow_origin", ["http://custom-origin.example.com"], "api"
+            )
+            response = self.app.get("/", headers={"origin": "http://localhost:8080"})
+            self.assertEqual(response.status_int, 200)
+            self.assertEqual(
+                response.headers["Access-Control-Allow-Origin"],
+                "http://custom-origin.example.com",
+            )
+            self.assertNotIn("Access-Control-Allow-Credentials", response.headers)
+        finally:
+            cfg.CONF.clear_override("allow_origin", "api")
 
     def test_valid_status_code_is_returned_on_invalid_path(self):
         # TypeError: get_all() takes exactly 1 argument (2 given)
