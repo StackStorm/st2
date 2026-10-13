@@ -22,6 +22,7 @@ from tests import base
 
 from st2client import shell
 from st2client import models
+from st2client.commands import action as action_command
 from st2client.utils import httpclient
 
 LOG = logging.getLogger(__name__)
@@ -102,6 +103,33 @@ class ActionCommandTestCase(base.BaseCLITestCase):
     def __init__(self, *args, **kwargs):
         super(ActionCommandTestCase, self).__init__(*args, **kwargs)
         self.shell = shell.Shell()
+
+    def test_format_execution_status_uses_human_readable_elapsed_time_for_completed_execution(
+        self,
+    ):
+        instance = mock.Mock(
+            status=action_command.LIVEACTION_STATUS_SUCCEEDED,
+            start_timestamp="2020-01-01T00:00:00.000000Z",
+            end_timestamp="2020-01-01T00:05:39.000000Z",
+        )
+
+        result = action_command.format_execution_status(instance)
+
+        self.assertEqual(result.status, "succeeded (5m39s elapsed)")
+
+    @mock.patch.object(action_command.time, "time", mock.MagicMock(return_value=1577837139))
+    def test_format_execution_status_uses_human_readable_elapsed_time_for_running_execution(
+        self,
+    ):
+        instance = mock.Mock(
+            status=action_command.LIVEACTION_STATUS_RUNNING,
+            start_timestamp="2020-01-01T00:00:00.000000Z",
+            end_timestamp=None,
+        )
+
+        result = action_command.format_execution_status(instance)
+
+        self.assertEqual(result.status, "running (5m39s elapsed)")
 
     @mock.patch.object(
         models.ResourceManager,
