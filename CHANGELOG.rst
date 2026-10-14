@@ -36,6 +36,7 @@ Changed
 
 Added
 ~~~~~
+* ``st2 <resource> delete`` now accepts multiple ids, e.g. ``st2 action-alias delete id1 id2 id3``. Resources which are not found are reported and the command exits with a non-zero return code. #4729
 * added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
 
 3.9.0 - October 10, 2025

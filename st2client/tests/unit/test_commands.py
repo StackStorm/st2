@@ -33,6 +33,7 @@ from st2client import models
 from st2client.utils import httpclient
 from st2client.commands import resource
 from st2client.commands.resource import ResourceViewCommand
+from st2client.exceptions.operations import OperationFailureException
 
 __all__ = ["TestResourceCommand", "ResourceViewCommandTestCase"]
 
@@ -98,6 +99,54 @@ class TestCommands(base.BaseCLITestCase):
             self._reset_output_streams()
             return_code = self.shell.run([command_name, "get", "id3"])
             self.assertEqual(return_code, 1)
+
+            stdout = self.stdout.getvalue()
+            self.assertTrue('%s "id3" is not found.' % (display_name) in stdout)
+            self._reset_output_streams()
+
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "get",
+        mock.MagicMock(
+            return_value=base.FakeResponse(json.dumps({}), 404, "NOT FOUND")
+        ),
+    )
+    def test_all_resources_delete_multi(self):
+        # Resources which support the delete command.
+        resources = [
+            ("action", models.Action),
+            ("action-alias", models.ActionAlias),
+            ("rule", models.Rule),
+            ("key", models.KeyValuePair),
+            ("trigger", models.TriggerType),
+            ("apikey", models.ApiKey),
+            ("policy", models.Policy),
+        ]
+
+        # 1. st2 <resource> delete <id 1> ... <id n> notation should attempt to delete every
+        # provided id, report every id which was not found and return non-zero.
+        for command_name, resource_ in resources:
+            display_name = resource_.get_display_name()
+
+            self._reset_output_streams()
+            return_code = self.shell.run([command_name, "delete", "id1", "id2", "id3"])
+            self.assertEqual(return_code, 2)
+
+            stdout = self.stdout.getvalue()
+
+            for resource_id in ["id1", "id2", "id3"]:
+                self.assertTrue(
+                    '%s "%s" is not found.' % (display_name, resource_id) in stdout
+                )
+            self._reset_output_streams()
+
+        # 2. Single id delete which is not found should still return non-zero.
+        for command_name, resource_ in resources:
+            display_name = resource_.get_display_name()
+
+            self._reset_output_streams()
+            return_code = self.shell.run([command_name, "delete", "id3"])
+            self.assertEqual(return_code, 2)
 
             stdout = self.stdout.getvalue()
             self.assertTrue('%s "id3" is not found.' % (display_name) in stdout)
@@ -386,6 +435,67 @@ class TestResourceCommand(unittest.TestCase):
     def test_command_delete_failed(self):
         args = self.parser.parse_args(["fakeresource", "delete", "cba"])
         self.assertRaises(Exception, self.branch.commands["delete"].run, args)
+
+    @mock.patch.object(
+        models.ResourceManager,
+        "get_by_name",
+        mock.MagicMock(return_value=base.FakeResource(**base.RESOURCES[0])),
+    )
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "delete",
+        mock.MagicMock(return_value=base.FakeResponse("", 204, "NO CONTENT")),
+    )
+    def test_command_delete_multiple(self):
+        args = self.parser.parse_args(["fakeresource", "delete", "abc", "def"])
+        self.assertEqual(args.func, self.branch.commands["delete"].run_and_print)
+        deleted_ids, not_found_ids = self.branch.commands["delete"].run(args)
+        self.assertEqual(deleted_ids, ["abc", "def"])
+        self.assertEqual(not_found_ids, [])
+        self.assertEqual(httpclient.HTTPClient.delete.call_count, 2)
+
+    @mock.patch.object(
+        models.ResourceManager,
+        "get_by_name",
+        mock.MagicMock(side_effect=[base.FakeResource(**base.RESOURCES[0]), None]),
+    )
+    @mock.patch.object(
+        models.ResourceManager, "get_by_id", mock.MagicMock(return_value=None)
+    )
+    @mock.patch.object(
+        httpclient.HTTPClient,
+        "delete",
+        mock.MagicMock(return_value=base.FakeResponse("", 204, "NO CONTENT")),
+    )
+    def test_command_delete_multiple_partial_failure(self):
+        # Deleting multiple resources should continue with the remaining resources when one
+        # of the resources is not found.
+        args = self.parser.parse_args(["fakeresource", "delete", "abc", "def"])
+        deleted_ids, not_found_ids = self.branch.commands["delete"].run(args)
+        self.assertEqual(deleted_ids, ["abc"])
+        self.assertEqual(not_found_ids, ["def"])
+        self.assertEqual(httpclient.HTTPClient.delete.call_count, 1)
+
+    @mock.patch.object(
+        models.ResourceManager, "get_by_name", mock.MagicMock(return_value=None)
+    )
+    @mock.patch.object(
+        models.ResourceManager, "get_by_id", mock.MagicMock(return_value=None)
+    )
+    def test_command_delete_multiple_not_found(self):
+        args = self.parser.parse_args(["fakeresource", "delete", "abc", "def"])
+
+        deleted_ids, not_found_ids = self.branch.commands["delete"].run(args)
+        self.assertEqual(deleted_ids, [])
+        self.assertEqual(not_found_ids, ["abc", "def"])
+
+        # When some of the resources could not be deleted, the command should fail with a
+        # non-zero exit code.
+        self.assertRaises(
+            OperationFailureException,
+            self.branch.commands["delete"].run_and_print,
+            args,
+        )
 
     @mock.patch.object(
         models.ResourceManager,
