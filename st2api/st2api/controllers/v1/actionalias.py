@@ -74,7 +74,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             ref_or_id, requester_user=requester_user, permission_type=permission_type
         )
 
-    def match(self, action_alias_match_api):
+    def match(self, action_alias_match_api, requester_user):
         """
         Find a matching action alias.
 
@@ -99,7 +99,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             "representation": format_["representation"],
         }
 
-    def help(self, filter, pack, limit, offset, **kwargs):
+    def help(self, filter, pack, limit, offset, requester_user, **kwargs):
         """
         Get available help strings for action aliases.
 

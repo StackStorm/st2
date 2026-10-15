@@ -39,8 +39,6 @@ Being part of Technical Steering Committee (TSC) [@StackStorm/maintainers](https
   - Puppet, StackStorm Exchange.
 * Khushboo Bhatia ([@khushboobhatia01](https://github.com/khushboobhatia01)), _VMware_ <<khushb99@gmail.com>>
   - StackStorm Core, Workflows.
-* Marcel Weinberg ([@winem](https://github.com/winem)), _CoreMedia_ <<mweinberg-os@email.de>>
-  - Systems, Core, CI/CD, Docker, Community.
 * Mark Mercado ([@mamercad](https://github.com/mamercad)), _DigitalOcean_ <<mmercado@digitalocean.com>>
   - Ansible, Docker, K8s, StackStorm Exchange. [StackStorm Adoption](https://github.com/StackStorm/st2/pull/5836)
 * Mick McGrath ([@mickmcgrath13](https://github.com/mickmcgrath13)), _Bitovi_ <<mick@bitovi.com>>
@@ -98,3 +96,4 @@ Thank you, Friends!
 * Nick Maludy ([@nmaludy](https://github.com/nmaludy)) - Community, Core, Systems, Infrastructure, StackStorm Exchange, Puppet deployment. [Case Study](https://stackstorm.com/case-study-encore/).
 * Vineesh Jain ([@VineeshJain](https://github.com/VineeshJain)) - ex Stormer. Community, Tests, Core, QA.
 * Warren Van Winckel ([@warrenvw](https://github.com/warrenvw)) - ex Stormer. Docker, Kubernetes, Vagrant, Infrastructure.
+* Marcel Weinberg ([@winem](https://github.com/winem)) - Systems, Core, CI/CD, Docker, Community.
