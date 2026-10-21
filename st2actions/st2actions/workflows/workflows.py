@@ -105,9 +105,14 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
                 self._active_messages -= 1
 
     def start(self, wait):
-        concurrency.spawn_after(
-            self._delay, self._resume_workflows_paused_during_shutdown
-        )
+        # Resuming workflows paused by a prior engine shutdown is opt-in
+        # (off by default). Enable it via workflow_engine.bootstrap_enabled in
+        # environments where rolling restarts can leave shutdown-paused
+        # workflows behind.
+        if cfg.CONF.workflow_engine.bootstrap_enabled:
+            concurrency.spawn_after(
+                        self._delay, self._resume_workflows_paused_during_shutdown
+                    )
         super(WorkflowExecutionHandler, self).start(wait=wait)
 
     def shutdown(self):
