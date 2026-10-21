@@ -111,8 +111,8 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
         # workflows behind.
         if cfg.CONF.workflow_engine.bootstrap_enabled:
             concurrency.spawn_after(
-                        self._delay, self._resume_workflows_paused_during_shutdown
-                    )
+                self._delay, self._resume_workflows_paused_during_shutdown
+            )
         super(WorkflowExecutionHandler, self).start(wait=wait)
 
     def shutdown(self):
