@@ -450,10 +450,10 @@ class WorkflowExecutionHandlerTest(st2tests.WorkflowTestCase):
         self.assertEqual(wf_ex_db.status, action_constants.LIVEACTION_STATUS_RUNNING)
         workflow_engine = workflows.get_engine()
 
-        eventlet.spawn(workflow_engine.shutdown)
+        concurrency.spawn(workflow_engine.shutdown)
 
         # Sleep for few seconds to ensure shutdown sequence completes.
-        eventlet.sleep(5)
+        concurrency.sleep(5)
 
         # No other engine is left, so this engine must pause the workflow.
         lv_ac_db = lv_db_access.LiveAction.get_by_id(str(lv_ac_db.id))
