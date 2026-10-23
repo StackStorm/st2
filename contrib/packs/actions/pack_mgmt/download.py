@@ -71,7 +71,13 @@ class DownloadGitRepoAction(Action):
             os.environ["no_proxy"] = self.no_proxy
 
     def run(
-        self, packs, abs_repo_base, verifyssl=True, force=False, dependency_list=None
+        self,
+        packs,
+        abs_repo_base,
+        verifyssl=True,
+        force=False,
+        dependency_list=None,
+        checkout_submodules=False,
     ):
         result = {}
         pack_url = None
@@ -86,6 +92,7 @@ class DownloadGitRepoAction(Action):
                     proxy_config=self.proxy_config,
                     force_permissions=True,
                     logger=self.logger,
+                    checkout_submodules=checkout_submodules,
                 )
                 pack_url, pack_ref, pack_result = pack_result
                 result[pack_ref] = pack_result
@@ -99,6 +106,7 @@ class DownloadGitRepoAction(Action):
                     proxy_config=self.proxy_config,
                     force_permissions=True,
                     logger=self.logger,
+                    checkout_submodules=checkout_submodules,
                 )
                 pack_url, pack_ref, pack_result = pack_result
                 result[pack_ref] = pack_result

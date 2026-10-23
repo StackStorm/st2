@@ -83,6 +83,7 @@ def download_pack(
     force_owner_group=True,
     force_permissions=True,
     logger=LOG,
+    checkout_submodules=False,
 ):
     """
     Download the pack and move it to /opt/stackstorm/packs.
@@ -102,6 +103,10 @@ def download_pack(
 
     :param force: Force the installation and ignore / delete the lock file if it already exists.
     :type force: ``bool``
+
+    :param checkout_submodules: Whether to also checkout git submodules present
+                                in the pack
+    :type checkout_submodules: ``bool``
 
     :return: (pack_url, pack_ref, result)
     :rtype: tuple
@@ -169,6 +174,7 @@ def download_pack(
                     repo_url=pack_url,
                     verify_ssl=verify_ssl,
                     ref=pack_version,
+                    checkout_submodules=checkout_submodules,
                 )
 
             pack_metadata = get_pack_metadata(pack_dir=abs_local_path)
@@ -196,7 +202,9 @@ def download_pack(
     return tuple(result)
 
 
-def clone_repo(temp_dir, repo_url, verify_ssl=True, ref="master"):
+def clone_repo(
+    temp_dir, repo_url, verify_ssl=True, ref="master", checkout_submodules=False
+):
     # Switch to non-interactive mode
     os.environ["GIT_TERMINAL_PROMPT"] = "0"
     os.environ["GIT_ASKPASS"] = "/bin/echo"
@@ -209,6 +217,10 @@ def clone_repo(temp_dir, repo_url, verify_ssl=True, ref="master"):
     # because we want the user to work with the repo in the
     # future.
     repo = Repo.clone_from(repo_url, temp_dir)
+
+    # Checkout any Git Submodules if requested.
+    if checkout_submodules:
+        repo.submodule_update(recursive=False)
 
     is_local_repo = repo_url.startswith("file://")
 
