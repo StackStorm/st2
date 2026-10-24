@@ -41,6 +41,7 @@ from st2client.utils import jsutil
 from st2client.utils.date import format_isodate_for_user_timezone
 from st2client.utils.date import parse as parse_isotime
 from st2client.utils.color import format_status
+from st2common.expressions.functions.time import to_human_time_from_seconds
 
 LOG = logging.getLogger(__name__)
 
@@ -182,15 +183,15 @@ def format_execution_status(instance):
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         now = int(time.time())
-        elapsed_seconds = now - start_timestamp
-        instance.status = "%s (%ss elapsed)" % (instance.status, elapsed_seconds)
+        elapsed_seconds = to_human_time_from_seconds(now - start_timestamp)
+        instance.status = "%s (%s elapsed)" % (instance.status, elapsed_seconds)
     elif status in LIVEACTION_COMPLETED_STATES and start_timestamp and end_timestamp:
         start_timestamp = parse_isotime(start_timestamp)
         start_timestamp = calendar.timegm(start_timestamp.timetuple())
         end_timestamp = parse_isotime(end_timestamp)
         end_timestamp = calendar.timegm(end_timestamp.timetuple())
-        elapsed_seconds = end_timestamp - start_timestamp
-        instance.status = "%s (%ss elapsed)" % (instance.status, elapsed_seconds)
+        elapsed_seconds = to_human_time_from_seconds(end_timestamp - start_timestamp)
+        instance.status = "%s (%s elapsed)" % (instance.status, elapsed_seconds)
 
     return instance
 
