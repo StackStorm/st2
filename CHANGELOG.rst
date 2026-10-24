@@ -31,6 +31,10 @@ Fixed
   and triggers now requires ``trigger_list`` (and ``trigger_view`` on a single trigger).
   Creating, modifying or deleting them, and listing, viewing or re-emitting trigger instances,
   now requires an admin.
+* ``GET /v1/executions/<id>/result`` now requires ``execution_view`` on the execution, like the
+  other execution endpoints; it previously performed no permission check. It now also masks
+  ``secret`` output as declared by the action's ``output_schema``. Admins can pass
+  ``?show_secrets=true`` to see it unmasked.
 
 Changed
 ~~~~~~~

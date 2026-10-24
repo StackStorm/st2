@@ -56,6 +56,7 @@ from st2common.services import executions as execution_service
 from st2common.services import trace as trace_service
 from st2common.util import isotime
 from st2common.util import action_db as action_utils
+from st2common.util import output_schema
 from st2common.util import param as param_utils
 from st2common.util.jsonify import try_loads
 from st2common.rbac.types import PermissionType
@@ -73,6 +74,10 @@ SUPPORTED_EXECUTIONS_FILTERS.update(
 
 MONITOR_THREAD_EMPTY_Q_SLEEP_TIME = 5
 MONITOR_THREAD_NO_WORKERS_SLEEP_TIME = 1
+
+# Fields output_schema.mask_secret_output() reads, for endpoints which load a
+# partial execution document.
+OUTPUT_MASKING_FIELDS = ["action__output_schema", "runner__output_key"]
 
 
 class ActionExecutionsControllerMixin(BaseRestControllerMixin):
@@ -385,7 +390,13 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
 class ActionExecutionRawResultController(BaseActionExecutionNestedController):
     def get(
-        self, id, requester_user, download=False, compress=False, pretty_format=False
+        self,
+        id,
+        requester_user,
+        download=False,
+        compress=False,
+        pretty_format=False,
+        show_secrets=False,
     ):
         """
         Retrieve raw action execution result object as a JSON string or optionally force result
@@ -401,6 +412,7 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
         :param pretty_format: True to pretty format returned JSON data - this adds quite some
                               overhead compared to the default behavior where we don't pretty
                               format the result.
+        :param show_secrets: True to return secret output unmasked (admins only).
 
         Handles requests:
 
@@ -415,12 +427,22 @@ class ActionExecutionRawResultController(BaseActionExecutionNestedController):
         :rtype: ``str``
         """
         # NOTE: we need to use to_python() to uncompress the data
-        try:
-            result = (
-                self.access.impl.model.objects.filter(id=id).only("result")[0].result
-            )
-        except IndexError:
+        fields = ["result", "action__pack", "action__uid"] + OUTPUT_MASKING_FIELDS
+        queryset = self.access.impl.model.objects.filter(id=id).only(*fields)
+        action_exec_db = queryset.first()
+        if action_exec_db is None:
             raise NotFoundException("Execution with id %s not found" % (id))
+
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=action_exec_db,
+            permission_type=PermissionType.EXECUTION_VIEW,
+        )
+
+        result = action_exec_db.result
+        if self._get_mask_secrets(requester_user, show_secrets=show_secrets):
+            result = output_schema.mask_secret_output(action_exec_db, result)
 
         # For backward compatibility we also support old non JSON field storage format
         if pretty_format:

@@ -1424,6 +1424,10 @@ paths:
           description: True to pretty format the result (adds some overhead)
           type: boolean
           default: false
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context
