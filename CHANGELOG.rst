@@ -31,6 +31,8 @@ Fixed
 * ``GET /v1/executions/<id>/children`` now only returns descendants the user has
   ``execution_view`` on. Previously, viewing a workflow execution exposed every execution it
   spawned, including those of actions in packs the user had no permission on.
+* ``GET /v1/executions/<id>/attribute/result`` now masks ``secret`` output as declared by the
+  action's ``output_schema``, like ``GET /v1/executions/<id>``.
 
 Changed
 ~~~~~~~

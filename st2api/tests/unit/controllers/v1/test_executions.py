@@ -1985,6 +1985,40 @@ class ActionExecutionControllerTestCase(
             resp.json["result"], {"secret_param_1": "foo", "secret_param_2": "bar"}
         )
 
+    def test_get_result_attribute_with_masked_secrets_in_output_schema(self):
+        """
+        Test that the result attribute endpoint masks the same output schema secrets as
+        the GET API of action execution.
+        """
+
+        post_resp = self._do_post(LIVE_ACTION_WITH_OUTPUT_SCHEMA_SECRET_PARAM)
+        actionexecution_id = self._get_actionexecution_id(post_resp)
+
+        updates = {
+            "status": "succeeded",
+            "result": {
+                "exit_code": 0,
+                "stderr": "",
+                "stdout": "",
+                "result": {
+                    "secret_param_1": "foo",
+                    "secret_param_2": "bar",
+                },
+            },
+        }
+
+        put_resp = self._do_put(actionexecution_id, updates)
+        self.assertEqual(put_resp.status_int, 200)
+
+        masked_result = {
+            "secret_param_1": MASKED_ATTRIBUTE_VALUE,
+            "secret_param_2": MASKED_ATTRIBUTE_VALUE,
+        }
+
+        resp = self.app.get("/v1/executions/%s/attribute/result" % (actionexecution_id))
+        self.assertEqual(resp.status_int, 200)
+        self.assertDictEqual(resp.json["result"], masked_result)
+
     def test_get_one_without_masked_secrets_in_output_schema(self):
         """
         Test that the parameters not marked secret as true in output schema are not masked

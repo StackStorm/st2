@@ -393,6 +393,9 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
             )
             raise ValueError(msg)
 
+        if attribute == "result":
+            fields = fields + OUTPUT_MASKING_FIELDS
+
         action_exec_db = (
             self.access.impl.model.objects.filter(id=id).only(*fields).get()
         )
@@ -406,6 +409,10 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         )
 
         result = getattr(action_exec_db, attribute, None)
+
+        if attribute == "result" and self._get_mask_secrets(requester_user):
+            result = output_schema.mask_secret_output(action_exec_db, result)
+
         return Response(json=result, status=http_client.OK)
 
 
