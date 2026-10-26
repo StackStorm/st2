@@ -29,6 +29,8 @@ Fixed
   engine now excludes its own coordination member id when deciding whether another engine is still
   available, so it pauses running workflows only when no other engine remains to take them over
   (last-engine shutdown), and leaves them running when a peer engine is still up. (by @guzzijones12@gmail.com)
+* Fixed action-alias help API returning 500 when RBAC enabled. #6414 (by @nzlosh)
+
 
 Changed
 ~~~~~~~
