@@ -22,7 +22,7 @@ from st2common.expressions.functions import time
 class TestTimeJinjaFilters(TestCase):
     def test_to_human_time_from_seconds(self):
         self.assertEqual("0s", time.to_human_time_from_seconds(seconds=0))
-        self.assertEqual("0.1\u03BCs", time.to_human_time_from_seconds(seconds=0.1))
+        self.assertEqual("0.1\u03bcs", time.to_human_time_from_seconds(seconds=0.1))
         self.assertEqual("56s", time.to_human_time_from_seconds(seconds=56))
         self.assertEqual("56s", time.to_human_time_from_seconds(seconds=56.2))
         self.assertEqual("7m36s", time.to_human_time_from_seconds(seconds=456))

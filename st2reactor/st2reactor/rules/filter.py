@@ -95,7 +95,7 @@ class RuleFilter(object):
             extra=self._base_logger_context,
         )
 
-        for (criterion_k, criterion_v) in six.iteritems(criteria):
+        for criterion_k, criterion_v in six.iteritems(criteria):
             (
                 is_rule_applicable,
                 payload_value,
