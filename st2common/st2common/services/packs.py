@@ -25,9 +25,10 @@ import six
 from six.moves import range
 from oslo_config import cfg
 import shutil
-import yaml
 
 from st2common import log as logging
+from st2common.constants.meta import yaml_safe_dump
+from st2common.constants.meta import yaml_safe_load
 from st2common.content.utils import get_pack_base_path
 from st2common.exceptions.content import ResourceDiskFilesRemovalError
 from st2common.models.db.stormbase import UIDFieldMixin
@@ -385,7 +386,7 @@ def clone_action_files(source_action_db, dest_action_db, dest_pack_base_path):
         )
 
     with open(dest_metadata_file_path) as df:
-        doc = yaml.load(df, Loader=yaml.FullLoader)
+        doc = yaml_safe_load(df)
 
     doc["name"] = dest_action_db["name"]
     if "pack" in doc:
@@ -393,7 +394,7 @@ def clone_action_files(source_action_db, dest_action_db, dest_pack_base_path):
     doc["entry_point"] = dest_entry_point
 
     with open(dest_metadata_file_path, "w") as df:
-        yaml.dump(doc, df, default_flow_style=False, sort_keys=False)
+        yaml_safe_dump(doc, stream=df, default_flow_style=False, sort_keys=False)
 
 
 def clone_action_db(source_action_db, dest_pack, dest_action):
