@@ -26,12 +26,11 @@ import six
 import yaml
 
 from st2common.exceptions.plugins import IncompatiblePluginException
-from st2common import log as logging
-
+# from st2common import LOG as logging
+# TODO check logging.basicConfig in st2common/log.py
 __all__ = ["register_plugin", "register_plugin_class", "load_meta_file"]
 
 
-LOG = logging.getLogger(__name__)
 
 PYTHON_EXTENSION = ".py"
 ALLOWED_EXTS = [".json", ".yaml", ".yml"]
