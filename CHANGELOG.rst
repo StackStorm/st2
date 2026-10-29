@@ -38,6 +38,76 @@ Changed
 Added
 ~~~~~
 * added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
+* Optional unrooting of ``st2actionrunner`` and ``st2workflowengine`` with a configurable security mode
+  (by @guzzijones12@gmail.com).
+
+  **What changed.** The ``st2actionrunner@`` and ``st2workflowengine`` systemd units now run as the
+  unprivileged ``st2`` user (group ``st2packs``) instead of ``root``. The non-templated
+  ``st2actionrunner.service`` remains a ``root`` ``oneshot`` because it only calls
+  ``systemctl start/stop st2actionrunner@N`` (via ``runners.sh``); it executes no action code. A new
+  ``[system_security]`` config section is added with two options: ``security_mode`` (``legacy`` or
+  ``restricted``, default ``legacy``) and ``allowed_run_as_users`` (default ``stanley,root``).
+
+  **Does not break consensus / backward compatible.** The default is ``legacy``, which preserves the
+  historical behavior: broad ``NOPASSWD: ALL`` sudo for the ``st2`` user (to ``stanley`` and ``root``).
+  Existing installs and packs continue to work unchanged after upgrade. Unrooting and the tighter
+  ``restricted`` mode are strictly opt-in, so this is not a breaking consensus change -- operators who
+  want the hardening choose it, everyone else keeps today's behavior.
+
+  **Two enforcement layers (they are NOT redundant).**
+
+  1. *Application-level pre-check* -- ``local_runner`` reads ``cfg.CONF.system_security`` at runtime on
+     every action. In ``restricted`` mode it rejects a target user not in ``allowed_run_as_users`` and a
+     script ``entry_point`` outside ``base_path``. This is enforced inside the ``st2`` process, so it is a
+     first-line convenience/early-failure guard with helpful errors -- NOT a boundary against a
+     compromised or buggy runner, and it does not path-restrict arbitrary local commands (``cmd=...``).
+
+  2. *OS-level sudoers* -- ``/etc/sudoers.d/st2`` is the real security boundary, enforced by ``sudo``
+     (setuid-root), and it holds even if the ``st2`` process is compromised. It does two things the app
+     check cannot: (a) it *grants* the privilege in the first place -- once unrooted, the unprivileged
+     ``st2`` user can only ``sudo`` to ``stanley``/``root`` because this file allows it, so the file is
+     required for local ``sudo``/run-as-user actions to work at all; and (b) in ``restricted`` mode it is
+     the hard ceiling -- sudo execution is scoped to commands under ``/opt/stackstorm`` and dangerous
+     commands (``passwd``, ``su``, ``visudo``, ``sudo``) are denied, so a tricked runner still cannot
+     ``sudo`` arbitrary binaries as root.
+
+  **How the sudoers file is generated.** A new ``st2-setup-sudo`` script (packaged into
+  ``/opt/stackstorm/st2/bin``) reads ``security_mode`` from ``st2.conf`` and writes ``/etc/sudoers.d/st2``
+  accordingly, validating it with ``visudo -c`` (and removing the file on syntax error). It is invoked by
+  the package post-install as ``root``.
+
+  **How to enable restricted mode.**
+
+  1. Set ``allowed_run_as_users`` to the exact set of users your actions actually run as. For most
+     deployments this is just the default system user, ``stanley``. Keep ``root`` in the list only if you
+     genuinely have actions that run as ``root``; dropping it tightens the surface. Example::
+
+         [system_security]
+         security_mode = restricted
+         allowed_run_as_users = stanley
+
+  2. Ensure any local script actions live under ``/opt/stackstorm`` (packs already install there), since
+     ``restricted`` mode only permits sudo execution of commands under that path. Actions that call
+     external scripts outside ``/opt/stackstorm`` must be moved into a pack or will be rejected.
+  3. Regenerate the sudoers file as ``root`` so the OS-level boundary matches the new mode::
+
+         sudo /opt/stackstorm/st2/bin/st2-setup-sudo
+
+  4. Restart the st2 services (e.g. ``sudo st2ctl restart``) and exercise a representative action. If an
+     action fails with a "Security violation" error, add the missing user to ``allowed_run_as_users`` or
+     move the script under ``/opt/stackstorm`` -- do not fall back to ``legacy`` unless you must.
+
+  A safe transition path is: upgrade on ``legacy`` (no behavior change), then flip a single node to
+  ``restricted``, validate your packs, and roll it out.
+
+  **Containers/Kubernetes.** Because the sudoers file is generated at package post-install (image-build)
+  time, a container image that wants ``restricted`` mode must be built with an ``st2.conf`` that already
+  sets ``security_mode = restricted`` (so ``st2-setup-sudo`` writes the scoped sudoers into the image).
+* Run ``st2actionrunner`` and ``st2workflowengine`` as the unprivileged ``st2`` user instead of ``root``, and
+  added an optional ``[system_security] security_mode`` (``legacy``/``restricted``) with ``allowed_run_as_users``.
+  In ``restricted`` mode the local runner limits execution to scripts under ``base_path`` and to allowed run-as
+  users. A new ``st2-setup-sudo`` script generates a scoped ``/etc/sudoers.d/st2`` from the configured mode and is
+  invoked from the package post-install. Defaults to ``legacy`` for backward compatibility. (by @guzzijones12@gmail.com)
 
 3.9.0 - October 10, 2025
 ------------------------

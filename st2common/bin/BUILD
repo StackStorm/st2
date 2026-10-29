@@ -1,5 +1,12 @@
 python_sources(
-    sources=["*.py", "st2*", "!st2ctl", "!st2-self-check", "!st2-run-pack-tests"],
+    sources=[
+        "*.py",
+        "st2*",
+        "!st2ctl",
+        "!st2-self-check",
+        "!st2-run-pack-tests",
+        "!st2-setup-sudo",
+    ],
     skip_flake8=True,
     # skip until resolved: https://github.com/PyCQA/pylint/issues/2095
     skip_pylint=True,
@@ -13,7 +20,7 @@ python_sources(
 
 st2_shell_sources_and_resources(
     name="shell",
-    sources=["st2ctl", "st2-self-check", "st2-run-pack-tests"],
+    sources=["st2ctl", "st2-self-check", "st2-run-pack-tests", "st2-setup-sudo"],
     skip_shellcheck=True,
     skip_shfmt=True,
     overrides={

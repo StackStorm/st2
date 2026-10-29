@@ -132,6 +132,19 @@ case "$1" in
         done
         extract_st2_pack examples --target /usr/share/doc/st2/examples || :
 
+        # Setup sudo configuration based on security mode
+        if [ -x /opt/stackstorm/st2/bin/st2-setup-sudo ]; then
+            /opt/stackstorm/st2/bin/st2-setup-sudo || :
+        fi
+
+        # Fix file permissions for st2 user
+        chown -R st2:st2packs /opt/stackstorm/packs 2>/dev/null || :
+        chown -R st2:st2packs /opt/stackstorm/virtualenvs 2>/dev/null || :
+        chown -R st2:st2 /var/log/st2 2>/dev/null || :
+        chown -R st2:st2 /etc/st2 2>/dev/null || :
+        chmod 2775 /opt/stackstorm/packs 2>/dev/null || :
+        chmod 2775 /opt/stackstorm/virtualenvs 2>/dev/null || :
+
         # shellcheck disable=SC2086
         systemd_enable_and_restart ${_ST2_SERVICES}
         ;;
