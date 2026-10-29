@@ -24,7 +24,9 @@ from datetime import timedelta
 from st2common import log as logging
 from st2common.garbage_collection.workflows import purge_task_executions
 from st2common.models.db.workflow import TaskExecutionDB
+from st2common.models.db.workflow import TaskItemStateDB
 from st2common.persistence.workflow import TaskExecution
+from st2common.persistence.workflow import TaskItemState
 from st2common.util import date as date_utils
 from st2tests.base import CleanDbTestCase
 
@@ -114,3 +116,51 @@ class TestPurgeTaskExecutionInstances(CleanDbTestCase):
             logger=LOG, timestamp=now - timedelta(days=10), purge_incomplete=True
         )
         self.assertEqual(len(TaskExecution.get_all()), 1)
+
+    def test_purge_deletes_associated_task_item_states(self):
+        now = date_utils.get_datetime_utc_now()
+
+        # Old task execution that will be purged, with two item state records.
+        old_task_db = TaskExecutionDB(
+            start_timestamp=now - timedelta(days=20),
+            end_timestamp=now - timedelta(days=20),
+            status="succeeded",
+        )
+        old_task_db = TaskExecution.add_or_update(old_task_db)
+
+        for item_id in range(2):
+            item_state_db = TaskItemStateDB(
+                task_execution=str(old_task_db.id),
+                item_id=item_id,
+                status="succeeded",
+            )
+            TaskItemState.add_or_update(item_state_db)
+
+        # Recent task execution that will be retained, with one item state record.
+        recent_task_db = TaskExecutionDB(
+            start_timestamp=now - timedelta(days=5),
+            end_timestamp=now - timedelta(days=5),
+            status="succeeded",
+        )
+        recent_task_db = TaskExecution.add_or_update(recent_task_db)
+
+        item_state_db = TaskItemStateDB(
+            task_execution=str(recent_task_db.id),
+            item_id=0,
+            status="succeeded",
+        )
+        TaskItemState.add_or_update(item_state_db)
+
+        self.assertEqual(len(TaskExecution.get_all()), 2)
+        self.assertEqual(len(TaskItemState.get_all()), 3)
+
+        purge_task_executions(logger=LOG, timestamp=now - timedelta(days=10))
+
+        # Only the recent task execution and its single item state record remain.
+        self.assertEqual(len(TaskExecution.get_all()), 1)
+
+        remaining_item_states = TaskItemState.get_all()
+        self.assertEqual(len(remaining_item_states), 1)
+        self.assertEqual(
+            remaining_item_states[0].task_execution, str(recent_task_db.id)
+        )

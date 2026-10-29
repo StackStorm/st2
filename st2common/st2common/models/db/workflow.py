@@ -25,7 +25,7 @@ from st2common.fields import JSONDictEscapedFieldCompatibilityField
 from st2common.util import date as date_utils
 
 
-__all__ = ["WorkflowExecutionDB", "TaskExecutionDB"]
+__all__ = ["WorkflowExecutionDB", "TaskExecutionDB", "TaskItemStateDB"]
 
 
 LOG = logging.getLogger(__name__)
@@ -85,4 +85,31 @@ class TaskExecutionDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionField
     }
 
 
-MODELS = [WorkflowExecutionDB, TaskExecutionDB]
+class TaskItemStateDB(stormbase.StormFoundationDB, stormbase.ChangeRevisionFieldMixin):
+    """
+    Model for storing individual item states for tasks with items (itemized tasks).
+    This allows efficient storage and retrieval of individual item states without
+    serializing/deserializing the entire task context for each item.
+    """
+
+    RESOURCE_TYPE = types.ResourceType.EXECUTION
+
+    task_execution = me.StringField(required=True)
+    item_id = me.IntField(required=True)
+    status = me.StringField(required=True)
+    result = JSONDictEscapedFieldCompatibilityField()
+    context = JSONDictEscapedFieldCompatibilityField()
+    start_timestamp = db_field_types.ComplexDateTimeField(
+        default=date_utils.get_datetime_utc_now
+    )
+    end_timestamp = db_field_types.ComplexDateTimeField()
+
+    meta = {
+        "indexes": [
+            {"fields": ["task_execution"]},
+            {"fields": ["task_execution", "item_id"], "unique": True},
+        ]
+    }
+
+
+MODELS = [WorkflowExecutionDB, TaskExecutionDB, TaskItemStateDB]

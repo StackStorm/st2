@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+# Copyright 2025 The StackStorm Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Migration which creates the collection and indexes for the new TaskItemStateDB model.
+
+This model backs the persistent storage for "with items" (itemized) tasks. It stores
+each item's state as a separate document so that individual item states can be read and
+written without serializing / deserializing the entire task context for every item.
+
+MongoDB creates collections lazily, so this migration simply ensures the indexes for
+the model exist. That both creates the collection and builds its indexes up front so the
+first itemized task run does not pay that cost. Re-running this migration is safe: it is
+idempotent and will not recreate indexes that already exist.
+"""
+
+import sys
+import traceback
+
+from st2common import config
+from st2common.models.db import db_ensure_indexes
+from st2common.models.db.workflow import TaskItemStateDB
+from st2common.service_setup import db_setup
+from st2common.service_setup import db_teardown
+
+
+def create_task_item_state_collection():
+    print("Ensuring collection and indexes for TaskItemStateDB...")
+    db_ensure_indexes([TaskItemStateDB])
+    print("Done.")
+
+
+def main():
+    config.parse_args()
+    db_setup()
+
+    try:
+        create_task_item_state_collection()
+        exit_code = 0
+    except Exception as e:
+        print("ABORTED: Migration aborted on first failure: %s" % (str(e)))
+        traceback.print_exc()
+        exit_code = 1
+
+    db_teardown()
+    sys.exit(exit_code)
+
+
+if __name__ == "__main__":
+    main()
