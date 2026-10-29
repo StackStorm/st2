@@ -336,9 +336,7 @@ class KeyValuePairDeleteCommand(resource.ResourceDeleteCommand):
             help="User for user scoped items (admin only).",
         )
 
-    @resource.add_auth_token_to_kwargs_from_cli
-    def run(self, args, **kwargs):
-        resource_id = getattr(args, self.pk_argument_name, None)
+    def delete_resource(self, args, resource_id, **kwargs):
         scope = getattr(args, "scope", DEFAULT_CUD_SCOPE)
         kwargs["params"] = {}
         kwargs["params"]["scope"] = scope
