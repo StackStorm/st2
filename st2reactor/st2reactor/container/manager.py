@@ -83,7 +83,7 @@ class SensorContainerManager(object):
             LOG.debug("Starting sensor CUD watcher...")
             self._sensors_watcher.start()
 
-            exit_code = self._container_thread.wait()
+            exit_code = concurrency.wait(self._container_thread)
             LOG.error("Process container quit with exit_code %d.", exit_code)
             LOG.error("(PID:%s) SensorContainer stopped.", os.getpid())
         except (KeyboardInterrupt, SystemExit):

@@ -3,6 +3,7 @@ apscheduler
 dnspython
 python-dateutil
 eventlet
+gevent
 # used by eventlet
 greenlet
 jinja2

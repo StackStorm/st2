@@ -2,6 +2,7 @@
 apscheduler
 python-dateutil
 eventlet
+gevent
 jinja2
 kombu
 oslo.config
