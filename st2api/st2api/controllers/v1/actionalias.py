@@ -74,7 +74,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             ref_or_id, requester_user=requester_user, permission_type=permission_type
         )
 
-    def match(self, action_alias_match_api):
+    def match(self, action_alias_match_api, requester_user):
         """
         Find a matching action alias.
 
@@ -99,7 +99,7 @@ class ActionAliasController(resource.ContentPackResourceController):
             "representation": format_["representation"],
         }
 
-    def help(self, filter, pack, limit, offset, **kwargs):
+    def help(self, filter, pack, limit, offset, requester_user, **kwargs):
         """
         Get available help strings for action aliases.
 
@@ -107,7 +107,15 @@ class ActionAliasController(resource.ContentPackResourceController):
             GET /actionalias/help
         """
         try:
-            aliases_resp = super(ActionAliasController, self)._get_all(**kwargs)
+            permission_type = PermissionType.ACTION_ALIAS_HELP
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_permission(
+                user_db=requester_user,
+                permission_type=permission_type,
+            )
+            aliases_resp = super(ActionAliasController, self)._get_all(
+                requester_user=requester_user, **kwargs
+            )
             aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
             return generate_helpstring_result(
                 aliases, filter, pack, int(limit), int(offset)

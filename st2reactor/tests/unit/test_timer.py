@@ -22,6 +22,7 @@ from st2common.models.db.trigger import TriggerDB
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import TriggerType
 from st2common.persistence.trigger import Trigger
+from st2common.util import concurrency
 from st2reactor.timer.base import St2Timer
 from st2tests.base import CleanDbTestCase
 
@@ -75,7 +76,7 @@ class St2TimerTestCase(CleanDbTestCase):
         self.assertEqual(len(Trigger.get_all()), 1)
 
         timer.start()
-        timer._trigger_watcher._load_thread.wait()
+        concurrency.wait(timer._trigger_watcher._load_thread)
 
         # Verify handlers are called
         timer._handle_create_trigger.assert_called_with(trigger_db)

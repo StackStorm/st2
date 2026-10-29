@@ -21,7 +21,7 @@ from six.moves import range
 
 # This import must be early for import-time side-effects.
 # Importing st2actions.scheduler relies on config being parsed :/
-from st2tests import DbTestCase, EventletTestCase, ExecutionDbTestCase
+from st2tests import DbTestCase, GreenThreadTestCase, ExecutionDbTestCase
 
 import st2common
 from st2actions.scheduler import handler as scheduling_queue
@@ -78,10 +78,10 @@ SCHEDULED_STATES = [
     mock.MagicMock(side_effect=MockExecutionPublisher.publish_update),
 )
 @mock.patch.object(CUDPublisher, "publish_create", mock.MagicMock(return_value=None))
-class ConcurrencyPolicyTestCase(EventletTestCase, ExecutionDbTestCase):
+class ConcurrencyPolicyTestCase(GreenThreadTestCase, ExecutionDbTestCase):
     @classmethod
     def setUpClass(cls):
-        EventletTestCase.setUpClass()
+        GreenThreadTestCase.setUpClass()
         DbTestCase.setUpClass()
 
         # Override the coordinator to use the noop driver otherwise the tests will be blocked.

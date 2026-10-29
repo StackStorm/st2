@@ -75,7 +75,7 @@ def _run_worker():
             timer = St2Timer(local_timezone=local_tz)
             timer_thread = concurrency.spawn(_kickoff_timer, timer)
             LOG.info(TIMER_ENABLED_LOG_LINE)
-            return timer_thread.wait()
+            return concurrency.wait(timer_thread)
         else:
             LOG.info(TIMER_DISABLED_LOG_LINE)
     except (KeyboardInterrupt, SystemExit):

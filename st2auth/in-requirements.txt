@@ -1,6 +1,7 @@
 # Remember to list implicit packages here, otherwise version won't be fixated!
 bcrypt
 eventlet
+gevent
 oslo.config
 pymongo
 six
