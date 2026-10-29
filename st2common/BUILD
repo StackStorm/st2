@@ -66,6 +66,7 @@ st2_component_python_distribution(
         "./st2common/models/db/timer.py",  # used by st2api
         "./st2common/models/db/webhook.py",  # used by st2api
         "./st2common/persistence/execution_queue.py",  # used by st2scheduler (in st2actions)
+        "./st2common/persistence/sensor_instance.py",  # used by st2api and sensor container (in st2reactor)
         "./st2common/stream",  # used by st2stream
         "./st2common/transport/consumers.py",  # used by st2actions- and st2reactor-related services
         "./st2common/util/actionalias_helpstring.py",  # used by st2api

@@ -133,6 +133,14 @@ SENSOR_EXIT_TRIGGER = {
     "payload_schema": {"type": "object", "properties": {"object": {}}},
 }
 
+SENSOR_ABANDONED_TRIGGER = {
+    "name": "st2.sensor.process_abandoned",
+    "pack": SYSTEM_PACK_NAME,
+    "description": "Trigger indicating the sensor process was abandoned after "
+    "exceeding the maximum number of respawn attempts.",
+    "payload_schema": {"type": "object", "properties": {"object": {}}},
+}
+
 # KeyValuePair resource triggers
 KEY_VALUE_PAIR_CREATE_TRIGGER = {
     "name": "st2.key_value_pair.create",
@@ -173,7 +181,7 @@ INTERNAL_TRIGGER_TYPES = {
         ACTION_FILE_WRITTEN_TRIGGER,
         INQUIRY_TRIGGER,
     ],
-    "sensor": [SENSOR_SPAWN_TRIGGER, SENSOR_EXIT_TRIGGER],
+    "sensor": [SENSOR_SPAWN_TRIGGER, SENSOR_EXIT_TRIGGER, SENSOR_ABANDONED_TRIGGER],
     "key_value_pair": [
         KEY_VALUE_PAIR_CREATE_TRIGGER,
         KEY_VALUE_PAIR_UPDATE_TRIGGER,
