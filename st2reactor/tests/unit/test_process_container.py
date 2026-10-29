@@ -48,7 +48,7 @@ class ProcessContainerTests(unittest.TestCase):
         self.assertEqual(process_container.running(), 0)
         self.assertEqual(process_container.stopped(), False)
         process_container.shutdown()
-        process_container_thread.kill()
+        concurrency.kill(process_container_thread)
 
     @patch.object(
         ProcessSensorContainer,

@@ -3,6 +3,8 @@ Changelog
 
 in development
 --------------
+* Added support for gevent to replace eventlet. Going forward, the default will be gevent, and can be overriden in the conf file `system.concurrency_library = gevent|eventlet` @jzufelt #6372
+
 * implemented zstandard compression for parameters and results. #5995
   contributed by @guzzijones12
 
@@ -18,12 +20,12 @@ RabbitMQ    4.2
 Redis       8.6
 ```
 
-
 Fixed
 ~~~~~
 * Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375
 * Fix utf-8 encode before checking paramter max size #6352
 * Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)
+* Fixed action-alias help API returning 500 when RBAC enabled. #6414 (by @nzlosh)
 
 Changed
 ~~~~~~~
@@ -230,6 +232,9 @@ Fixed
 
 * For "local-shell-script" runner, on readonly filesystems, don't attempt to run chmod +x on script_action. Fixes #5591
   Contributed by @jk464
+
+* Fixed RBAC support to action-alias help and match end point. #6022
+  Contributed by @nzlosh
 
 Added
 ~~~~~

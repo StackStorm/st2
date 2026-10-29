@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import eventlet
-
+from st2common.util import concurrency
 from st2reactor.sensor.base import Sensor
 
 
@@ -34,7 +33,7 @@ class HelloSensor(Sensor):
             payload = {"greeting": "Yo, StackStorm!", "count": int(count) + 1}
             self.sensor_service.dispatch(trigger="hello_st2.event1", payload=payload)
             self.sensor_service.set_value("hello_st2.count", payload["count"])
-            eventlet.sleep(60)
+            concurrency.sleep(60)
 
     def cleanup(self):
         self._stop = True

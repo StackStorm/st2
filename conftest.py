@@ -14,6 +14,16 @@
 import hashlib
 from typing import Iterable, List, Sequence
 
+# NOTE: This must happen before any test module imports anything that pulls in tooz/eventlet
+# (e.g. st2common.services.coordination). Tooz's Heart binds threading.Thread/Event as default
+# args at import time, so if it's imported before monkey patching, it permanently uses the
+# unpatched primitives -- causing gevent.exceptions.LoopExit or hangs later. Pytest always loads
+# this file before any test module, in both whole-directory and single-file (Pants) runs, so this
+# is the one place that reliably wins the race regardless of which test file happens to run first.
+from st2common.util.monkey_patch import monkey_patch
+
+monkey_patch()
+
 from _pytest import nodes
 from _pytest.config import create_terminal_writer
 
