@@ -15,11 +15,10 @@
 
 from __future__ import absolute_import
 
-import eventlet
-
 from integration.orquesta import base
 
 from st2common.constants import action as ac_const
+from st2common.util import concurrency
 
 
 class InquiryWiringTest(base.TestWorkflowExecution):
@@ -75,7 +74,7 @@ class InquiryWiringTest(base.TestWorkflowExecution):
         )
 
         # Allow some time for the first inquiry to get processed.
-        eventlet.sleep(2)
+        concurrency.sleep(2)
 
         # Respond to the second inquiry.
         t2_ac_exs = self._wait_for_task(
