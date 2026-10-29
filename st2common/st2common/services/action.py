@@ -546,19 +546,21 @@ def is_children_active(liveaction_id):
     if execution_db.runner["name"] not in action_constants.WORKFLOW_RUNNER_TYPES:
         return False
 
-    children_execution_dbs = ActionExecution.query(parent=str(execution_db.id))
-
     inactive_statuses = action_constants.LIVEACTION_COMPLETED_STATES + [
         action_constants.LIVEACTION_STATUS_PAUSED,
         action_constants.LIVEACTION_STATUS_PENDING,
     ]
 
-    completed = [
-        child_exec_db.status in inactive_statuses
-        for child_exec_db in children_execution_dbs
-    ]
+    # Count children whose status is not inactive with a server-side query
+    # instead of loading every child execution document into memory. This
+    # matters for tasks with a large with-items fan-out, where the parent can
+    # have thousands of children.
+    active_children_count = ActionExecution.count(
+        parent=str(execution_db.id),
+        status__nin=inactive_statuses,
+    )
 
-    return not all(completed)
+    return active_children_count > 0
 
 
 def _cleanup_liveaction(liveaction):
