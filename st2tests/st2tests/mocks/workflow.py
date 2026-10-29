@@ -16,8 +16,9 @@
 from __future__ import absolute_import
 
 import six
-import eventlet
 import traceback
+
+from st2common.util import concurrency
 
 from st2actions.workflows import workflows
 from st2common.models.db import workflow as wf_ex_db
@@ -53,7 +54,7 @@ class MockWorkflowExecutionPublisherNonBlocking(object):
     def publish_create(cls, payload):
         try:
             if isinstance(payload, wf_ex_db.WorkflowExecutionDB):
-                thread = eventlet.spawn(workflows.get_engine().process, payload)
+                thread = concurrency.spawn(workflows.get_engine().process, payload)
                 cls.threads.append(thread)
         except Exception:
             traceback.print_exc()
@@ -63,7 +64,7 @@ class MockWorkflowExecutionPublisherNonBlocking(object):
     def publish_state(cls, payload, state):
         try:
             if isinstance(payload, wf_ex_db.WorkflowExecutionDB):
-                thread = eventlet.spawn(workflows.get_engine().process, payload)
+                thread = concurrency.spawn(workflows.get_engine().process, payload)
                 cls.threads.append(thread)
         except Exception:
             traceback.print_exc()
@@ -73,7 +74,7 @@ class MockWorkflowExecutionPublisherNonBlocking(object):
     def wait_all(cls):
         for thread in cls.threads:
             try:
-                thread.wait()
+                concurrency.wait(thread)
             except Exception as e:
                 print(six.text_type(e))
             finally:
