@@ -141,7 +141,7 @@ class SensorService(object):
     # Methods for datastore management
     ##################################
 
-    def list_values(self, local=True, prefix=None, limit=None, offset=None):
+    def list_values(self, local=True, prefix=None, limit=None, offset=0):
         return self.datastore_service.list_values(
             local=local, prefix=prefix, limit=limit, offset=offset
         )
