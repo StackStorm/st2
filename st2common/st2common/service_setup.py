@@ -31,6 +31,7 @@ from oslo_config import cfg
 from tooz.coordination import GroupAlreadyExist
 from tooz.coordination import GroupNotCreated
 from tooz.coordination import MemberNotJoined
+from tooz.coordination import MemberAlreadyExist
 
 from st2common import log as logging
 from st2common.constants.logging import DEFAULT_LOGGING_CONF_PATH
@@ -341,7 +342,10 @@ def register_service_in_service_registry(service, capabilities=None, start_heart
         'Joining service registry group "%s" as member_id "%s" with capabilities "%s"'
         % (group_id, member_id, capabilities)
     )
-    return coordinator.join_group(group_id, capabilities=capabilities).get()
+    try:
+        return coordinator.join_group(group_id, capabilities=capabilities).get()
+    except MemberAlreadyExist:
+        pass
 
 
 def deregister_service(service, start_heart=True):
