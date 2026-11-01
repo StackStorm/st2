@@ -37,4 +37,9 @@
       required: false
       description: Action timeout in seconds. Action will get killed if it doesn't finish in timeout
       type: integer
+    checkout_submodules:
+      type: "boolean"
+      description: "Set to True to checkout git submodules present in the pack"
+      required: false
+      default: false
 
