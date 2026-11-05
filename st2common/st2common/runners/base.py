@@ -382,8 +382,8 @@ class GitWorktreeActionRunner(ActionRunner):
         else:
             LOG.debug('Git worktree created in "%s"' % (worktree_path), extra=extra)
 
-        # Make sure system / action runner user can access that directory
-        args = ["chmod", "777", worktree_path]
+        # Make sure only system / action runner user can access that directory
+        args = ["chmod", "750", worktree_path]
         cmd = list2cmdline(args)
         run_command(cmd=cmd, shell=True)
 
