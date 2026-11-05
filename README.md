@@ -77,6 +77,10 @@ StackStorm is an established project and remains actively developed by a broad c
 
 Additional documentation, including installation procedures, action/rule/workflow authoring, and how to setup and use triggers/sensors can be found at [https://docs.stackstorm.com](https://docs.stackstorm.com).
 
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/StackStorm/)
+
 ## Hacking / Contributing
 
 To set up a development environment and run StackStorm from sources, follow [these instructions](https://docs.stackstorm.com/development/sources.html).
