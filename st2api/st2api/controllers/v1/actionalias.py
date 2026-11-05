@@ -107,7 +107,15 @@ class ActionAliasController(resource.ContentPackResourceController):
             GET /actionalias/help
         """
         try:
-            aliases_resp = super(ActionAliasController, self)._get_all(**kwargs)
+            permission_type = PermissionType.ACTION_ALIAS_HELP
+            rbac_utils = get_rbac_backend().get_utils_class()
+            rbac_utils.assert_user_has_permission(
+                user_db=requester_user,
+                permission_type=permission_type,
+            )
+            aliases_resp = super(ActionAliasController, self)._get_all(
+                requester_user=requester_user, **kwargs
+            )
             aliases = [ActionAliasAPI(**alias) for alias in aliases_resp.json]
             return generate_helpstring_result(
                 aliases, filter, pack, int(limit), int(offset)
