@@ -236,6 +236,35 @@ class DownloadGitRepoActionTestCase(BaseActionTestCase):
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, "test/pack.yaml")))
         self.assertTrue(os.path.isfile(os.path.join(self.repo_base, "test2/pack.yaml")))
 
+    def test_run_pack_download_multiple_packs_one_does_not_exist(self):
+        # Regression test for #4620 - a non-existent pack must not be silently ignored
+        # when other packs are downloaded successfully
+        action = self.get_action_instance()
+
+        for packs in (["test", "doesnotexist"], ["doesnotexist", "test"]):
+            expected_msg = (
+                r"The following packs have not been downloaded: doesnotexist"
+                r"(.|\n)*No record of the \"doesnotexist\" pack in the index"
+            )
+            self.assertRaisesRegex(
+                Exception,
+                expected_msg,
+                action.run,
+                packs=packs,
+                abs_repo_base=self.repo_base,
+                force=True,
+            )
+
+    def test_run_pack_download_single_pack_does_not_exist(self):
+        action = self.get_action_instance()
+        self.assertRaisesRegex(
+            Exception,
+            r"The pack has not been downloaded from \"None\"",
+            action.run,
+            packs=["doesnotexist"],
+            abs_repo_base=self.repo_base,
+        )
+
     @mock.patch.object(Repo, "clone_from")
     def test_run_pack_download_error(self, clone_from):
         clone_from.side_effect = Exception(
