@@ -16,6 +16,10 @@
 from __future__ import absolute_import
 
 import sys
+from urllib.parse import parse_qsl
+from urllib.parse import urlencode
+from urllib.parse import urlsplit
+from urllib.parse import urlunsplit
 
 import six
 
@@ -201,6 +205,51 @@ def get_driver_name() -> str:
     return driver_name
 
 
+def get_masked_url(url):
+    """
+    Return coordination backend URL with any credentials (password in the netloc part or
+    in the query string) masked so it can be safely logged.
+
+    :rtype: ``str``
+    """
+    if not url:
+        return url
+
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return "<invalid url>"
+
+    netloc = parsed.netloc
+    query = parsed.query
+    masked = False
+
+    if parsed.password is not None:
+        userinfo, hostinfo = netloc.rsplit("@", 1)
+        username = userinfo.split(":", 1)[0]
+        netloc = "%s:**@%s" % (username, hostinfo)
+        masked = True
+
+    query_params = parse_qsl(query, keep_blank_values=True)
+
+    if any("password" in key.lower() for key, _ in query_params):
+        query = urlencode(
+            [
+                (key, "**" if "password" in key.lower() else value)
+                for key, value in query_params
+            ],
+            safe="*",
+        )
+        masked = True
+
+    if not masked:
+        # Nothing to mask, return URL as-is (urlunsplit would e.g. turn "zake://" into
+        # "zake:")
+        return url
+
+    return urlunsplit((parsed.scheme, netloc, parsed.path, query, parsed.fragment))
+
+
 def coordinator_setup(start_heart=True):
     """
     Sets up the client for the coordination service.
@@ -216,17 +265,23 @@ def coordinator_setup(start_heart=True):
     member_id = get_member_id()
 
     if url:
+        masked_url = get_masked_url(url)
+        LOG.info('Connecting to coordination backend "%s".' % (masked_url))
+
         coordinator = coordination.get_coordinator(
             url, member_id, lock_timeout=lock_timeout
         )
+        coordinator.start(start_heart=start_heart)
+
+        LOG.info('Successfully connected to coordination backend "%s".' % (masked_url))
     else:
         # Use a no-op backend
         # Note: We don't use tooz to obtain a reference since for this to work we would need to
         # register a plugin inside setup.py entry_point and use python setup.py develop for tests
         # to work
         coordinator = NoOpDriver(member_id)
+        coordinator.start(start_heart=start_heart)
 
-    coordinator.start(start_heart=start_heart)
     return coordinator
 
 
