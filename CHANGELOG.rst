@@ -26,6 +26,9 @@ Fixed
 * Fix utf-8 encode before checking paramter max size #6352
 * Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)
 * Fixed action-alias help API returning 500 when RBAC enabled. #6414 (by @nzlosh)
+* Fix ``st2 pack install`` silently ignoring packs which fail to download (e.g. non-existent
+  packs) when installing multiple packs at once. The ``packs.download`` action now fails and
+  lists the packs which could not be downloaded. #4620
 
 Changed
 ~~~~~~~

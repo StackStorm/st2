@@ -107,23 +107,40 @@ class DownloadGitRepoAction(Action):
 
     @staticmethod
     def _validate_result(result, repo_url):
-        atleast_one_success = False
+        """
+        Validate the download results and raise if downloading any of the requested
+        packs failed.
+
+        Previously an error was only raised if *all* the packs failed to download which
+        meant that "st2 pack install <existing> <non-existent>" silently ignored the
+        non-existent pack and reported success (see #4620).
+        """
         sanitized_result = {}
+        failed_packs = []
 
-        for k, v in six.iteritems(result):
-            atleast_one_success |= v[0]
-            sanitized_result[k] = v[1]
+        for pack, (success, message) in six.iteritems(result):
+            sanitized_result[pack] = message
 
-        if not atleast_one_success:
+            if not success:
+                failed_packs.append(pack)
+
+        if failed_packs:
             message_list = []
-            message_list.append(
-                'The pack has not been downloaded from "%s".\n' % (repo_url)
-            )
+
+            if len(result) == 1:
+                message_list.append(
+                    'The pack has not been downloaded from "%s".\n' % (repo_url)
+                )
+            else:
+                message_list.append(
+                    "The following packs have not been downloaded: %s\n"
+                    % (", ".join(failed_packs))
+                )
+
             message_list.append("Errors:")
 
-            for pack, value in result.items():
-                success, error = value
-                message_list.append(error)
+            for pack in failed_packs:
+                message_list.append(result[pack][1])
 
             message = "\n".join(message_list)
             raise Exception(message)
