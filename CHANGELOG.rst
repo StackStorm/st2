@@ -38,6 +38,9 @@ Changed
 Added
 ~~~~~
 * added raw_string type to allow template strings to pass through variable processing (by @guzzijones12@gmail.com) #6351
+* Services now log an ``INFO`` message when connecting to and when successfully connected to
+  the ``[coordination]`` backend (credentials in the URL are masked), consistent with the
+  existing MongoDB and RabbitMQ connection log messages. #4783
 
 3.9.0 - October 10, 2025
 ------------------------
