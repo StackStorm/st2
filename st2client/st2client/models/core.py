@@ -69,6 +69,15 @@ def parse_api_response(response: requests.models.Response) -> dict:
     return data
 
 
+def _quote_url_path_segment(value):
+    """
+    Quote a single URL path segment (a resource id or name) so a value which
+    contains characters such as "/" stays inside one path segment and reaches
+    the API intact. Key value pair names, for example, may contain "/".
+    """
+    return urllib.parse.quote(str(value), safe="")
+
+
 class Resource(object):
 
     # An alias to use for the resource if different than the class name.
@@ -253,7 +262,10 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def get_by_id(self, id, **kwargs):
-        url = "/%s/%s" % (self.resource.get_url_path_name(), id)
+        url = "/%s/%s" % (
+            self.resource.get_url_path_name(),
+            _quote_url_path_segment(id),
+        )
         response = self.client.get(url, **kwargs)
         if response.status_code == http_client.NOT_FOUND:
             return None
@@ -276,12 +288,16 @@ class ResourceManager(object):
         if kwargs:
             url = "/%s/%s/%s/?%s" % (
                 self.resource.get_url_path_name(),
-                id_,
+                _quote_url_path_segment(id_),
                 property_name,
                 urllib.parse.urlencode(kwargs),
             )
         else:
-            url = "/%s/%s/%s/" % (self.resource.get_url_path_name(), id_, property_name)
+            url = "/%s/%s/%s/" % (
+                self.resource.get_url_path_name(),
+                _quote_url_path_segment(id_),
+                property_name,
+            )
 
         if token:
             response = self.client.get(url, token=token)
@@ -377,7 +393,10 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def update(self, instance, **kwargs):
-        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.id)
+        url = "/%s/%s" % (
+            self.resource.get_url_path_name(),
+            _quote_url_path_segment(instance.id),
+        )
         response = self.client.put(url, instance.serialize(), **kwargs)
         if response.status_code != http_client.OK:
             self.handle_error(response)
@@ -386,7 +405,10 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def delete(self, instance, **kwargs):
-        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.id)
+        url = "/%s/%s" % (
+            self.resource.get_url_path_name(),
+            _quote_url_path_segment(instance.id),
+        )
         response = self.client.delete(url, **kwargs)
 
         if response.status_code not in [
@@ -401,7 +423,10 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def delete_action(self, instance, remove_files, **kwargs):
-        url = "/%s/%s" % (self.resource.get_url_path_name(), instance.id)
+        url = "/%s/%s" % (
+            self.resource.get_url_path_name(),
+            _quote_url_path_segment(instance.id),
+        )
         payload = {"remove_files": remove_files}
         response = self.client.delete(url, data=orjson.dumps(payload), **kwargs)
         if response.status_code not in [
@@ -437,7 +462,10 @@ class ResourceManager(object):
 
     @add_auth_token_to_kwargs_from_env
     def delete_by_id(self, instance_id, **kwargs):
-        url = "/%s/%s" % (self.resource.get_url_path_name(), instance_id)
+        url = "/%s/%s" % (
+            self.resource.get_url_path_name(),
+            _quote_url_path_segment(instance_id),
+        )
         response = self.client.delete(url, **kwargs)
         if response.status_code not in [
             http_client.OK,
@@ -906,7 +934,7 @@ class KeyValuePairResourceManager(ResourceManager):
 
         url = "/%s/%s/?%s" % (
             self.resource.get_url_path_name(),
-            name,
+            _quote_url_path_segment(name),
             urllib.parse.urlencode(params),
         )
 

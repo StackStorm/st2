@@ -488,3 +488,45 @@ class TestKeyValuePairResourceManager(unittest.TestCase):
         actual = resource.serialize()
         expected = json.loads(json.dumps(base.RESOURCES[0]))
         self.assertEqual(actual, expected)
+
+    def test_keyvalue_get_by_name_with_slash_in_name(self):
+        mgr = models.KeyValuePairResourceManager(
+            models.KeyValuePair, base.FAKE_ENDPOINT
+        )
+        response = base.FakeResponse(
+            json.dumps({"name": "foo/bar", "value": "value1"}), 200, "OK"
+        )
+        with mock.patch.object(
+            httpclient.HTTPClient, "get", mock.MagicMock(return_value=response)
+        ) as mock_get:
+            resource = mgr.get_by_name("foo/bar")
+
+        self.assertEqual(resource.name, "foo/bar")
+        self.assertEqual(mock_get.call_args[0][0], "/keys/foo%2Fbar/?")
+
+    def test_keyvalue_update_with_slash_in_name(self):
+        mgr = models.KeyValuePairResourceManager(
+            models.KeyValuePair, base.FAKE_ENDPOINT
+        )
+        instance = models.KeyValuePair(name="foo/bar", value="value1")
+        response = base.FakeResponse(
+            json.dumps({"name": "foo/bar", "value": "value1"}), 200, "OK"
+        )
+        with mock.patch.object(
+            httpclient.HTTPClient, "put", mock.MagicMock(return_value=response)
+        ) as mock_put:
+            mgr.update(instance)
+
+        self.assertEqual(mock_put.call_args[0][0], "/keys/foo%2Fbar")
+
+    def test_keyvalue_delete_by_id_with_slash_in_name(self):
+        mgr = models.KeyValuePairResourceManager(
+            models.KeyValuePair, base.FAKE_ENDPOINT
+        )
+        response = base.FakeResponse("", 204, "NO CONTENT")
+        with mock.patch.object(
+            httpclient.HTTPClient, "delete", mock.MagicMock(return_value=response)
+        ) as mock_delete:
+            mgr.delete_by_id("foo/bar")
+
+        self.assertEqual(mock_delete.call_args[0][0], "/keys/foo%2Fbar")
