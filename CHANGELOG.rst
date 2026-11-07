@@ -22,6 +22,7 @@ Redis       8.6
 
 Fixed
 ~~~~~
+* Fix key value pairs with a ``/`` in the key name failing to be set, retrieved and deleted via the API and the CLI. ``st2client`` now URL encodes the key name in request URLs and the API router URL decodes path variables after route matching instead of before. #4789
 * Fix ``TypeError`` when displaying help for actions whose parameters have no ``description`` key. #6375
 * Fix utf-8 encode before checking paramter max size #6352
 * Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)

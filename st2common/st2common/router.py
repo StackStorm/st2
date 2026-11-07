@@ -269,11 +269,14 @@ class Router(object):
             )
 
     def match(self, req):
-        # NOTE: webob.url_unquote doesn't work correctly under Python 3 when paths contain non-ascii
-        # characters. That method supposed to handle Python 2 and Python 3 compatibility, but it
-        # doesn't work correctly under Python 3.
+        # NOTE: The routes are matched against the URL encoded path and the
+        # extracted path variables are URL decoded afterwards. Decoding the
+        # whole path before matching would turn an escaped "/" ("%2F") inside
+        # a single path variable value (for example a key value pair name)
+        # into a real path separator, so such requests could never match
+        # their route.
         try:
-            path = urllib.parse.unquote(req.path)
+            path = req.path
         except Exception as e:
             # This exception being thrown indicates that the URL / path contains bad or incorrectly
             # URL escaped characters. Instead of returning this stack track + 500 error to the
@@ -315,6 +318,14 @@ class Router(object):
         path = path_vars.pop("_api_path")
         method = path_vars.pop("_api_method")
         endpoint = self.spec["paths"][path][method]
+
+        # NOTE: webob.url_unquote doesn't work correctly under Python 3 when paths contain non-ascii
+        # characters. That method supposed to handle Python 2 and Python 3 compatibility, but it
+        # doesn't work correctly under Python 3, so urllib.parse.unquote is used instead.
+        path_vars = {
+            name: urllib.parse.unquote(value) if isinstance(value, str) else value
+            for (name, value) in six.iteritems(path_vars)
+        }
 
         return endpoint, path_vars
 
