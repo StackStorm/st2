@@ -21,6 +21,8 @@ from st2common import log as logging
 from st2common.models.api.trigger import TriggerTypeAPI, TriggerAPI, TriggerInstanceAPI
 from st2common.models.system.common import ResourceReference
 from st2common.persistence.trigger import TriggerType, Trigger, TriggerInstance
+from st2common.rbac.backends import get_rbac_backend
+from st2common.rbac.types import PermissionType
 from st2common.router import abort
 from st2common.router import Response
 from st2common.services import triggers as TriggerService
@@ -70,18 +72,27 @@ class TriggerTypeController(resource.ContentPackResourceController):
             requester_user=requester_user,
         )
 
-    def get_one(self, triggertype_ref_or_id):
-        return self._get_one(
-            triggertype_ref_or_id, permission_type=None, requester_user=None
+    def get_one(self, triggertype_ref_or_id, requester_user):
+        # Trigger types have no per-resource permission types, so viewing one
+        # requires the same global permission as listing them.
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_permission(
+            user_db=requester_user, permission_type=PermissionType.TRIGGER_LIST
         )
 
-    def post(self, triggertype):
+        return self._get_one(
+            triggertype_ref_or_id, permission_type=None, requester_user=requester_user
+        )
+
+    def post(self, triggertype, requester_user):
         """
         Create a new triggertype.
 
         Handles requests:
             POST /triggertypes/
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
 
         try:
             triggertype_db = TriggerTypeAPI.to_model(triggertype)
@@ -103,7 +114,10 @@ class TriggerTypeController(resource.ContentPackResourceController):
 
         return Response(json=triggertype_api, status=http_client.CREATED)
 
-    def put(self, triggertype, triggertype_ref_or_id):
+    def put(self, triggertype, triggertype_ref_or_id, requester_user):
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
         triggertype_id = triggertype_db.id
 
@@ -144,7 +158,7 @@ class TriggerTypeController(resource.ContentPackResourceController):
         triggertype_api = TriggerTypeAPI.from_model(triggertype_db)
         return triggertype_api
 
-    def delete(self, triggertype_ref_or_id):
+    def delete(self, triggertype_ref_or_id, requester_user):
         """
         Delete a triggertype.
 
@@ -152,6 +166,9 @@ class TriggerTypeController(resource.ContentPackResourceController):
             DELETE /triggertypes/1
             DELETE /triggertypes/pack.name
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         LOG.info("DELETE /triggertypes/ with ref_or_id=%s", triggertype_ref_or_id)
 
         triggertype_db = self._get_by_ref_or_id(ref_or_id=triggertype_ref_or_id)
@@ -243,7 +260,7 @@ class TriggerController(object):
     the lifecycle of Triggers in the system.
     """
 
-    def get_one(self, trigger_id):
+    def get_one(self, trigger_id, requester_user):
 
         """
         List trigger by id.
@@ -252,6 +269,14 @@ class TriggerController(object):
             GET /triggers/1
         """
         trigger_db = TriggerController.__get_by_id(trigger_id)
+
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_has_resource_db_permission(
+            user_db=requester_user,
+            resource_db=trigger_db,
+            permission_type=PermissionType.TRIGGER_VIEW,
+        )
+
         trigger_api = TriggerAPI.from_model(trigger_db)
         return trigger_api
 
@@ -266,13 +291,16 @@ class TriggerController(object):
         trigger_apis = [TriggerAPI.from_model(trigger_db) for trigger_db in trigger_dbs]
         return trigger_apis
 
-    def post(self, trigger):
+    def post(self, trigger, requester_user):
         """
         Create a new trigger.
 
         Handles requests:
             POST /triggers/
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         try:
             trigger_db = TriggerService.create_trigger_db(trigger)
         except (ValidationError, ValueError) as e:
@@ -286,7 +314,10 @@ class TriggerController(object):
 
         return Response(json=trigger_api, status=http_client.CREATED)
 
-    def put(self, trigger, trigger_id):
+    def put(self, trigger, trigger_id, requester_user):
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
             if trigger.id is not None and trigger.id != "" and trigger.id != trigger_id:
@@ -309,13 +340,16 @@ class TriggerController(object):
 
         return trigger_api
 
-    def delete(self, trigger_id):
+    def delete(self, trigger_id, requester_user):
         """
         Delete a trigger.
 
         Handles requests:
             DELETE /triggers/1
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         LOG.info("DELETE /triggers/ with id=%s", trigger_id)
         trigger_db = TriggerController.__get_by_id(trigger_id)
         try:
@@ -384,7 +418,7 @@ class TriggerInstanceResendController(
 
             return True
 
-    def post(self, trigger_instance_id):
+    def post(self, trigger_instance_id, requester_user):
         """
         Re-send the provided trigger instance optionally specifying override parameters.
 
@@ -393,9 +427,14 @@ class TriggerInstanceResendController(
             POST /triggerinstance/<id>/re_emit
             POST /triggerinstance/<id>/re_send
         """
+        # Re-emitting fires every rule which matches the stored payload, and
+        # those executions run as the system user, so no view grant can scope it.
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         # Note: We only really need parameters here
         existing_trigger_instance = self._get_one_by_id(
-            id=trigger_instance_id, permission_type=None, requester_user=None
+            id=trigger_instance_id, permission_type=None, requester_user=requester_user
         )
 
         new_payload = fast_deepcopy_dict(existing_trigger_instance.payload)
@@ -439,15 +478,18 @@ class TriggerInstanceController(
     def __init__(self):
         super(TriggerInstanceController, self).__init__()
 
-    def get_one(self, instance_id):
+    def get_one(self, instance_id, requester_user):
         """
         List triggerinstance by instance_id.
 
         Handle:
             GET /triggerinstances/1
         """
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         return self._get_one_by_id(
-            instance_id, permission_type=None, requester_user=None
+            instance_id, permission_type=None, requester_user=requester_user
         )
 
     def get_all(
@@ -466,6 +508,12 @@ class TriggerInstanceController(
         Handles requests:
             GET /triggerinstances/
         """
+        # Trigger instance payloads carry other resources' data (e.g. every
+        # completed execution's result, via core.st2.generic.actiontrigger),
+        # and there are no permission types that could scope them.
+        rbac_utils = get_rbac_backend().get_utils_class()
+        rbac_utils.assert_user_is_admin(user_db=requester_user)
+
         # If trigger_type filter is provided, filter based on the TriggerType via Trigger object
         trigger_type_ref = raw_filters.get("trigger_type", None)
 

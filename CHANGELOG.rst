@@ -26,6 +26,8 @@ Fixed
 * Fix utf-8 encode before checking paramter max size #6352
 * Fix stuck running workflow tasks #6398 (by @guzzijones12@gmail.com)
 * Fixed action-alias help API returning 500 when RBAC enabled. #6414 (by @nzlosh)
+* Enforce RBAC on the ``/v1/triggertypes``, ``/v1/triggers`` and ``/v1/triggerinstances`` API endpoints. #6423 (by @masover-rubrik)
+* Enforce RBAC and secret masking on ``GET /v1/executions/<id>/result``. #6423 (by @masover-rubrik)
 
 Changed
 ~~~~~~~
