@@ -13,8 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 import six
 
+from st2common.persistence.execution import ActionExecution
+from st2common.rbac.backends.noop import NoOpRBACUtils
 from st2tests.fixtures.descendants.fixture import PACK_NAME as DESCENDANTS_PACK
 from st2tests.fixturesloader import FixturesLoader
 from st2tests.api import FunctionalTest
@@ -103,3 +106,66 @@ class ActionExecutionControllerTestCaseDescendantsTest(FunctionalTest):
         expected_ids.sort()
 
         self.assertListEqual(all_descendants_ids, expected_ids)
+
+
+VISIBLE_ACTION_UID = "action:descendants:visible"
+HIDDEN_ACTION_UID = "action:descendants:hidden"
+
+DESCENDANT_ACTION_UIDS = {
+    "child1_level1.yaml": VISIBLE_ACTION_UID,
+    "child2_level1.yaml": VISIBLE_ACTION_UID,
+    "child1_level2.yaml": VISIBLE_ACTION_UID,
+    "child2_level2.yaml": VISIBLE_ACTION_UID,
+    "child3_level2.yaml": VISIBLE_ACTION_UID,
+    "child1_level3.yaml": HIDDEN_ACTION_UID,
+    "child2_level3.yaml": HIDDEN_ACTION_UID,
+    # child3_level3.yaml keeps the fixture's action, which has no uid.
+}
+
+
+def _can_view_visible_action(user_db, resource_db, permission_type):
+    return resource_db.action.get("uid") == VISIBLE_ACTION_UID
+
+
+class ActionExecutionControllerTestCaseDescendantsPermissionsTest(FunctionalTest):
+    @classmethod
+    def setUpClass(cls):
+        super(
+            ActionExecutionControllerTestCaseDescendantsPermissionsTest, cls
+        ).setUpClass()
+        cls.MODELS = FixturesLoader().save_fixtures_to_db(
+            fixtures_pack=DESCENDANTS_PACK,
+            fixtures_dict=DESCENDANTS_FIXTURES,
+            use_object_ids=True,
+        )
+        for name, action_uid in six.iteritems(DESCENDANT_ACTION_UIDS):
+            execution = cls.MODELS["executions"][name]
+            execution.action = dict(execution.action, uid=action_uid)
+            ActionExecution.add_or_update(execution)
+
+    @mock.patch.object(
+        NoOpRBACUtils,
+        "user_has_resource_db_permission",
+        mock.MagicMock(side_effect=_can_view_visible_action),
+    )
+    def test_get_descendants_filtered_by_permission(self):
+        root_execution = self.MODELS["executions"]["root_execution.yaml"]
+        resp = self.app.get("/v1/executions/%s/children" % str(root_execution.id))
+        self.assertEqual(resp.status_int, 200)
+
+        all_descendants_ids = sorted(descendant["id"] for descendant in resp.json)
+        # All the VISIBLE_ACTION_UID names above
+        expected_names = (
+            "child1_level1.yaml",
+            "child2_level1.yaml",
+            "child1_level2.yaml",
+            "child2_level2.yaml",
+            "child3_level2.yaml",
+        )
+        expected_ids = sorted(
+            str(self.MODELS["executions"][name].id) for name in expected_names
+        )
+        self.assertListEqual(all_descendants_ids, expected_ids)
+
+        # Once per action uid, plus once for the descendant without one.
+        self.assertEqual(NoOpRBACUtils.user_has_resource_db_permission.call_count, 3)
