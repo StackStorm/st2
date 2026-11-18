@@ -28,8 +28,8 @@ Fixed
 * Fixed action-alias help API returning 500 when RBAC enabled. #6414 (by @nzlosh)
 * Enforce RBAC on the ``/v1/triggertypes``, ``/v1/triggers`` and ``/v1/triggerinstances`` API endpoints. #6423 (by @masover-rubrik)
 * Enforce RBAC and secret masking on ``GET /v1/executions/<id>/result``. #6423 (by @masover-rubrik)
-* Enforce RBAC on each descendant returned by ``GET /v1/executions/<id>/children``.
-* Enforce secret masking on ``GET /v1/executions/<id>/attribute/result``.
+* Enforce RBAC on each descendant returned by ``GET /v1/executions/<id>/children``. #6424 (by @masover-rubrik)
+* Enforce secret masking on ``GET /v1/executions/<id>/attribute/result``. #6424 (by @masover-rubrik)
 
 Changed
 ~~~~~~~
