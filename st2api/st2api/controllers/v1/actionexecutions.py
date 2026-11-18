@@ -376,9 +376,11 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         "action__uid",
     ] + ActionExecutionsControllerMixin.valid_exclude_attributes
 
-    def get(self, id, attribute, requester_user):
+    def get(self, id, attribute, requester_user, show_secrets=False):
         """
         Retrieve a particular attribute for the provided action execution.
+
+        :param show_secrets: True to return secret output unmasked (admins only).
 
         Handles requests:
 
@@ -417,7 +419,9 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
 
         result = getattr(action_exec_db, attribute, None)
 
-        if attribute == "result" and self._get_mask_secrets(requester_user):
+        if attribute == "result" and self._get_mask_secrets(
+            requester_user, show_secrets=show_secrets
+        ):
             result = output_schema.mask_secret_output(action_exec_db, result)
 
         return Response(json=result, status=http_client.OK)

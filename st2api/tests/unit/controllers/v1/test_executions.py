@@ -2019,6 +2019,15 @@ class ActionExecutionControllerTestCase(
         self.assertEqual(resp.status_int, 200)
         self.assertDictEqual(resp.json["result"], masked_result)
 
+        resp = self.app.get(
+            "/v1/executions/%s/attribute/result?show_secrets=true"
+            % (actionexecution_id)
+        )
+        self.assertEqual(resp.status_int, 200)
+        self.assertDictEqual(
+            resp.json["result"], {"secret_param_1": "foo", "secret_param_2": "bar"}
+        )
+
     def test_get_one_without_masked_secrets_in_output_schema(self):
         """
         Test that the parameters not marked secret as true in output schema are not masked
