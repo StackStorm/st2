@@ -276,13 +276,21 @@ class OrquestaRunner(runners.AsyncActionRunner):
             }
 
         # Request cancellation of tasks that are workflows and still running.
-        for child_ex_id in self.execution.children:
-            child_ex = ex_db_access.ActionExecution.get(id=child_ex_id)
-            if self.task_cancelable(child_ex):
-                ac_svc.request_cancellation(
-                    lv_db_access.LiveAction.get(id=child_ex.liveaction_id),
-                    self.context.get("user", None),
-                )
+        # Batch-fetch the child action executions in a single query instead of
+        # issuing one get() per child. For a task with a large with-items
+        # fan-out the per-child gets add up to thousands of serial DB
+        # round-trips during cancellation.
+        child_ex_ids = self.execution.children
+
+        if child_ex_ids:
+            child_exs = ex_db_access.ActionExecution.query(id__in=child_ex_ids)
+
+            for child_ex in child_exs:
+                if self.task_cancelable(child_ex):
+                    ac_svc.request_cancellation(
+                        lv_db_access.LiveAction.get(id=child_ex.liveaction_id),
+                        self.context.get("user", None),
+                    )
 
         status = (
             ac_const.LIVEACTION_STATUS_CANCELING
