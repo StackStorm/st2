@@ -288,16 +288,23 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
         rbac_utils = get_rbac_backend().get_utils_class()
         can_view_by_action_uid = {}
 
+        def check(descendant):
+            return rbac_utils.user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=descendant,
+                permission_type=PermissionType.EXECUTION_VIEW,
+            )
+
         def can_view(descendant):
-            action_uid = descendant.action["uid"]
+            # There are edge cases where a stored execution record doesn't have
+            # an action UID. Don't cache these -- they're truly edge-cases
+            # (hand-written records, test fixtures, etc) so it's not worth
+            # figuring out an appropriate unique key.
+            action_uid = descendant.action.get("uid")
+            if action_uid is None:
+                return check(descendant)
             if action_uid not in can_view_by_action_uid:
-                can_view_by_action_uid[
-                    action_uid
-                ] = rbac_utils.user_has_resource_db_permission(
-                    user_db=requester_user,
-                    resource_db=descendant,
-                    permission_type=PermissionType.EXECUTION_VIEW,
-                )
+                can_view_by_action_uid[action_uid] = check(descendant)
             return can_view_by_action_uid[action_uid]
 
         descendants = [descendant for descendant in descendants if can_view(descendant)]
