@@ -22,6 +22,9 @@ python_tests(
         "test_param_utils.py": dict(
             uses=["system_user"],
         ),
+        "test_cors_middleware.py": dict(
+            uses=[],
+        ),
     },
 )
 

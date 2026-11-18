@@ -43,32 +43,49 @@ class CorsMiddleware(object):
             headers = ResponseHeaders(headers)
 
             origin = request.headers.get("Origin")
-            origins = OrderedSet(cfg.CONF.api.allow_origin)
+            raw_origins = cfg.CONF.api.allow_origin or []
+            origins = OrderedSet(
+                [o.strip() for o in raw_origins if isinstance(o, str) and o.strip()]
+            )
 
             # Build a list of the default allowed origins
             public_api_url = cfg.CONF.auth.api_url
 
-            # Default gulp development server WebUI URL
-            origins.add("http://127.0.0.1:3000")
-
-            # By default WebUI simple http server listens on 8080
-            origins.add("http://localhost:8080")
-            origins.add("http://127.0.0.1:8080")
-
-            if public_api_url:
+            if (
+                public_api_url
+                and isinstance(public_api_url, str)
+                and public_api_url.strip()
+            ):
                 # Public API URL
-                origins.add(public_api_url)
+                origins.add(public_api_url.strip())
 
             origins = list(origins)
 
+            origin_allowed = None
+            allow_credentials = False
+            vary_origin = False
+
             if origin:
-                if "*" in origins:
+                if origin in origins and origin != "*":
                     origin_allowed = origin
+                    allow_credentials = True
+                    vary_origin = True
+                elif "*" in origins:
+                    origin_allowed = "*"
+                    allow_credentials = False
+                elif origins:
+                    # Origin is not allowed; return first configured origin (per commit 66605b7b)
+                    # so browser CORS check rejects it, while not enabling credentials.
+                    origin_allowed = origins[0]
+                    allow_credentials = False
+                    vary_origin = True
+            elif origins:
+                # No Origin header was provided (e.g. non-browser client / direct request).
+                if "*" in origins:
+                    origin_allowed = "*"
                 else:
-                    # See http://www.w3.org/TR/cors/#access-control-allow-origin-response-header
-                    origin_allowed = origin if origin in origins else list(origins)[0]
-            else:
-                origin_allowed = list(origins)[0]
+                    origin_allowed = origins[0]
+                allow_credentials = False
 
             methods_allowed = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
             request_headers_allowed = [
@@ -85,10 +102,25 @@ class CorsMiddleware(object):
                 REQUEST_ID_HEADER,
             ]
 
-            headers["Access-Control-Allow-Origin"] = origin_allowed
+            if origin_allowed:
+                headers["Access-Control-Allow-Origin"] = origin_allowed
+                if vary_origin:
+                    existing_vary = headers.get("Vary")
+                    if existing_vary:
+                        vary_tokens = [
+                            v.strip().lower() for v in existing_vary.split(",")
+                        ]
+                        if "origin" not in vary_tokens and "*" not in vary_tokens:
+                            headers["Vary"] = "%s, Origin" % existing_vary
+                    else:
+                        headers["Vary"] = "Origin"
+
             headers["Access-Control-Allow-Methods"] = ",".join(methods_allowed)
             headers["Access-Control-Allow-Headers"] = ",".join(request_headers_allowed)
-            headers["Access-Control-Allow-Credentials"] = "true"
+
+            if allow_credentials:
+                headers["Access-Control-Allow-Credentials"] = "true"
+
             headers["Access-Control-Expose-Headers"] = ",".join(
                 response_headers_allowed
             )
