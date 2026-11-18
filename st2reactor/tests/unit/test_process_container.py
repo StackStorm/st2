@@ -20,7 +20,10 @@ import time
 from mock import MagicMock, Mock, patch
 import unittest
 
+from oslo_config import cfg
+
 from st2reactor.container.process_container import ProcessSensorContainer
+from st2reactor.container.process_container import SENSOR_MAX_RESPAWN_COUNTS
 from st2common.util import concurrency
 from st2common.models.db.pack import PackDB
 from st2common.persistence.pack import Pack
@@ -180,3 +183,164 @@ class ProcessContainerTests(unittest.TestCase):
                 "exit_code": 1,
             },
         )
+
+    @patch.object(time, "time", MagicMock(return_value=1439441533))
+    def test_dispatch_trigger_for_sensor_abandon(self):
+        mock_dispatcher = Mock()
+        process_container = ProcessSensorContainer(
+            None, poll_interval=0.1, dispatcher=mock_dispatcher
+        )
+        sensor = {"class_name": "pack.StupidSensor"}
+
+        process_container._dispatch_trigger_for_sensor_abandon(
+            sensor, exit_code=1, respawn_count=SENSOR_MAX_RESPAWN_COUNTS
+        )
+        mock_dispatcher.dispatch.assert_called_with(
+            "core.st2.sensor.process_abandoned",
+            payload={
+                "id": "pack.StupidSensor",
+                "timestamp": 1439441533,
+                "exit_code": 1,
+                "respawn_count": SENSOR_MAX_RESPAWN_COUNTS,
+            },
+        )
+
+    @patch.object(time, "time", MagicMock(return_value=1439441533))
+    def test_respawn_dispatches_abandoned_after_max_respawns(self):
+        mock_dispatcher = Mock()
+        process_container = ProcessSensorContainer(
+            None, poll_interval=0.1, dispatcher=mock_dispatcher
+        )
+        # Avoid touching the database for the health record update.
+        process_container._update_sensor_instance = Mock()
+
+        sensor_id = "wolfpack.StupidSensor"
+        sensor = {"class_name": sensor_id, "ref": sensor_id, "pack": "wolfpack"}
+
+        # Simulate a sensor which has already been respawned the maximum number
+        # of times and just crashed again with a non-zero exit code.
+        process_container._sensor_respawn_counts[sensor_id] = SENSOR_MAX_RESPAWN_COUNTS
+        process_container._respawn_sensor(
+            sensor_id=sensor_id, sensor=sensor, exit_code=1
+        )
+
+        mock_dispatcher.dispatch.assert_called_with(
+            "core.st2.sensor.process_abandoned",
+            payload={
+                "id": sensor_id,
+                "timestamp": 1439441533,
+                "exit_code": 1,
+                "respawn_count": SENSOR_MAX_RESPAWN_COUNTS,
+            },
+        )
+        process_container._update_sensor_instance.assert_called_once()
+
+    def test_respawn_clean_exit_does_not_dispatch_abandoned(self):
+        mock_dispatcher = Mock()
+        process_container = ProcessSensorContainer(
+            None, poll_interval=0.1, dispatcher=mock_dispatcher
+        )
+        process_container._update_sensor_instance = Mock()
+
+        sensor_id = "wolfpack.StupidSensor"
+        sensor = {"class_name": sensor_id, "ref": sensor_id, "pack": "wolfpack"}
+
+        # A clean exit (exit_code == 0) must never be treated as "abandoned".
+        process_container._sensor_respawn_counts[sensor_id] = SENSOR_MAX_RESPAWN_COUNTS
+        process_container._respawn_sensor(
+            sensor_id=sensor_id, sensor=sensor, exit_code=0
+        )
+
+        self.assertFalse(mock_dispatcher.dispatch.called)
+        self.assertFalse(process_container._update_sensor_instance.called)
+
+    def test_respawn_settings_default_from_config(self):
+        process_container = ProcessSensorContainer(None, poll_interval=0.1)
+        self.assertEqual(
+            process_container._max_respawn_count,
+            cfg.CONF.sensorcontainer.max_respawn_count,
+        )
+        self.assertEqual(
+            process_container._respawn_delay, cfg.CONF.sensorcontainer.respawn_delay
+        )
+        self.assertEqual(
+            process_container._respawn_backoff_factor,
+            cfg.CONF.sensorcontainer.respawn_backoff_factor,
+        )
+
+    def test_max_respawn_count_config_override(self):
+        # With a higher max_respawn_count, a sensor that has been respawned the
+        # old default number of times should still be respawned (not abandoned).
+        cfg.CONF.set_override("max_respawn_count", 5, group="sensorcontainer")
+        try:
+            mock_dispatcher = Mock()
+            process_container = ProcessSensorContainer(
+                None, poll_interval=0.1, dispatcher=mock_dispatcher
+            )
+            self.assertEqual(process_container._max_respawn_count, 5)
+
+            sensor_id = "wolfpack.StupidSensor"
+            self.assertTrue(
+                process_container._should_respawn_sensor(
+                    sensor_id=sensor_id, sensor={}, exit_code=1
+                )
+            )
+
+            # At respawn_count == 5 (the configured max) it must give up.
+            process_container._sensor_respawn_counts[sensor_id] = 5
+            self.assertFalse(
+                process_container._should_respawn_sensor(
+                    sensor_id=sensor_id, sensor={}, exit_code=1
+                )
+            )
+        finally:
+            cfg.CONF.clear_override("max_respawn_count", group="sensorcontainer")
+
+    @patch.object(ProcessSensorContainer, "_spawn_sensor_process", MagicMock())
+    @patch.object(concurrency, "sleep", MagicMock())
+    def test_respawn_delay_constant_with_default_backoff(self):
+        # Default backoff factor of 1 -> constant respawn_delay between attempts.
+        cfg.CONF.set_override("respawn_delay", 3.0, group="sensorcontainer")
+        cfg.CONF.set_override("respawn_backoff_factor", 1.0, group="sensorcontainer")
+        try:
+            process_container = ProcessSensorContainer(None, poll_interval=0.1)
+            sensor_id = "wolfpack.StupidSensor"
+            sensor = {"class_name": sensor_id, "ref": sensor_id, "pack": "wolfpack"}
+
+            process_container._respawn_sensor(
+                sensor_id=sensor_id, sensor=sensor, exit_code=1
+            )
+            concurrency.sleep.assert_called_with(3.0)
+
+            # Second attempt: still constant with a backoff factor of 1.
+            process_container._respawn_sensor(
+                sensor_id=sensor_id, sensor=sensor, exit_code=1
+            )
+            concurrency.sleep.assert_called_with(3.0)
+        finally:
+            cfg.CONF.clear_override("respawn_delay", group="sensorcontainer")
+            cfg.CONF.clear_override("respawn_backoff_factor", group="sensorcontainer")
+
+    @patch.object(ProcessSensorContainer, "_spawn_sensor_process", MagicMock())
+    @patch.object(concurrency, "sleep", MagicMock())
+    def test_respawn_delay_exponential_backoff(self):
+        # backoff factor of 2 -> delay grows exponentially: 2.5, 5.0, 10.0, ...
+        cfg.CONF.set_override("respawn_delay", 2.5, group="sensorcontainer")
+        cfg.CONF.set_override("respawn_backoff_factor", 2.0, group="sensorcontainer")
+        # Raise the cap so all three attempts respawn.
+        cfg.CONF.set_override("max_respawn_count", 10, group="sensorcontainer")
+        try:
+            process_container = ProcessSensorContainer(None, poll_interval=0.1)
+            sensor_id = "wolfpack.StupidSensor"
+            sensor = {"class_name": sensor_id, "ref": sensor_id, "pack": "wolfpack"}
+
+            expected = [2.5, 5.0, 10.0]
+            for expected_delay in expected:
+                process_container._respawn_sensor(
+                    sensor_id=sensor_id, sensor=sensor, exit_code=1
+                )
+                concurrency.sleep.assert_called_with(expected_delay)
+        finally:
+            cfg.CONF.clear_override("respawn_delay", group="sensorcontainer")
+            cfg.CONF.clear_override("respawn_backoff_factor", group="sensorcontainer")
+            cfg.CONF.clear_override("max_respawn_count", group="sensorcontainer")

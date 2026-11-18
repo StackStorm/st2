@@ -40,7 +40,7 @@ class SensorBranch(resource.ResourceBranch):
 
 
 class SensorListCommand(resource.ContentPackResourceListCommand):
-    display_attributes = ["ref", "pack", "description", "enabled"]
+    display_attributes = ["ref", "pack", "enabled", "status", "updated_at"]
 
 
 class SensorGetCommand(resource.ContentPackResourceGetCommand):
@@ -55,6 +55,12 @@ class SensorGetCommand(resource.ContentPackResourceGetCommand):
         "entry_point",
         "artifact_uri",
         "trigger_types",
+        "status",
+        "hostname",
+        "pid",
+        "exit_code",
+        "respawn_count",
+        "updated_at",
     ]
 
 

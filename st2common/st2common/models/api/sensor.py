@@ -53,6 +53,35 @@ class SensorTypeAPI(BaseAPI):
                 "type": "string",
                 "default": "",
             },
+            # Runtime health fields. These are read-only and are merged in from
+            # the separate SensorInstanceDB collection by the API controller;
+            # they are not part of to_model() and are never persisted back onto
+            # SensorTypeDB.
+            "status": {
+                "description": "Current runtime status of the sensor "
+                "(running, stopped, abandoned). Null if the sensor has never run.",
+                "type": ["string", "null"],
+            },
+            "hostname": {
+                "description": "Host of the sensor container which owns this sensor.",
+                "type": ["string", "null"],
+            },
+            "pid": {
+                "description": "PID of the sensor process when running.",
+                "type": ["integer", "null"],
+            },
+            "exit_code": {
+                "description": "Exit code of the last observed process exit.",
+                "type": ["integer", "null"],
+            },
+            "respawn_count": {
+                "description": "Respawn attempts for the current failure streak.",
+                "type": ["integer", "null"],
+            },
+            "updated_at": {
+                "description": "Timestamp when the runtime status was last updated.",
+                "type": ["string", "null"],
+            },
         },
         "additionalProperties": False,
     }

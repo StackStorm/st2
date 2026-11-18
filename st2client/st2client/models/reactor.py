@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
 
 class Sensor(core.Resource):
     _plural = "Sensortypes"
-    _repr_attributes = ["name", "pack"]
+    _repr_attributes = ["name", "pack", "status"]
 
 
 class TriggerType(core.Resource):

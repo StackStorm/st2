@@ -19,6 +19,9 @@ from oslo_config import cfg, types
 
 from st2common import config as st2cfg
 from st2common.constants.sensors import DEFAULT_PARTITION_LOADER
+from st2common.constants.sensors import DEFAULT_SENSOR_MAX_RESPAWN_COUNT
+from st2common.constants.sensors import DEFAULT_SENSOR_RESPAWN_DELAY
+from st2common.constants.sensors import DEFAULT_SENSOR_RESPAWN_BACKOFF_FACTOR
 from st2common.constants.system import VERSION_STRING
 from st2common.constants.system import DEFAULT_CONFIG_FILE_PATH
 
@@ -90,6 +93,33 @@ def _register_sensor_container_opts(ignore_errors=False):
 
     st2cfg.do_register_opts(
         other_opts, group="sensorcontainer", ignore_errors=ignore_errors
+    )
+
+    # Sensor respawn / retry options
+    respawn_opts = [
+        cfg.IntOpt(
+            "max_respawn_count",
+            default=DEFAULT_SENSOR_MAX_RESPAWN_COUNT,
+            help="Maximum number of times to respawn a sensor after it exits with a "
+            "non-zero code before giving up and firing the "
+            "st2.sensor.process_abandoned trigger.",
+        ),
+        cfg.FloatOpt(
+            "respawn_delay",
+            default=DEFAULT_SENSOR_RESPAWN_DELAY,
+            help="Base delay (in seconds) to wait between sensor respawn attempts.",
+        ),
+        cfg.FloatOpt(
+            "respawn_backoff_factor",
+            default=DEFAULT_SENSOR_RESPAWN_BACKOFF_FACTOR,
+            help="Exponential backoff multiplier applied to respawn_delay per attempt. "
+            "1 (default) means a constant delay between attempts; a value > 1 grows "
+            "the delay exponentially (respawn_delay * factor ** (attempt - 1)).",
+        ),
+    ]
+
+    st2cfg.do_register_opts(
+        respawn_opts, group="sensorcontainer", ignore_errors=ignore_errors
     )
 
     # CLI options

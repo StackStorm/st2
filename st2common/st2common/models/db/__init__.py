@@ -85,6 +85,7 @@ MODEL_MODULE_NAMES = [
     "st2common.models.db.rule_enforcement",
     "st2common.models.db.runner",
     "st2common.models.db.sensor",
+    "st2common.models.db.sensor_instance",
     "st2common.models.db.trace",
     "st2common.models.db.trigger",
     "st2common.models.db.webhook",
