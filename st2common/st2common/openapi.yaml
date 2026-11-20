@@ -1340,6 +1340,10 @@ paths:
           description: Attribute to fetch
           type: string
           required: true
+        - name: show_secrets
+          in: query
+          description: Show secrets in plain text
+          type: boolean
       x-parameters:
         - name: user
           in: context

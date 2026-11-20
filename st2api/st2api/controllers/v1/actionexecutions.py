@@ -281,6 +281,34 @@ class ActionExecutionsControllerMixin(BaseRestControllerMixin):
             actionexecution_id=id_, descendant_depth=depth, result_fmt=result_fmt
         )
 
+        # A workflow may call actions its viewer has no grant on, so each
+        # descendant is checked on its own rather than inheriting the parent's.
+        # The answer depends only on the descendant's action, and a large
+        # workflow runs a few actions many times, so check each action once.
+        rbac_utils = get_rbac_backend().get_utils_class()
+        can_view_by_action_uid = {}
+
+        def check(descendant):
+            return rbac_utils.user_has_resource_db_permission(
+                user_db=requester_user,
+                resource_db=descendant,
+                permission_type=PermissionType.EXECUTION_VIEW,
+            )
+
+        def can_view(descendant):
+            # There are edge cases where a stored execution record doesn't have
+            # an action UID. Don't cache these -- they're truly edge-cases
+            # (hand-written records, test fixtures, etc) so it's not worth
+            # figuring out an appropriate unique key.
+            action_uid = descendant.action.get("uid")
+            if action_uid is None:
+                return check(descendant)
+            if action_uid not in can_view_by_action_uid:
+                can_view_by_action_uid[action_uid] = check(descendant)
+            return can_view_by_action_uid[action_uid]
+
+        descendants = [descendant for descendant in descendants if can_view(descendant)]
+
         mask_secrets = self._get_mask_secrets(requester_user, show_secrets=show_secrets)
 
         return [
@@ -348,9 +376,11 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         "action__uid",
     ] + ActionExecutionsControllerMixin.valid_exclude_attributes
 
-    def get(self, id, attribute, requester_user):
+    def get(self, id, attribute, requester_user, show_secrets=False):
         """
         Retrieve a particular attribute for the provided action execution.
+
+        :param show_secrets: True to return secret output unmasked (admins only).
 
         Handles requests:
 
@@ -372,6 +402,9 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
             )
             raise ValueError(msg)
 
+        if attribute == "result":
+            fields = fields + OUTPUT_MASKING_FIELDS
+
         action_exec_db = (
             self.access.impl.model.objects.filter(id=id).only(*fields).get()
         )
@@ -385,6 +418,12 @@ class ActionExecutionAttributeController(BaseActionExecutionNestedController):
         )
 
         result = getattr(action_exec_db, attribute, None)
+
+        if attribute == "result" and self._get_mask_secrets(
+            requester_user, show_secrets=show_secrets
+        ):
+            result = output_schema.mask_secret_output(action_exec_db, result)
+
         return Response(json=result, status=http_client.OK)
 
 
