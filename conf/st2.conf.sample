@@ -270,6 +270,8 @@ prefix = None
 sample_rate = 1
 
 [notifier]
+# Maximum number of messages each notifier process works on at the same time. Additional messages stay in the message bus until a running one completes.
+concurrency = 50
 # Location of the logging configuration file.
 logging = /etc/st2/logging.notifier.conf
 
@@ -278,10 +280,14 @@ logging = /etc/st2/logging.notifier.conf
 enable_common_libs = False
 
 [rulesengine]
+# Maximum number of messages each rules engine process works on at the same time. Additional messages stay in the message bus until a running one completes.
+concurrency = 50
 # Location of the logging configuration file.
 logging = /etc/st2/logging.rulesengine.conf
 
 [scheduler]
+# Maximum number of messages each scheduler process works on at the same time. Additional messages stay in the message bus until a running one completes.
+concurrency = 50
 # How long GC to search back in minutes for orphaned scheduled actions
 execution_scheduling_timeout_threshold_min = 1
 # How often (in seconds) to look for zombie execution requests before rescheduling them.
@@ -391,6 +397,8 @@ logging = /etc/st2/logging.timersengine.conf
 webui_base_url = https://localhost
 
 [workflow_engine]
+# Maximum number of messages each workflow engine process works on at the same time. Additional messages stay in the message bus until a running one completes.
+concurrency = 1
 # How long to wait for process (in seconds) to exit after receiving shutdown signal.
 exit_still_active_check = 300
 # Max seconds to allow workflow execution be idled before it is identified as orphaned and cancelled by the garbage collector. A value of zero means the feature is disabled. This is disabled by default.
