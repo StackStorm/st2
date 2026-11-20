@@ -18,6 +18,8 @@ import mock
 from kombu import Exchange, Queue
 
 from st2common.transport import consumers
+from st2common.util import concurrency
+from st2common.util import greenpooldispatch
 from st2common.util.greenpooldispatch import BufferedDispatcher
 from st2tests.base import DbTestCase
 from tests.unit.base import FakeModelDB
@@ -28,11 +30,24 @@ FAKE_XCHG = Exchange("st2.tests", type="topic")
 FAKE_WORK_Q = Queue("st2.tests.unit", FAKE_XCHG)
 
 
+def wait_for(condition, timeout=5):
+    waited = 0
+    while not condition() and waited < timeout:
+        concurrency.sleep(0.01)
+        waited += 0.01
+    return condition()
+
+
 class FakeMessageHandler(consumers.MessageHandler):
     message_type = FakeModelDB
 
     def process(self, payload):
         pass
+
+
+class FakeConcurrencyOneMessageHandler(FakeMessageHandler):
+    def get_concurrency(self):
+        return 1
 
 
 def get_handler():
@@ -55,6 +70,80 @@ class QueueConsumerTest(DbTestCase):
         handler._queue_consumer.process(payload, mock_message)
         self.assertTrue(mock_message.ack.called)
         self.assertFalse(FakeMessageHandler.process.called)
+
+    def test_message_is_acked_before_processing(self):
+        calls = []
+        payload = FakeModelDB()
+        handler = get_handler()
+        mock_message = mock.MagicMock()
+        mock_message.ack.side_effect = lambda: calls.append("ack")
+
+        with mock.patch.object(
+            FakeMessageHandler, "process", side_effect=lambda p: calls.append("process")
+        ):
+            handler._queue_consumer.process(payload, mock_message)
+            self.assertTrue(wait_for(lambda: len(calls) == 2))
+
+        self.assertEqual(calls, ["ack", "process"])
+
+    def test_next_message_waits_for_free_slot(self):
+        finish = []
+
+        def process(payload):
+            while not finish:
+                concurrency.sleep(0.01)
+
+        handler = FakeConcurrencyOneMessageHandler(mock.MagicMock(), [FAKE_WORK_Q])
+        first_message = mock.MagicMock()
+        second_message = mock.MagicMock()
+
+        with mock.patch.object(
+            FakeConcurrencyOneMessageHandler, "process", side_effect=process
+        ):
+            handler._queue_consumer.process(FakeModelDB(), first_message)
+            self.assertTrue(first_message.ack.called)
+
+            # The consumer callback blocks, so the second message is neither acked nor
+            # processed while the first one is still running.
+            second = concurrency.spawn(
+                handler._queue_consumer.process, FakeModelDB(), second_message
+            )
+            concurrency.sleep(0.2)
+            self.assertFalse(second_message.ack.called)
+            self.assertEqual(FakeConcurrencyOneMessageHandler.process.call_count, 1)
+
+            finish.append(True)
+            concurrency.wait(second)
+            self.assertTrue(second_message.ack.called)
+            self.assertTrue(
+                wait_for(
+                    lambda: FakeConcurrencyOneMessageHandler.process.call_count == 2
+                )
+            )
+
+    @mock.patch.object(greenpooldispatch, "SLOT_WAIT_INTERVAL_SECONDS", 0.01)
+    def test_message_is_not_acked_on_shutdown(self):
+        handler = FakeConcurrencyOneMessageHandler(mock.MagicMock(), [FAKE_WORK_Q])
+        consumer = handler._queue_consumer
+        self.assertTrue(consumer._dispatcher.acquire())
+
+        mock_message = mock.MagicMock()
+        waiting = concurrency.spawn(consumer.process, FakeModelDB(), mock_message)
+        concurrency.sleep(0.05)
+
+        consumer.shutdown()
+        concurrency.wait(waiting)
+        self.assertFalse(mock_message.ack.called)
+
+    def test_concurrency_is_passed_to_dispatcher(self):
+        handler = FakeConcurrencyOneMessageHandler(mock.MagicMock(), [FAKE_WORK_Q])
+        self.assertEqual(handler._queue_consumer._dispatcher.free_count, 1)
+
+        handler = get_handler()
+        self.assertEqual(
+            handler._queue_consumer._dispatcher.free_count,
+            consumers.DEFAULT_CONCURRENCY,
+        )
 
 
 class FakeStagedMessageHandler(consumers.StagedMessageHandler):
@@ -94,6 +183,24 @@ class StagedQueueConsumerTest(DbTestCase):
         handler._queue_consumer._process_message(payload)
         FakeStagedMessageHandler.process.assert_called_once_with(payload)
         self.assertTrue(mock_message.ack.called)
+
+    @mock.patch.object(
+        FakeStagedMessageHandler,
+        "pre_ack_process",
+        mock.MagicMock(side_effect=Exception("boom")),
+    )
+    @mock.patch.object(FakeStagedMessageHandler, "process", mock.MagicMock())
+    def test_process_message_pre_ack_failure(self):
+        payload = FakeModelDB()
+        handler = get_staged_handler()
+        mock_message = mock.MagicMock()
+        handler._queue_consumer.process(payload, mock_message)
+        self.assertTrue(mock_message.ack.called)
+        self.assertFalse(FakeStagedMessageHandler.process.called)
+        self.assertEqual(
+            handler._queue_consumer._dispatcher.free_count,
+            consumers.DEFAULT_CONCURRENCY,
+        )
 
     def test_process_message_wrong_payload_type(self):
         payload = 100

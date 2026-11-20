@@ -16,8 +16,6 @@
 from __future__ import absolute_import
 import time
 
-import six.moves.queue
-
 from st2common.util import concurrency
 
 from st2common import log as logging
@@ -28,6 +26,9 @@ __all__ = ["BufferedDispatcher"]
 # a message will be logged
 POOL_BUSY_THRESHOLD_SECONDS = 60
 
+# How often a caller waiting for a free slot checks whether the dispatcher has been shut down
+SLOT_WAIT_INTERVAL_SECONDS = 1
+
 POOL_BUSY_LOG_MESSAGE = """
 BufferedDispatcher pool "%s" has been busy with no free threads for more than %s seconds. If there \
 are server resources available, consider increasing the dispatcher pool size in the config.
@@ -37,77 +38,90 @@ LOG = logging.getLogger(__name__)
 
 
 class BufferedDispatcher(object):
-    def __init__(
-        self,
-        dispatch_pool_size=50,
-        monitor_thread_empty_q_sleep_time=5,
-        monitor_thread_no_workers_sleep_time=1,
-        name=None,
-    ):
+    """
+    Runs work items in green threads, with at most ``dispatch_pool_size`` running at once.
+
+    Callers reserve a slot with ``acquire()`` and then hand the work over with ``dispatch()``.
+    ``acquire()`` blocks while all the slots are in use, which lets a queue consumer stop
+    pulling messages from the broker (instead of buffering them in memory) until a slot frees up.
+    """
+
+    def __init__(self, dispatch_pool_size=50, name=None):
         self._pool_limit = dispatch_pool_size
-        self._dispatcher_pool = concurrency.get_green_pool_class()(dispatch_pool_size)
-        self._dispatch_monitor_thread = concurrency.spawn(self._flush)
-        self._monitor_thread_empty_q_sleep_time = monitor_thread_empty_q_sleep_time
-        self._monitor_thread_no_workers_sleep_time = (
-            monitor_thread_no_workers_sleep_time
-        )
+        self._slots = concurrency.Semaphore(dispatch_pool_size)
+        self._in_use = 0
+        self._shutdown = False
         self._name = name
-
-        self._work_buffer = six.moves.queue.Queue()
-
-        # Internal attributes we use to track how long the pool is busy without any free workers
-        self._pool_last_free_ts = time.time()
 
     @property
     def name(self):
         return self._name or id(self)
 
-    def dispatch(self, handler, *args):
-        self._work_buffer.put((handler, args), block=True, timeout=1)
-        self._flush_now()
+    @property
+    def free_count(self):
+        return self._pool_limit - self._in_use
 
-    def shutdown(self):
-        concurrency.kill(self._dispatch_monitor_thread)
+    def acquire(self):
+        """
+        Reserve a slot, blocking while all the slots are in use.
 
-    def _flush(self):
-        while True:
-            while self._work_buffer.empty():
-                concurrency.sleep(self._monitor_thread_empty_q_sleep_time)
-            while not concurrency.is_green_pool_free(self._dispatcher_pool):
-                concurrency.sleep(self._monitor_thread_no_workers_sleep_time)
-            self._flush_now()
+        :return: ``True`` if a slot was reserved, ``False`` if the dispatcher was shut down
+                 before a slot became available.
+        :rtype: ``bool``
+        """
+        busy_since = time.time()
 
-    def _flush_now(self):
-        if not concurrency.is_green_pool_free(self._dispatcher_pool):
-            now = time.time()
+        while not self._shutdown:
+            if self._slots.acquire(timeout=SLOT_WAIT_INTERVAL_SECONDS):
+                if self._shutdown:
+                    self._slots.release()
+                    return False
 
-            if (now - self._pool_last_free_ts) >= POOL_BUSY_THRESHOLD_SECONDS:
+                self._in_use += 1
+                return True
+
+            if (time.time() - busy_since) >= POOL_BUSY_THRESHOLD_SECONDS:
                 LOG.info(
                     POOL_BUSY_LOG_MESSAGE % (self.name, POOL_BUSY_THRESHOLD_SECONDS)
                 )
+                busy_since = time.time()
 
-            return
+        return False
 
-        # Update the time of when there were free threads available
-        self._pool_last_free_ts = time.time()
+    def release(self):
+        """
+        Release a slot reserved with ``acquire()`` which won't be used for ``dispatch()``.
+        """
+        self._in_use -= 1
+        self._slots.release()
 
-        while not self._work_buffer.empty() and concurrency.is_green_pool_free(
-            self._dispatcher_pool
-        ):
-            (handler, args) = self._work_buffer.get_nowait()
-            concurrency.pool_spawn(self._dispatcher_pool, handler, *args)
+    def dispatch(self, handler, *args):
+        """
+        Run the handler in a new green thread. The caller must have reserved a slot with
+        ``acquire()``, the slot is released once the handler returns.
+        """
+        return concurrency.spawn(self._run, handler, *args)
+
+    def shutdown(self):
+        """
+        Stop handing out slots. Callers blocked in ``acquire()`` return ``False``. Work which is
+        already running is not interrupted.
+        """
+        self._shutdown = True
+
+    def _run(self, handler, *args):
+        try:
+            handler(*args)
+        finally:
+            self.release()
 
     def __repr__(self):
-        free_count = concurrency.green_pool_free_count(self._dispatcher_pool)
         values = (
             self.name,
             self._pool_limit,
-            free_count,
-            self._monitor_thread_empty_q_sleep_time,
-            self._monitor_thread_no_workers_sleep_time,
+            self.free_count,
         )
         return (
-            "<BufferedDispatcher name=%s,dispatch_pool_size=%s,free_threads=%s,"
-            "monitor_thread_empty_q_sleep_time=%s,monitor_thread_no_workers_sleep_time=%s>"
+            "<BufferedDispatcher name=%s,dispatch_pool_size=%s,free_threads=%s>"
             % values
         )

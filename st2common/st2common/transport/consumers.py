@@ -35,11 +35,14 @@ __all__ = [
 
 LOG = logging.getLogger(__name__)
 
+# Default maximum number of messages a consumer processes at the same time
+DEFAULT_CONCURRENCY = 50
+
 
 class QueueConsumer(ConnectionRetryMixin, ConsumerMixin):
-    def __init__(self, connection, queues, handler):
+    def __init__(self, connection, queues, handler, concurrency=DEFAULT_CONCURRENCY):
         self.connection = connection
-        self._dispatcher = BufferedDispatcher()
+        self._dispatcher = BufferedDispatcher(dispatch_pool_size=concurrency)
         self._queues = queues
         self._handler = handler
 
@@ -63,19 +66,56 @@ class QueueConsumer(ConnectionRetryMixin, ConsumerMixin):
 
     def process(self, body, message):
         try:
-            if not isinstance(body, self._handler.message_type):
-                raise TypeError(
-                    'Received an unexpected type "%s" for payload.' % type(body)
-                )
-
-            self._dispatcher.dispatch(self._process_message, body)
+            self._validate_message(body)
         except:
             LOG.exception(
                 "%s failed to process message: %s", self.__class__.__name__, body
             )
-        finally:
-            # At this point we will always ack a message.
             message.ack()
+            return
+
+        dispatcher = self._get_dispatcher(body)
+
+        # Wait for a free slot before acking. Until the message is acked the broker won't
+        # deliver the next one (prefetch_count=1), so the backlog stays in the broker instead
+        # of piling up in memory.
+        if not dispatcher.acquire():
+            # Shutting down. The message is not acked so the broker will redeliver it.
+            LOG.debug(
+                "%s is shutting down, not processing message: %s",
+                self.__class__.__name__,
+                body,
+            )
+            return
+
+        try:
+            payload = self._pre_ack_process(body)
+        except:
+            dispatcher.release()
+            LOG.exception(
+                "%s failed to process message: %s", self.__class__.__name__, body
+            )
+            message.ack()
+            return
+
+        try:
+            message.ack()
+            dispatcher.dispatch(self._process_message, payload)
+        except:
+            dispatcher.release()
+            raise
+
+    def _validate_message(self, body):
+        if not isinstance(body, self._handler.message_type):
+            raise TypeError(
+                'Received an unexpected type "%s" for payload.' % type(body)
+            )
+
+    def _get_dispatcher(self, body):
+        return self._dispatcher
+
+    def _pre_ack_process(self, body):
+        return body
 
     def _process_message(self, body):
         try:
@@ -91,21 +131,8 @@ class StagedQueueConsumer(QueueConsumer):
     Used by ``StagedMessageHandler`` to effectively manage it 2 step message handling.
     """
 
-    def process(self, body, message):
-        try:
-            if not isinstance(body, self._handler.message_type):
-                raise TypeError(
-                    'Received an unexpected type "%s" for payload.' % type(body)
-                )
-            response = self._handler.pre_ack_process(body)
-            self._dispatcher.dispatch(self._process_message, response)
-        except:
-            LOG.exception(
-                "%s failed to process message: %s", self.__class__.__name__, body
-            )
-        finally:
-            # At this point we will always ack a message.
-            message.ack()
+    def _pre_ack_process(self, body):
+        return self._handler.pre_ack_process(body)
 
 
 class ActionsQueueConsumer(QueueConsumer):
@@ -115,7 +142,9 @@ class ActionsQueueConsumer(QueueConsumer):
     1. For regular (non-workflow) actions
     2. One for workflow actions
 
-    This way we can ensure workflow actions never block non-workflow actions.
+    This way workflow actions get their own slots and can't use up the slots for non-workflow
+    actions. Both pools are fed by the same consumer though, so while the pool needed by the
+    next message is full, no more messages are pulled from the queue for either pool.
     """
 
     def __init__(self, connection, queues, handler):
@@ -131,30 +160,17 @@ class ActionsQueueConsumer(QueueConsumer):
             dispatch_pool_size=actions_pool_size, name="actions-dispatcher"
         )
 
-    def process(self, body, message):
-        try:
-            if not isinstance(body, self._handler.message_type):
-                raise TypeError(
-                    'Received an unexpected type "%s" for payload.' % type(body)
-                )
+    def _get_dispatcher(self, body):
+        action_is_workflow = getattr(body, "action_is_workflow", False)
+        if action_is_workflow:
+            # Use workflow dispatcher queue
+            dispatcher = self._workflows_dispatcher
+        else:
+            # Use queue for regular or workflow actions
+            dispatcher = self._actions_dispatcher
 
-            action_is_workflow = getattr(body, "action_is_workflow", False)
-            if action_is_workflow:
-                # Use workflow dispatcher queue
-                dispatcher = self._workflows_dispatcher
-            else:
-                # Use queue for regular or workflow actions
-                dispatcher = self._actions_dispatcher
-
-            LOG.debug('Using BufferedDispatcher pool: "%s"', str(dispatcher))
-            dispatcher.dispatch(self._process_message, body)
-        except:
-            LOG.exception(
-                "%s failed to process message: %s", self.__class__.__name__, body
-            )
-        finally:
-            # At this point we will always ack a message.
-            message.ack()
+        LOG.debug('Using BufferedDispatcher pool: "%s"', str(dispatcher))
+        return dispatcher
 
     def shutdown(self):
         self._workflows_dispatcher.shutdown()
@@ -167,21 +183,11 @@ class VariableMessageQueueConsumer(QueueConsumer):
     Used by ``VariableMessageHandler`` to processes multiple message types.
     """
 
-    def process(self, body, message):
-        try:
-            if not self._handler.message_types.get(type(body)):
-                raise TypeError(
-                    'Received an unexpected type "%s" for payload.' % type(body)
-                )
-
-            self._dispatcher.dispatch(self._process_message, body)
-        except:
-            LOG.exception(
-                "%s failed to process message: %s", self.__class__.__name__, body
+    def _validate_message(self, body):
+        if not self._handler.message_types.get(type(body)):
+            raise TypeError(
+                'Received an unexpected type "%s" for payload.' % type(body)
             )
-        finally:
-            # At this point we will always ack a message.
-            message.ack()
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -215,8 +221,20 @@ class MessageHandler(object):
     def process(self, message):
         pass
 
+    def get_concurrency(self):
+        """
+        Maximum number of messages this handler processes at the same time. Messages beyond
+        that are left in the queue until a running one completes.
+        """
+        return DEFAULT_CONCURRENCY
+
     def get_queue_consumer(self, connection, queues):
-        return QueueConsumer(connection=connection, queues=queues, handler=self)
+        return QueueConsumer(
+            connection=connection,
+            queues=queues,
+            handler=self,
+            concurrency=self.get_concurrency(),
+        )
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -243,7 +261,12 @@ class StagedMessageHandler(MessageHandler):
         pass
 
     def get_queue_consumer(self, connection, queues):
-        return StagedQueueConsumer(connection=connection, queues=queues, handler=self)
+        return StagedQueueConsumer(
+            connection=connection,
+            queues=queues,
+            handler=self,
+            concurrency=self.get_concurrency(),
+        )
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -254,5 +277,8 @@ class VariableMessageHandler(MessageHandler):
 
     def get_queue_consumer(self, connection, queues):
         return VariableMessageQueueConsumer(
-            connection=connection, queues=queues, handler=self
+            connection=connection,
+            queues=queues,
+            handler=self,
+            concurrency=self.get_concurrency(),
         )

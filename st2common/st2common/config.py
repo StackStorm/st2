@@ -940,11 +940,37 @@ def register_opts(ignore_errors=False):
             default=2,
             help="Time interval between subsequent queries to check executions handled by WFE.",
         ),
+        cfg.IntOpt(
+            "concurrency",
+            default=1,
+            min=1,
+            help="Maximum number of messages each workflow engine process works on at the same "
+            "time. Additional messages stay in the message bus until a running one completes.",
+        ),
     ]
 
     do_register_opts(
         workflow_engine_opts, group="workflow_engine", ignore_errors=ignore_errors
     )
+
+    # Message bus consumer options for the services which don't have them registered above
+    for group, service in [
+        ("notifier", "notifier"),
+        ("rulesengine", "rules engine"),
+        ("scheduler", "scheduler"),
+    ]:
+        consumer_opts = [
+            cfg.IntOpt(
+                "concurrency",
+                default=50,
+                min=1,
+                help="Maximum number of messages each %s process works on at the same time. "
+                "Additional messages stay in the message bus until a running one completes."
+                % (service),
+            ),
+        ]
+
+        do_register_opts(consumer_opts, group=group, ignore_errors=ignore_errors)
 
 
 class St2EnvironmentConfigurationSource(EnvironmentConfigurationSource):
