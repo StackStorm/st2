@@ -36,6 +36,13 @@ Changed
  * Replaced deprecated `pkg_resources` module with `importlib-metadata` and `importlib-resources`.
  * Replaced abandoned `flex` module by `openapi-spec-validator`
  * Replaced Stackstorm/logshipper (stops working with Python 3.12) and eventlet in the `linux.file_watch_sensor` with threading. (by @skiedude)
+ * Services that consume from RabbitMQ (actionrunner, rules engine, notifier, scheduler and workflow engine)
+   no longer pull messages they cannot process yet. Each consumer uses ``prefetch_count=1`` and waits
+   for a free dispatcher slot before acking a message, so the backlog stays in RabbitMQ instead of
+   building up in service memory. Messages waiting for a slot during shutdown are not acked, so the broker
+   redelivers them to another instance. In the actionrunner, the ``workflows_pool_size`` and
+   ``actions_pool_size`` pools share one consumer, so while one pool is full no new messages are pulled for
+   either pool. #XXXX (by @guzzijones12@gmail.com)
 
 Added
 ~~~~~

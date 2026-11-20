@@ -76,6 +76,9 @@ class Notifier(consumers.MessageHandler):
             pack=ACTION_TRIGGER_TYPE["pack"], name=ACTION_TRIGGER_TYPE["name"]
         )
 
+    def get_concurrency(self):
+        return cfg.CONF.notifier.concurrency
+
     @CounterWithTimer(key="notifier.action.executions")
     def process(self, execution_db):
         execution_id = str(execution_db.id)

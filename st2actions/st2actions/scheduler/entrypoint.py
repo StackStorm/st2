@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import
 
+from oslo_config import cfg
+
 from st2common import log as logging
 from st2common.util import date
 from st2common.constants import action as action_constants
@@ -42,6 +44,9 @@ class SchedulerEntrypoint(consumers.MessageHandler):
     """
 
     message_type = LiveActionDB
+
+    def get_concurrency(self):
+        return cfg.CONF.scheduler.concurrency
 
     def process(self, request):
         """

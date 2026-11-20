@@ -15,6 +15,8 @@
 
 from __future__ import absolute_import
 
+from oslo_config import cfg
+
 from st2common import log as logging
 from st2common.constants.trace import TRACE_CONTEXT, TRACE_ID
 from st2common.constants import triggers as trigger_constants
@@ -39,6 +41,9 @@ class TriggerInstanceDispatcher(consumers.StagedMessageHandler):
     def __init__(self, connection, queues):
         super(TriggerInstanceDispatcher, self).__init__(connection, queues)
         self.rules_engine = RulesEngine()
+
+    def get_concurrency(self):
+        return cfg.CONF.rulesengine.concurrency
 
     def pre_ack_process(self, message):
         """

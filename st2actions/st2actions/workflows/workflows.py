@@ -74,11 +74,8 @@ class WorkflowExecutionHandler(consumers.VariableMessageHandler):
             ex_db_models.ActionExecutionDB: handle_action_execution_with_instrumentation,
         }
 
-    def get_queue_consumer(self, connection, queues):
-        # We want to use a special ActionsQueueConsumer which uses 2 dispatcher pools
-        return consumers.VariableMessageQueueConsumer(
-            connection=connection, queues=queues, handler=self
-        )
+    def get_concurrency(self):
+        return cfg.CONF.workflow_engine.concurrency
 
     def process(self, message):
         handler_function = self.message_types.get(type(message), None)
