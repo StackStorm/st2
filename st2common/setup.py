@@ -62,6 +62,7 @@ setup(
         "bin/st2ctl",
         "bin/st2-generate-symmetric-crypto-key",
         "bin/st2-self-check",
+        "bin/st2-setup-sudo",
         "bin/st2-track-result",
         "bin/st2-validate-pack",
         "bin/st2-validate-pack-config",

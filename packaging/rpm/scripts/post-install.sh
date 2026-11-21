@@ -68,6 +68,19 @@ for pack in ${_ST2_PACKS}; do
 done
 extract_st2_pack examples --target /usr/share/doc/st2/examples || :
 
+# Setup sudo configuration based on security mode
+if [ -x /opt/stackstorm/st2/bin/st2-setup-sudo ]; then
+    /opt/stackstorm/st2/bin/st2-setup-sudo || :
+fi
+
+# Fix file permissions for st2 user
+chown -R st2:st2packs /opt/stackstorm/packs 2>/dev/null || :
+chown -R st2:st2packs /opt/stackstorm/virtualenvs 2>/dev/null || :
+chown -R st2:st2 /var/log/st2 2>/dev/null || :
+chown -R st2:st2 /etc/st2 2>/dev/null || :
+chmod 2775 /opt/stackstorm/packs 2>/dev/null || :
+chmod 2775 /opt/stackstorm/virtualenvs 2>/dev/null || :
+
 # Native .rpm specs use macros that get expanded into shell snippets.
 # We are using nfpm, so we inline the macro expansion here.
 # %systemd_post

@@ -104,6 +104,46 @@ class BaseLocalShellRunner(ActionRunner, ShellRunnerMixin):
             RUNNER_TIMEOUT, runner_constants.LOCAL_RUNNER_DEFAULT_ACTION_TIMEOUT
         )
 
+        # Validate security restrictions in restricted mode
+        self._validate_security_restrictions()
+
+    def _validate_security_restrictions(self):
+        """
+        Validate action execution against security mode restrictions.
+        Only enforced in restricted mode.
+        """
+        security_mode = cfg.CONF.system_security.security_mode
+
+        if security_mode != "restricted":
+            # Legacy mode - no restrictions
+            return
+
+        # Restricted mode validations
+        allowed_users = cfg.CONF.system_security.allowed_run_as_users
+
+        # Check if target user is allowed
+        if self._user and self._user not in allowed_users:
+            raise ValueError(
+                f"Security violation: User '{self._user}' is not in allowed_run_as_users. "
+                f"Allowed users: {', '.join(allowed_users)}. "
+                f"Update [system_security] allowed_run_as_users in st2.conf to allow this user."
+            )
+
+        # In restricted mode, validate that entry_point is under /opt/stackstorm
+        if self.entry_point:
+            base_path = cfg.CONF.system.base_path
+            if not self.entry_point.startswith(base_path + "/"):
+                raise ValueError(
+                    f"Security violation: Script '{self.entry_point}' is outside {base_path}. "
+                    f"In restricted mode, only scripts under {base_path} are allowed. "
+                    f"Switch to legacy mode in st2.conf if you need to run external scripts."
+                )
+
+        LOG.debug(
+            f"Security validation passed: mode={security_mode}, user={self._user}, "
+            f"entry_point={self.entry_point}"
+        )
+
     def _run(self, action):
         env_vars = self._env
 

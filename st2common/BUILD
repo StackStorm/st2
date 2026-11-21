@@ -25,6 +25,7 @@ st2_component_python_distribution(
         "bin/st2-run-pack-tests:shell",
         "bin/st2ctl:shell",
         "bin/st2-self-check:shell",
+        "bin/st2-setup-sudo:shell",
         # dev scripts we might want to include
         # "bin/st2-generate-schemas",
     ],

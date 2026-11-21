@@ -89,6 +89,29 @@ def register_opts(ignore_errors=False):
 
     do_register_opts(system_user_opts, "system_user", ignore_errors)
 
+    system_security_opts = [
+        cfg.StrOpt(
+            "security_mode",
+            default="legacy",
+            choices=["legacy", "restricted"],
+            help=(
+                "Security mode for action execution. "
+                "legacy: Full sudo access (backward compatible). "
+                "restricted: Limited to /opt/stackstorm paths only."
+            ),
+        ),
+        cfg.ListOpt(
+            "allowed_run_as_users",
+            default=["stanley", "root"],
+            help=(
+                "List of users that st2 service can run commands as. "
+                "Only applies in restricted mode."
+            ),
+        ),
+    ]
+
+    do_register_opts(system_security_opts, "system_security", ignore_errors)
+
     schema_opts = [
         cfg.IntOpt("version", default=4, help="Version of JSON schema to use."),
         cfg.StrOpt(
