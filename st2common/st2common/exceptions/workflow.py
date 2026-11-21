@@ -16,6 +16,7 @@
 from __future__ import absolute_import
 
 import mongoengine
+import pymongo
 import tooz
 
 from st2common import exceptions as st2_exc
@@ -29,8 +30,10 @@ LOG = logging.getLogger(__name__)
 def retry_on_connection_errors(exc):
     LOG.warning("Determining if exception %s should be retried.", type(exc))
 
-    retrying = isinstance(exc, tooz.coordination.ToozConnectionError) or isinstance(
-        exc, mongoengine.connection.ConnectionFailure
+    retrying = (
+        isinstance(exc, tooz.coordination.ToozConnectionError)
+        or isinstance(exc, mongoengine.connection.ConnectionFailure)
+        or isinstance(exc, pymongo.errors.ConnectionFailure)
     )
 
     if retrying:
